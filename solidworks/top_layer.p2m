@@ -1,0 +1,23 @@
+
+color texture "color_texname" "f:\line_follower\top_layer.png" 
+
+	 "swP2M"  on ,
+	 "num_cols"  0 ,
+	 "col1"  1 1 1 ,
+	 "diffuse_factor"  1 ,
+	 "specular_factor"  0.5 ,
+	 "specular_color"  1 1 1 ,
+	 "roughness"  0 ,
+	 "reflectivity"  0 ,
+	 "mtl_ior"  1 ,
+	 "transparency"  0 ,
+	 "blurryReflections"  off ,
+	 "doubleSided"  off ,
+	 "refractionRoughness"  0 ,
+	 "luminousIntensity"  0 ,
+	 "bumpTexture"  "" ,
+	 "bumpStrength"  0.001 ,
+	 "displacementDistance"  0.001 ,
+	 "SurfaceFinishShaderType"  0 ,
+	 "initTextureWidth"  1.2521 ,
+	 "initTextureHeight"  0.798658 
