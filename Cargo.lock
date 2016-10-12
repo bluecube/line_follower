@@ -1,0 +1,169 @@
+[root]
+name = "line_follower"
+version = "0.0.1"
+dependencies = [
+ "ioreg 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+ "macro_platformtree 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+ "macro_zinc 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+ "platformtree 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+ "rust-libcore 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zinc 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+]
+
+[[package]]
+name = "aho-corasick"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "memchr 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "ioreg"
+version = "0.1.0"
+source = "git+https://github.com/hackndev/zinc.git#0b38933dd1b188e02be61a65c94caa6fa64d0420"
+
+[[package]]
+name = "kernel32-sys"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "macro_platformtree"
+version = "0.1.0"
+source = "git+https://github.com/hackndev/zinc.git#a3d393b435992be8929bd5233defdd62889e5183"
+dependencies = [
+ "platformtree 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+]
+
+[[package]]
+name = "macro_zinc"
+version = "0.1.0"
+source = "git+https://github.com/hackndev/zinc.git#a3d393b435992be8929bd5233defdd62889e5183"
+
+[[package]]
+name = "memchr"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "platformtree"
+version = "0.1.0"
+source = "git+https://github.com/hackndev/zinc.git#a3d393b435992be8929bd5233defdd62889e5183"
+dependencies = [
+ "regex 0.1.77 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "regex"
+version = "0.1.77"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "aho-corasick 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "memchr 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex-syntax 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thread_local 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "utf8-ranges 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "regex-syntax"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "rlibc"
+version = "0.1.4"
+source = "git+https://github.com/hackndev/rlibc?branch=zinc#620489f8badd698f4440fd19889c308d8ab41078"
+dependencies = [
+ "rust-libcore 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "rust-libcore"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "thread-id"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "thread_local"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "utf8-ranges"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "volatile_cell"
+version = "1.0.0"
+source = "git+https://github.com/hackndev/zinc.git#0b38933dd1b188e02be61a65c94caa6fa64d0420"
+dependencies = [
+ "rust-libcore 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "winapi"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "winapi-build"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "zinc"
+version = "0.1.0"
+source = "git+https://github.com/hackndev/zinc.git#0b38933dd1b188e02be61a65c94caa6fa64d0420"
+dependencies = [
+ "ioreg 0.1.0 (git+https://github.com/hackndev/zinc.git)",
+ "rlibc 0.1.4 (git+https://github.com/hackndev/rlibc?branch=zinc)",
+ "rust-libcore 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "volatile_cell 1.0.0 (git+https://github.com/hackndev/zinc.git)",
+]
+
+[metadata]
+"checksum aho-corasick 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ca972c2ea5f742bfce5687b9aef75506a764f61d37f8f649047846a9686ddb66"
+"checksum ioreg 0.1.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
+"checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
+"checksum libc 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)" = "408014cace30ee0f767b1c4517980646a573ec61a57957aeeabcac8ac0a02e8d"
+"checksum macro_platformtree 0.1.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
+"checksum macro_zinc 0.1.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
+"checksum memchr 0.1.11 (registry+https://github.com/rust-lang/crates.io-index)" = "d8b629fb514376c675b98c1421e80b151d3817ac42d7c667717d282761418d20"
+"checksum platformtree 0.1.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
+"checksum regex 0.1.77 (registry+https://github.com/rust-lang/crates.io-index)" = "64b03446c466d35b42f2a8b203c8e03ed8b91c0f17b56e1f84f7210a257aa665"
+"checksum regex-syntax 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)" = "48f0573bcee95a48da786f8823465b5f2a1fae288a55407aca991e5b3e0eae11"
+"checksum rlibc 0.1.4 (git+https://github.com/hackndev/rlibc?branch=zinc)" = "<none>"
+"checksum rust-libcore 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ae7a33830cc02d03ae1e50057d0e4e4b1a84be09bfb158bf95e9c3f3373aa453"
+"checksum thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a9539db560102d1cef46b8b78ce737ff0bb64e7e18d35b2a5688f7d097d0ff03"
+"checksum thread_local 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)" = "8576dbbfcaef9641452d5cf0df9b0e7eeab7694956dd33bb61515fb8f18cfdd5"
+"checksum utf8-ranges 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "a1ca13c08c41c9c3e04224ed9ff80461d97e121589ff27c753a16cb10830ae0f"
+"checksum volatile_cell 1.0.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
+"checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
+"checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
+"checksum zinc 0.1.0 (git+https://github.com/hackndev/zinc.git)" = "<none>"
