@@ -2,6 +2,7 @@
 name = "line_follower"
 version = "0.0.1"
 authors = ["Kuba Marek <blue.cube@seznam.cz>"]
+publish = false
 
 [dependencies.zinc]
 git = "https://github.com/hackndev/zinc.git"
@@ -13,20 +14,17 @@ git = "https://github.com/hackndev/zinc.git"
 branch = "master"
 path = "macro_zinc"
 
-[dependencies.macro_platformtree]
-git = "https://github.com/hackndev/zinc.git"
-branch = "master"
-path = "macro_platformtree"
+#[dependencies.macro_platformtree]
+#git = "https://github.com/hackndev/zinc.git"
+#branch = "master"
+#path = "macro_platformtree"
 
-[dependencies.ioreg]
-git = "https://github.com/hackndev/zinc.git"
-branch = "master"
-path = "ioreg"
+#[dependencies.ioreg]
+#git = "https://github.com/hackndev/zinc.git"
+#branch = "master"
+#path = "ioreg"
 
-[dependencies.platformtree]
-git = "https://github.com/hackndev/zinc.git"
-branch = "master"
-path = "platformtree"
-
-[dependencies]
-rust-libcore = "*"
+#[dependencies.platformtree]
+#git = "https://github.com/hackndev/zinc.git"
+#branch = "master"
+#path = "platformtree"

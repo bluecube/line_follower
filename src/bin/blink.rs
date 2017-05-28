@@ -1,5 +1,4 @@
-#![feature(start)]
-#![feature(plugin)]
+#![feature(plugin, start)]
 #![no_std]
 #![plugin(macro_zinc)]
 
@@ -32,8 +31,8 @@ pub fn main() {
   zinc::hal::mem_init::init_data();
   watchdog::init(watchdog::State::Disabled);
 
-  // Pins for MC HCK (http://www.mchck.org/)
-  let led1 = pin::Pin::new(pin::Port::PortB, 16, pin::Function::Gpio, Some(zinc::hal::pin::Out));
+  // Built-in LED of Teensy 3.2
+  let led1 = pin::Pin::new(pin::Port::PortC, 5, pin::Function::Gpio, Some(zinc::hal::pin::Out));
 
   systick::setup(systick::ten_ms().unwrap_or(480000));
   systick::enable();
@@ -42,5 +41,9 @@ pub fn main() {
     wait(10);
     led1.set_low();
     wait(10);
+    led1.set_high();
+    wait(10);
+    led1.set_low();
+    wait(30);
   }
 }
