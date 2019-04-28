@@ -1,8 +1,10 @@
 #include "LfHal.h"
 
-#include "ADC.h"
+#include <Arduino.h>
 
 void LfHal::setup() {
+    //this->adc = new ADC(); // TODO: Get rid of the dynamic allocation
+
     this->setupMotorPWM();
     this->setupLineSensor();
 
@@ -50,4 +52,13 @@ void LfHal::enableSensorLed(uint8_t ledIndex) {
 
 void LfHal::enableBuiltinLed(bool enable) {
     digitalWrite(builtinLed, enable ? HIGH : LOW);
+}
+
+int LfHal::readRange() {
+    return analogRead(rangeSensor);
+}
+
+int LfHal::readLineSensor(uint8_t sensorIndex) {
+    PinT pin = lineSensorFirst - sensorIndex;
+    return analogRead(sensorIndex);
 }

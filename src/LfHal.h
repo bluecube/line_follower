@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <limits>
 
+//#include "ADC.h"
+
 class LfHal
 {
 public:
@@ -23,7 +25,7 @@ public:
     static constexpr PinT motor1Current = 20;
     static constexpr PinT motor0Current = 21;
     static constexpr PinT batteryVoltage = 22;
-    static constexpr PinT range = 23;
+    static constexpr PinT rangeSensor = 23;
 
     // Motor PWM settings
     using PwmT = int16_t;
@@ -52,6 +54,10 @@ public:
     /// Enable or disable the Teensy builtin amber LED.
     void enableBuiltinLed(bool enabled);
 
+    int readRange();
+
+    int readLineSensor(uint8_t sensorIndex);
+
 protected:
     void setupMotorPWM();
     void setupLineSensor();
@@ -64,6 +70,7 @@ protected:
     /// led pins if none is enabled.
     PinT enabledLineLed;
 
+    //ADC* adc;
 private:
     LfHal(const LfHal&) = delete;
     void operator=(const LfHal&) = delete;
