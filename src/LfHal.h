@@ -40,6 +40,8 @@ public:
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
+    /// Note that the actual hardware doesn't use the whole resolution of the inputs
+    /// (expected actual resolution for 96Mhz CPU and ~20kHz PWM is 11bit).
     void setMotors(PwmT left, PwmT right);
 
     /// Enable given line sensor LED or disable all.
