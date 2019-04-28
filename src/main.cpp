@@ -4,6 +4,7 @@
 LfHal hal;
 
 bool led = false;
+uint8_t sensorLed = 0;
 
 void setup() {
     hal.setup();
@@ -11,7 +12,10 @@ void setup() {
 
 void loop() {
     led = !led;
-    digitalWrite(LfHal::builtinLed, led ? HIGH : LOW);
+    hal.enableBuiltinLed(led);
+
+    sensorLed = (sensorLed + 1) % LfHal::lineSensorLedCount;
+    hal.enableSensorLed(sensorLed);
 
     delay(100);
 }

@@ -31,16 +31,36 @@ public:
     static constexpr PwmT motorMinValue = -motorMaxValue;
     static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
 
+    static constexpr uint8_t lineSensorLedCount = lineLedLast - lineLedFirst + 1;
+    static constexpr uint8_t lineSensorLedDisabled = ~0;
+
     LfHal() = default;
 
     void setup();
 
+    /// Set PWM signals for motors. Positive driving forward,
+    /// rangege is from motorMinValue to motorMaxValue.
     void setMotors(PwmT left, PwmT right);
+
+    /// Enable given line sensor LED or disable all.
+    /// Makes sure that only one is on at a time.
+    /// Range 0 - lineSensorLedCount, or lineSensorLedDisabled to disable.
+    void enableSensorLed(uint8_t ledIndex);
+
+    /// Enable or disable the Teensy builtin amber LED.
+    void enableBuiltinLed(bool enabled);
 
 protected:
     void setupMotorPWM();
+    void setupLineSensor();
 
+    /// Helper function to set pwm output for a single motor, handlnig
+    /// reversing correctly.
     void setSingleMotor(PinT pinA, PinT pinB, PwmT value);
+
+    /// Line sensor led pin that is currently enabled, or any of the line sensor
+    /// led pins if none is enabled.
+    PinT enabledLineLed;
 
 private:
     LfHal(const LfHal&) = delete;
