@@ -2,7 +2,7 @@ The name Procrastinator 9000 comes from the fact that the robot was designed and
 
 The design is an attempt to make a line follower with minimum effort on the hardware side and maximum versatility on the software side.
 
-The robot body consists of a single double sided PCB, two geared N20 DC motors with Pololu wheels and a few 3D printed bits.
+The robot body consists of a 8cm x 10cm double sided PCB, two geared N20 DC motors with Pololu wheels and a few 3D printed bits.
 The most important electronic components are Teensy 3.2 development board for computing power and line sensor inspired by Ondřej Staněk's PocketBot, as a bonus the robot also carries an IR range sensor and MPU 6050 breakout board (accelerometer and gyro).
 
 Now he is ready to conquer the world...
