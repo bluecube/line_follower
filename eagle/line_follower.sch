@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.4.0">
+<eagle version="7.7.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -16942,10 +16942,10 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <part name="LED4" library="led" deviceset="LED" device="CHIPLED_0603"/>
 <part name="LED5" library="led" deviceset="LED" device="CHIPLED_0603"/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="R0805" value="68"/>
-<part name="R1" library="rcl" deviceset="R-EU_" device="R0805" value="470"/>
-<part name="R2" library="rcl" deviceset="R-EU_" device="R0805" value="470"/>
-<part name="R3" library="rcl" deviceset="R-EU_" device="R0805" value="470"/>
-<part name="R4" library="rcl" deviceset="R-EU_" device="R0805" value="470"/>
+<part name="R1" library="rcl" deviceset="R-EU_" device="R0805" value="10k"/>
+<part name="R2" library="rcl" deviceset="R-EU_" device="R0805" value="10k"/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="R0805" value="10k"/>
+<part name="R4" library="rcl" deviceset="R-EU_" device="R0805" value="10k"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="M1B" library="untitled" deviceset="1.5MM_PAD" device=""/>
 <part name="M1A" library="untitled" deviceset="1.5MM_PAD" device=""/>
