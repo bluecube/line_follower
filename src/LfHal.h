@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <limits>
 
-//#include "ADC.h"
+#include "ADC.h"
 
 class LfHal
 {
@@ -33,6 +33,7 @@ public:
     static constexpr PwmT motorMinValue = -motorMaxValue;
     static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
 
+    static constexpr uint8_t lineSensorCount = lineSensorFirst - lineSensorLast + 1;
     static constexpr uint8_t lineSensorLedCount = lineLedLast - lineLedFirst + 1;
     static constexpr uint8_t lineSensorLedDisabled = ~0;
 
@@ -70,7 +71,7 @@ protected:
     /// led pins if none is enabled.
     PinT enabledLineLed;
 
-    //ADC* adc;
+    ADC* adc;
 private:
     LfHal(const LfHal&) = delete;
     void operator=(const LfHal&) = delete;

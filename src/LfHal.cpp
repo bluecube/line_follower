@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 void LfHal::setup() {
-    //this->adc = new ADC(); // TODO: Get rid of the dynamic allocation
+    this->adc = new ADC(); // TODO: Get rid of the dynamic allocation
 
     this->setupMotorPWM();
     this->setupLineSensor();
@@ -60,5 +60,5 @@ int LfHal::readRange() {
 
 int LfHal::readLineSensor(uint8_t sensorIndex) {
     PinT pin = lineSensorFirst - sensorIndex;
-    return analogRead(sensorIndex);
+    return adc->analogRead(pin);
 }
