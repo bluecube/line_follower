@@ -2,40 +2,52 @@
 
 #include <cstdint>
 #include <limits>
+#include <array>
 
 #include "ADC.h"
 
 class LfHal
 {
-public:
-    // Pin mappings:
-    using PinT = uint8_t;
-    static constexpr PinT motor0a = 3;
-    static constexpr PinT motor0b = 4;
-    static constexpr PinT motor1a = 5;
-    static constexpr PinT motor1b = 6;
-    static constexpr PinT lineLedFirst = 7;
-    static constexpr PinT lineLedLast = 11;
-    static constexpr PinT button = 12;
-    static constexpr PinT builtinLed = 13;
-    static constexpr PinT lineSensorLast = 14;
-    static constexpr PinT lineSensorFirst = 17;
-    static constexpr PinT i2cSda = 18;
-    static constexpr PinT i2cScl = 19;
-    static constexpr PinT motor1Current = 20;
-    static constexpr PinT motor0Current = 21;
-    static constexpr PinT batteryVoltage = 22;
-    static constexpr PinT rangeSensor = 23;
+protected:
+    enum PinT: uint8_t
+    {
+        motor0a = 3,
+        motor0b = 4,
+        motor1a = 5,
+        motor1b = 6,
+        lineSensorLedFirst = 7,
+        lineSensorLedLast = 11,
+        button = 12,
+        builtinLed = 13,
+        lineSensorLast = 14,
+        lineSensorFirst = 17,
+        i2cSda = 18,
+        i2cScl = 19,
+        motor1Current = 20,
+        motor0Current = 21,
+        batteryVoltage = 22,
+        rangeSensor = 23,
+    };
 
-    // Motor PWM settings
+    static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
+    static constexpr int lineSensorLedDelay = 250; // Microseconds to wait after
+
+
+public:
     using PwmT = int16_t;
     static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();
     static constexpr PwmT motorMinValue = -motorMaxValue;
-    static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
 
-    static constexpr uint8_t lineSensorCount = lineSensorFirst - lineSensorLast + 1;
-    static constexpr uint8_t lineSensorLedCount = lineLedLast - lineLedFirst + 1;
-    static constexpr uint8_t lineSensorLedDisabled = ~0;
+    using LineSensorT = int;
+    using LineSensorBufferT = std::array<LineSensorT, 8>;
+
+    static constexpr uint8_t lineSensorLedCount = std::tuple_size<LineSensorBufferT>::value / 2 + 1;
+    static_assert(PinT::lineSensorLedLast - PinT::lineSensorLedFirst == lineSensorLedCount - 1,
+        "Line sensor LED pins must be consecutive and the exactly right count.");
+    static constexpr uint8_t lineSensorCount = std::tuple_size<LineSensorBufferT>::value / 2;
+    static_assert(lineSensorFirst - lineSensorLast == lineSensorCount - 1,
+        "Line sensor pins must be reversely consecutive and the exactly right count.");
+
 
     LfHal() = default;
 
@@ -47,17 +59,19 @@ public:
     /// (expected actual resolution for 96Mhz CPU and ~20kHz PWM is 11bit).
     void setMotors(PwmT left, PwmT right);
 
-    /// Enable given line sensor LED or disable all.
+    /// Enable given line sensor LED or disable all (for index out of range).
     /// Makes sure that only one is on at a time.
-    /// Range 0 - lineSensorLedCount, or lineSensorLedDisabled to disable.
-    void enableSensorLed(uint8_t ledIndex);
+    void enableLineSensorLed(uint8_t ledIndex);
+
+    /// Disable any sensor led currently enabled.
+    void disableLineSensorLed();
 
     /// Enable or disable the Teensy builtin amber LED.
-    void enableBuiltinLed(bool enabled);
+    void setBuiltinLed(bool enabled);
 
     int readRange();
 
-    int readLineSensor(uint8_t sensorIndex);
+    void readLineSensor(LineSensorBufferT& buffer);
 
 protected:
     void setupMotorPWM();
@@ -69,7 +83,7 @@ protected:
 
     /// Line sensor led pin that is currently enabled, or any of the line sensor
     /// led pins if none is enabled.
-    PinT enabledLineLed;
+    PinT enabledLineSensorLed;
 
     ADC* adc;
 private:
