@@ -1,30 +1,27 @@
 #include <Arduino.h>
 #include "LfHal.h"
 
-LfHal hal;
-
 bool led = false;
 
 void setup() {
-    hal.setup();
     Serial.begin(9600);
 
     while (!Serial) {
-      hal.setBuiltinLed(true);
+      LfHal::instance().setBuiltinLed(true);
       delay(50);
-      hal.setBuiltinLed(false);
+      LfHal::instance().setBuiltinLed(false);
       delay(50);
     }
 }
 
 void loop() {
-    hal.setBuiltinLed(led);
+    LfHal::instance().setBuiltinLed(led);
     led = !led;
 
     delay(2000);
 
     LfHal::LineSensorBufferT buffer;
-    hal.readLineSensor(buffer);
+    LfHal::instance().readLineSensor(buffer);
     for (uint8_t i = 0; i < 8; ++i)
     {
         Serial.print(" ");

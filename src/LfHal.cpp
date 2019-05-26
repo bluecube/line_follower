@@ -2,9 +2,12 @@
 
 #include <Arduino.h>
 
-void LfHal::setup() {
-    this->adc = new ADC(); // TODO: Get rid of the dynamic allocation
+LfHal& LfHal::instance() {
+    static LfHal instance;
+    return instance;
+}
 
+LfHal::LfHal() {
     this->setupMotorPWM();
     this->setupLineSensor();
 

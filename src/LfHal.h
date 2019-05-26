@@ -48,10 +48,8 @@ public:
     static_assert(lineSensorFirst - lineSensorLast == lineSensorCount - 1,
         "Line sensor pins must be reversely consecutive and the exactly right count.");
 
-
-    LfHal() = default;
-
-    void setup();
+    /// Return reference to the current HAL instance.
+    static LfHal& instance();
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
@@ -87,6 +85,7 @@ protected:
 
     ADC* adc;
 private:
+    LfHal(); // Hal is only accessible through its singleton instance.
     LfHal(const LfHal&) = delete;
     void operator=(const LfHal&) = delete;
 };
