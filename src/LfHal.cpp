@@ -84,16 +84,16 @@ void LfHal::readLineSensor(LineSensorBufferT& buffer) {
         if (i == 2)
         {
             // Sensors 1 and 2 can be read in parallel
-            auto result = adc->analogSyncRead(lineSensorFirst - 2, lineSensorFirst - 1);
+            auto result = adc.analogSyncRead(lineSensorFirst - 2, lineSensorFirst - 1);
             buffer[4] = result.result_adc0;
             buffer[3] = result.result_adc1;
         }
         else
         {
             if (i > 0)
-                buffer[2 * i - 1] = adc->analogRead(lineSensorFirst - i + 1);
+                buffer[2 * i - 1] = adc.analogRead(lineSensorFirst - i + 1);
             if (i < LfHal::lineSensorCount)
-                buffer[2 * i] = adc->analogRead(lineSensorFirst - i);
+                buffer[2 * i] = adc.analogRead(lineSensorFirst - i);
         }
     }
 
@@ -103,7 +103,7 @@ void LfHal::readLineSensor(LineSensorBufferT& buffer) {
 
     for (uint8_t i = 0; i < 2; ++i)
     {
-        auto result = adc->analogSyncRead(lineSensorFirst - 2 - i, lineSensorFirst - i);
+        auto result = adc.analogSyncRead(lineSensorFirst - 2 - i, lineSensorFirst - i);
         for (uint8_t j = 0; j < 2; ++j)
         {
             buffer[2 * i + j + 4] -= result.result_adc0;

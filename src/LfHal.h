@@ -83,7 +83,7 @@ protected:
     /// led pins if none is enabled.
     PinT enabledLineSensorLed;
 
-    ADC* adc;
+    ADC adc;
 private:
     LfHal(); // Hal is only accessible through its singleton instance.
     LfHal(const LfHal&) = delete;
