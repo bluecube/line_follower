@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <limits>
 #include <array>
+#include <tuple>
 
 #include "ADC.h"
 
@@ -69,7 +70,11 @@ public:
 
     int readRange();
 
-    void readLineSensor(LineSensorBufferT& buffer);
+    /// Read the line sensor values into the buffer (using ambient light suppression)
+    /// and return minimum and maximum value encountered.
+    /// This call is relatively slow and uses the sensor LEDs.
+    /// The LEDs end up all disabled after the call.
+    std::tuple<LineSensorT, LineSensorT> readLineSensor(LineSensorBufferT& buffer);
 
 protected:
     void setupMotorPWM();

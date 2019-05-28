@@ -1,5 +1,7 @@
 #include "LfHal.h"
 
+#include <algorithm>
+
 #include <Arduino.h>
 
 LfHal& LfHal::instance() {
@@ -65,9 +67,9 @@ int LfHal::readRange() {
     return analogRead(rangeSensor);
 }
 
-void LfHal::readLineSensor(LineSensorBufferT& buffer) {
+std::tuple<LfHal::LineSensorT, LfHal::LineSensorT> LfHal::readLineSensor(LineSensorBufferT& buffer) {
     // TODO: Calibration
-    // TODO: Make the ADC reads asynchronous
+    // TODO: Make this asynchronous
 
     static_assert(std::tuple_size<LineSensorBufferT>::value == 8,
         "Must have exactly 8 pixels on the line sensor.");
@@ -101,13 +103,23 @@ void LfHal::readLineSensor(LineSensorBufferT& buffer) {
     this->disableLineSensorLed();
     delayMicroseconds(lineSensorLedDelay); // Wait a bit for the LED to actually turn off.
 
+    auto minValue = std::numeric_limits<LineSensorT>::max();
+    auto maxValue = std::numeric_limits<LineSensorT>::min();
+
     for (uint8_t i = 0; i < 2; ++i)
     {
         auto result = adc.analogSyncRead(lineSensorFirst - 2 - i, lineSensorFirst - i);
         for (uint8_t j = 0; j < 2; ++j)
         {
             buffer[2 * i + j + 4] -= result.result_adc0;
+            minValue = std::min(buffer[2 * i + j + 4], minValue);
+            maxValue = std::max(buffer[2 * i + j + 4], maxValue);
+
             buffer[2 * i + j] -= result.result_adc1;
+            minValue = std::min(buffer[2 * i + j], minValue);
+            maxValue = std::max(buffer[2 * i + j], maxValue);
         }
     }
+
+    return std::make_tuple(minValue, maxValue);
 }
