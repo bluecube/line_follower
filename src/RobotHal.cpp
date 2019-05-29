@@ -1,22 +1,22 @@
-#include "LfHal.h"
+#include "RobotHal.h"
 
 #include <algorithm>
 
 #include <Arduino.h>
 
-LfHal& LfHal::instance() {
-    static LfHal instance;
+RobotHal& RobotHal::instance() {
+    static RobotHal instance;
     return instance;
 }
 
-LfHal::LfHal() {
+RobotHal::RobotHal() {
     this->setupMotorPWM();
     this->setupLineSensor();
 
     pinMode(builtinLed, OUTPUT);
 }
 
-void LfHal::setupMotorPWM() {
+void RobotHal::setupMotorPWM() {
     analogWriteRes(std::numeric_limits<PwmT>::digits);
     for (auto pin: {motor0a, motor0b, motor1a, motor1b}) {
         pinMode(pin, OUTPUT);
@@ -24,7 +24,7 @@ void LfHal::setupMotorPWM() {
     }
 }
 
-void LfHal::setupLineSensor() {
+void RobotHal::setupLineSensor() {
     for (uint8_t pin = lineSensorLedFirst; pin <= lineSensorLedLast; ++pin) {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH); // line leds are active low.
@@ -32,7 +32,7 @@ void LfHal::setupLineSensor() {
     enabledLineSensorLed = lineSensorLedFirst;
 }
 
-void LfHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
+void RobotHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
     if (value > 0) {
         analogWrite(pinA, value);
         digitalWrite(pinB, LOW);
@@ -42,12 +42,12 @@ void LfHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
     }
 }
 
-void LfHal::setMotors(PwmT left, PwmT right) {
+void RobotHal::setMotors(PwmT left, PwmT right) {
     setSingleMotor(motor0a, motor0b, left);
     setSingleMotor(motor1a, motor1b, right);
 }
 
-void LfHal::enableLineSensorLed(uint8_t ledIndex) {
+void RobotHal::enableLineSensorLed(uint8_t ledIndex) {
     this->disableLineSensorLed();
     if (ledIndex < lineSensorLedCount) {
         this->enabledLineSensorLed = static_cast<PinT>(lineSensorLedFirst + ledIndex);
@@ -55,19 +55,19 @@ void LfHal::enableLineSensorLed(uint8_t ledIndex) {
     }
 }
 
-void LfHal::disableLineSensorLed() {
+void RobotHal::disableLineSensorLed() {
     digitalWrite(this->enabledLineSensorLed, HIGH);
 }
 
-void LfHal::setBuiltinLed(bool enable) {
+void RobotHal::setBuiltinLed(bool enable) {
     digitalWrite(builtinLed, enable ? HIGH : LOW);
 }
 
-int LfHal::readRange() {
+int RobotHal::readRange() {
     return analogRead(rangeSensor);
 }
 
-std::tuple<LfHal::LineSensorT, LfHal::LineSensorT> LfHal::readLineSensor(LineSensorBufferT& buffer) {
+std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSensor(LineSensorBufferT& buffer) {
     // TODO: Calibration
     // TODO: Make this asynchronous
 
@@ -78,7 +78,7 @@ std::tuple<LfHal::LineSensorT, LfHal::LineSensorT> LfHal::readLineSensor(LineSen
     static_assert(lineSensorCount == 4,
         "Must have exactly 4 phototransistors on the line sensor.");
 
-    for (uint8_t i = 0; i < LfHal::lineSensorLedCount; ++i)
+    for (uint8_t i = 0; i < RobotHal::lineSensorLedCount; ++i)
     {
         this->enableLineSensorLed(i);
         delayMicroseconds(lineSensorLedDelay); // Wait a bit for the LED to actually turn on.
@@ -94,7 +94,7 @@ std::tuple<LfHal::LineSensorT, LfHal::LineSensorT> LfHal::readLineSensor(LineSen
         {
             if (i > 0)
                 buffer[2 * i - 1] = adc.analogRead(lineSensorFirst - i + 1);
-            if (i < LfHal::lineSensorCount)
+            if (i < RobotHal::lineSensorCount)
                 buffer[2 * i] = adc.analogRead(lineSensorFirst - i);
         }
     }

@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "LfHal.h"
+#include "RobotHal.h"
 #include "defines.h"
 #include "parameters.h"
 
@@ -52,21 +52,21 @@ void setup() {
     Serial.begin(9600);
 
     while (!Serial) {
-      LfHal::instance().setBuiltinLed(true);
+      RobotHal::instance().setBuiltinLed(true);
       delay(50);
-      LfHal::instance().setBuiltinLed(false);
+      RobotHal::instance().setBuiltinLed(false);
       delay(50);
     }
 }
 
 void loop() {
-    LfHal::instance().setBuiltinLed(led);
+    RobotHal::instance().setBuiltinLed(led);
     led = !led;
 
     delay(1000);
 
     Serial.println("<tick>");
-    Serial.println(findLine<LfHal>());
+    Serial.println(findLine<RobotHal>());
 
     Serial.println("</tick>");
 }

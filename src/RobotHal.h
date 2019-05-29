@@ -7,7 +7,7 @@
 
 #include "ADC.h"
 
-class LfHal
+class RobotHal
 {
 protected:
     enum PinT: uint8_t
@@ -50,7 +50,7 @@ public:
         "Line sensor pins must be reversely consecutive and the exactly right count.");
 
     /// Return reference to the current HAL instance.
-    static LfHal& instance();
+    static RobotHal& instance();
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
@@ -90,7 +90,7 @@ protected:
 
     ADC adc;
 private:
-    LfHal(); // Hal is only accessible through its singleton instance.
-    LfHal(const LfHal&) = delete;
-    void operator=(const LfHal&) = delete;
+    RobotHal(); // Hal is only accessible through its singleton instance.
+    RobotHal(const RobotHal&) = delete;
+    void operator=(const RobotHal&) = delete;
 };
