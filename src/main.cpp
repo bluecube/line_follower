@@ -10,14 +10,10 @@ bool led = false;
 
 template <class Hal>
 int_fast8_t findLine() {
-    using LineSensorT = typename Hal::LineSensorT;
-    typename Hal::LineSensorBufferT buffer;
-
     constexpr auto& kernel = Parameters::LineDetector::detectionKernel;
-    constexpr int32_t kernelSize = sizeof(kernel) / sizeof(kernel[0]);
-    constexpr int32_t bufferSize = std::tuple_size<decltype(buffer)>::value;
 
-    LineSensorT minValue, maxValue;
+    typename Hal::LineSensorT minValue, maxValue;
+    typename Hal::LineSensorBufferT buffer;
     std::tie(minValue, maxValue) = Hal::instance().readLineSensor(buffer);
 
     constexpr auto valueSign = Parameters::LineDetector::lineType == LineType::WhiteOnBlack ? 1 : -1;
@@ -26,14 +22,14 @@ int_fast8_t findLine() {
     auto bestWeight = std::numeric_limits<int32_t>::min();
     auto bestPosition = std::numeric_limits<int32_t>::min();
 
-    for (int32_t offsetIndex = 1 - kernelSize;
-         offsetIndex < bufferSize;
+    for (int32_t offsetIndex = 1 - kernel.size();
+         offsetIndex < static_cast<int32_t>(buffer.size());
          ++offsetIndex)
     {
         const size_t min = std::max<int32_t>(-offsetIndex, 0);
-        const size_t max = std::min<int32_t>(bufferSize - offsetIndex, kernelSize);
+        const size_t max = std::min<int32_t>(buffer.size() - offsetIndex, kernel.size());
 
-        LineSensorT weight = 0;
+        typename Hal::LineSensorT weight = 0;
 
         for (size_t i = min; i < max; ++i)
         {
@@ -48,8 +44,8 @@ int_fast8_t findLine() {
         }
     }
 
-    static_assert((kernelSize - bufferSize) % 2 == 0, "Kernel size must be even iff buffer size is even");
-    return bestPosition - (bufferSize - kernelSize) / 2;
+    static_assert((kernel.size() - buffer.size()) % 2 == 0, "Kernel size must be even iff buffer size is even");
+    return bestPosition - (buffer.size() - kernel.size()) / 2;
 }
 
 void setup() {
