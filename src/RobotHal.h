@@ -31,10 +31,17 @@ protected:
     };
 
     static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
-    static constexpr int lineSensorLedDelay = 250; // Microseconds to wait after
-
+    static constexpr int lineSensorLedDelay = 250; // Microseconds to wait after setting line sensor LED to give the sensor time to react
+    static constexpr uint32_t buttonDebounceDelay = 40; // Time in miliseconds after the first switch of the button that is taken as bounce period.
+    static constexpr uint32_t buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
 
 public:
+    enum class ButtonEvent: uint8_t {
+        None,
+        ShortPress,
+        LongPress,
+    };
+
     using PwmT = int16_t;
     static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();
     static constexpr PwmT motorMinValue = -motorMaxValue;
@@ -76,9 +83,12 @@ public:
     /// The LEDs end up all disabled after the call.
     std::tuple<LineSensorT, LineSensorT> readLineSensor(LineSensorBufferT& buffer);
 
+    ButtonEvent pollButton();
+
 protected:
     void setupMotorPWM();
     void setupLineSensor();
+    void setupButton();
 
     /// Helper function to set pwm output for a single motor, handlnig
     /// reversing correctly.
@@ -86,9 +96,13 @@ protected:
 
     /// Line sensor led pin that is currently enabled, or any of the line sensor
     /// led pins if none is enabled.
-    PinT enabledLineSensorLed;
+    PinT enabledLineSensorLed = lineSensorLedFirst;
 
     ADC adc;
+
+    bool buttonState = false;
+    uint32_t buttonStateChangeTime;
+
 private:
     RobotHal(); // Hal is only accessible through its singleton instance.
     RobotHal(const RobotHal&) = delete;

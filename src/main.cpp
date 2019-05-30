@@ -63,10 +63,13 @@ void loop() {
     RobotHal::instance().setBuiltinLed(led);
     led = !led;
 
-    delay(1000);
+    delay(10);
 
-    Serial.println("<tick>");
-    Serial.println(findLine<RobotHal>());
+    //Serial.println(findLine<RobotHal>());
 
-    Serial.println("</tick>");
+    auto buttonEvent = RobotHal::instance().pollButton();
+    if (buttonEvent == RobotHal::ButtonEvent::ShortPress)
+        Serial.println("short press");
+    else if (buttonEvent == RobotHal::ButtonEvent::LongPress)
+        Serial.println("long press");
 }

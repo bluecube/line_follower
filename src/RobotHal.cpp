@@ -12,6 +12,7 @@ RobotHal& RobotHal::instance() {
 RobotHal::RobotHal() {
     this->setupMotorPWM();
     this->setupLineSensor();
+    this->setupButton();
 
     pinMode(builtinLed, OUTPUT);
 }
@@ -29,7 +30,13 @@ void RobotHal::setupLineSensor() {
         pinMode(pin, OUTPUT);
         digitalWrite(pin, HIGH); // line leds are active low.
     }
-    enabledLineSensorLed = lineSensorLedFirst;
+}
+
+void RobotHal::setupButton() {
+    pinMode(button, INPUT_PULLUP);
+    delay(buttonDebounceDelay);
+    this->buttonState = !digitalRead(button);
+    this->buttonStateChangeTime = millis();
 }
 
 void RobotHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
@@ -122,4 +129,28 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
     }
 
     return std::make_tuple(minValue, maxValue);
+}
+
+RobotHal::ButtonEvent RobotHal::pollButton() {
+    bool currentState = !digitalRead(button); // Active low
+    uint32_t now = millis();
+
+    if (currentState == this->buttonState)
+        return ButtonEvent::None; // No change
+
+    uint32_t elapsed = now - this->buttonStateChangeTime; // TODO: This overflows after 49 days, it's not an issue for this application though.
+
+    if (elapsed < buttonDebounceDelay)
+        return ButtonEvent::None; // Change within debounce interval
+
+    this->buttonState = currentState;
+    this->buttonStateChangeTime = now;
+
+    if (currentState)
+        return ButtonEvent::None; // We only report releasing events, not pressing
+
+    if (elapsed > buttonLongPressDelay)
+        return ButtonEvent::LongPress;
+    else
+        return ButtonEvent::ShortPress;
 }
