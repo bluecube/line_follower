@@ -30,17 +30,15 @@ protected:
         rangeSensor = 23,
     };
 
-    static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
-    static constexpr int lineSensorLedDelay = 250; // Microseconds to wait after setting line sensor LED to give the sensor time to react
-    static constexpr uint32_t buttonDebounceDelay = 40; // Time in miliseconds after the first switch of the button that is taken as bounce period.
-    static constexpr uint32_t buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
-
 public:
     enum class ButtonEvent: uint8_t {
         None,
         ShortPress,
         LongPress,
     };
+
+    using MillisecondsT = uint32_t;
+    using MicrosecondsT = uint32_t;
 
     using PwmT = int16_t;
     static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();

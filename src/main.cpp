@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "RobotHal.h"
+#include "Hal.h"
 #include "defines.h"
 #include "parameters.h"
 
@@ -52,24 +52,24 @@ void setup() {
     Serial.begin(9600);
 
     while (!Serial) {
-      RobotHal::instance().setBuiltinLed(true);
+      Hal::instance().setBuiltinLed(true);
       delay(50);
-      RobotHal::instance().setBuiltinLed(false);
+      Hal::instance().setBuiltinLed(false);
       delay(50);
     }
 }
 
 void loop() {
-    RobotHal::instance().setBuiltinLed(led);
+    Hal::instance().setBuiltinLed(led);
     led = !led;
 
     delay(10);
 
-    //Serial.println(findLine<RobotHal>());
+    //Serial.println(findLine<Hal>());
 
-    auto buttonEvent = RobotHal::instance().pollButton();
-    if (buttonEvent == RobotHal::ButtonEvent::ShortPress)
+    auto buttonEvent = Hal::instance().pollButton();
+    if (buttonEvent == Hal::ButtonEvent::ShortPress)
         Serial.println("short press");
-    else if (buttonEvent == RobotHal::ButtonEvent::LongPress)
+    else if (buttonEvent == Hal::ButtonEvent::LongPress)
         Serial.println("long press");
 }

@@ -1,8 +1,9 @@
 #include "RobotHal.h"
 
 #include <algorithm>
-
 #include <Arduino.h>
+
+#include "parameters.h"
 
 RobotHal& RobotHal::instance() {
     static RobotHal instance;
@@ -21,7 +22,7 @@ void RobotHal::setupMotorPWM() {
     analogWriteRes(std::numeric_limits<PwmT>::digits);
     for (auto pin: {motor0a, motor0b, motor1a, motor1b}) {
         pinMode(pin, OUTPUT);
-        analogWriteFrequency(pin, motorPWMFrequency);
+        analogWriteFrequency(pin, Parameters::Hardware::motorPWMFrequency);
     }
 }
 
@@ -34,7 +35,7 @@ void RobotHal::setupLineSensor() {
 
 void RobotHal::setupButton() {
     pinMode(button, INPUT_PULLUP);
-    delay(buttonDebounceDelay);
+    delay(Parameters::Hardware::buttonDebounceDelay);
     this->buttonState = !digitalRead(button);
     this->buttonStateChangeTime = millis();
 }
@@ -88,7 +89,7 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
     for (uint8_t i = 0; i < RobotHal::lineSensorLedCount; ++i)
     {
         this->enableLineSensorLed(i);
-        delayMicroseconds(lineSensorLedDelay); // Wait a bit for the LED to actually turn on.
+        delayMicroseconds(Parameters::Hardware::lineSensorLedDelay); // Wait a bit for the LED to actually turn on.
 
         if (i == 2)
         {
@@ -108,7 +109,7 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
 
     // Ambient light suppression
     this->disableLineSensorLed();
-    delayMicroseconds(lineSensorLedDelay); // Wait a bit for the LED to actually turn off.
+    delayMicroseconds(Parameters::Hardware::lineSensorLedDelay); // Wait a bit for the LED to actually turn off.
 
     auto minValue = std::numeric_limits<LineSensorT>::max();
     auto maxValue = std::numeric_limits<LineSensorT>::min();
@@ -140,7 +141,7 @@ RobotHal::ButtonEvent RobotHal::pollButton() {
 
     uint32_t elapsed = now - this->buttonStateChangeTime; // TODO: This overflows after 49 days, it's not an issue for this application though.
 
-    if (elapsed < buttonDebounceDelay)
+    if (elapsed < Parameters::Hardware::buttonDebounceDelay)
         return ButtonEvent::None; // Change within debounce interval
 
     this->buttonState = currentState;
@@ -149,7 +150,7 @@ RobotHal::ButtonEvent RobotHal::pollButton() {
     if (currentState)
         return ButtonEvent::None; // We only report releasing events, not pressing
 
-    if (elapsed > buttonLongPressDelay)
+    if (elapsed > Parameters::Hardware::buttonLongPressDelay)
         return ButtonEvent::LongPress;
     else
         return ButtonEvent::ShortPress;
