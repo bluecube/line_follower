@@ -43,9 +43,9 @@ void RobotHal::setupButton() {
 void RobotHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
     if (value > 0) {
         analogWrite(pinA, value);
-        digitalWrite(pinB, LOW);
+        analogWrite(pinB, 0);
     } else {
-        digitalWrite(pinA, LOW);
+        analogWrite(pinA, 0);
         analogWrite(pinB, -value);
     }
 }
