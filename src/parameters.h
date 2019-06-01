@@ -14,8 +14,10 @@ namespace LineDetector {
 namespace FollowingLine {
     // TODO: Tune the PID
     static constexpr int32_t kP = 3000;
-    static constexpr int32_t kI = 3000;
-    static constexpr int32_t kD = 3000;
+    static constexpr int32_t kI = 0;
+    static constexpr int32_t kD = 0;
+
+    static constexpr int32_t turningSpeedParameter = 65536;
 }
 
 namespace Hardware {
