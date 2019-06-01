@@ -13,11 +13,11 @@ namespace LineDetector {
 
 namespace FollowingLine {
     // TODO: Tune the PID
-    static constexpr int32_t kP = 3000;
+    static constexpr int32_t kP = 4 * Hal::motorMaxValue / 10;
     static constexpr int32_t kI = 0;
-    static constexpr int32_t kD = 0;
+    static constexpr int32_t kD = -2 * Hal::motorMaxValue;
 
-    static constexpr int32_t turningSpeedParameter = 65536;
+    static constexpr int32_t turningSpeedParameter = Hal::motorMaxValue * Hal::motorMaxValue / 5;
 }
 
 namespace Hardware {

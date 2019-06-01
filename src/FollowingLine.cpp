@@ -21,12 +21,11 @@ void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapse
 
     auto linePosition = findLine();
     Serial.print("LP: "); Serial.print(linePosition);
-    auto turningSpeed = this->pid.update(linePosition, 0, elapsed);
+    auto turningSpeed = -this->pid.update(linePosition, 0, elapsed);
     Serial.print(" TS: "); Serial.print(turningSpeed);
     Serial.println();
 
     // TODO: Refactor the speed control part somewhere else.
-
 
     // The intended linear speed when limited by turning speed
     auto absTurningSpeed = turningSpeed > 0 ? turningSpeed : -turningSpeed;
@@ -38,6 +37,8 @@ void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapse
             Hal::motorMaxValue);
     else
         speed = Hal::motorMaxValue;
+
+    //speed = speed / 2;
 
     if (turningSpeed >= 0)
         Hal::instance().setMotors(speed, speed - absTurningSpeed);
