@@ -162,3 +162,8 @@ bool RobotHal::isSerialReady()
 {
     return !!Serial;
 }
+
+float RobotHal::readBatteryVoltage()
+{
+    return analogRead(batteryVoltage) * batteryVoltsPerUnit;
+}

@@ -6,6 +6,7 @@ Since we don't have std::variant available on Teensy, we use a ugly hackish work
 #include "Bootup.h"
 #include "Waiting.h"
 #include "FollowingLine.h"
+#include "ErrorState.h"
 
 class StateMachine {
 private:

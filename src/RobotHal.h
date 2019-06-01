@@ -30,6 +30,7 @@ protected:
         rangeSensor = 23,
     };
 
+    static constexpr float batteryVoltsPerUnit = 0.03546; // Empirically measured value
 public:
     enum class ButtonEvent: uint8_t {
         None,
@@ -74,6 +75,8 @@ public:
     void setBuiltinLed(bool enabled);
 
     int readRange();
+
+    float readBatteryVoltage();
 
     /// Read the line sensor values into the buffer (using ambient light suppression)
     /// and return minimum and maximum value encountered.

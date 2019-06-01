@@ -27,6 +27,8 @@ namespace Hardware {
     static constexpr Hal::MillisecondsT buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
 
     static constexpr Hal::MillisecondsT period = 20;
+
+    static constexpr float voltageCutoff = 9.0;
 }
 
 }
