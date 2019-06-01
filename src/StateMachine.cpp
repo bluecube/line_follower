@@ -16,6 +16,8 @@ void StateMachine::update(Hal::MillisecondsT elapsed) {
         break;
     #include "StatesXMacro.h"
     #undef X
+    default:
+        break;
     }
 }
 
@@ -33,14 +35,14 @@ void StateMachine::changeState(StateName&& state) { \
 
 void StateMachine::destroyState() {
     switch (this->variant) {
-    case Variant::NoState:
-        break;
     #define X(StateName) \
     case Variant::StateName: \
         this->state.s##StateName.~StateName(); \
         break;
     #include "StatesXMacro.h"
     #undef X
+    default:
+        break;
     }
 }
 
@@ -52,5 +54,7 @@ const char* StateMachine::getStateName() const
         return #StateName;
     #include "StatesXMacro.h"
     #undef X
+    default:
+        return "<no state>";
     }
 }
