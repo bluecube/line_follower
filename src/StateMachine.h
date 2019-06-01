@@ -3,12 +3,14 @@ Since we don't have std::variant available on Teensy, we use a ugly hackish work
 
 #pragma once
 
+#include "Bootup.h"
 #include "Waiting.h"
 #include "FollowingLine.h"
 
 class StateMachine {
 private:
     enum class Variant {
+        NoState, // Marker for use during class construction
         #define X(StateName) StateName,
         #include "StatesXMacro.h"
         #undef X
@@ -19,7 +21,7 @@ private:
         #include "StatesXMacro.h"
         #undef X
 
-        State();
+        State() {}
     };
 
 public:

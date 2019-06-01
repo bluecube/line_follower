@@ -83,6 +83,8 @@ public:
 
     ButtonEvent pollButton();
 
+    bool isSerialReady();
+
 protected:
     void setupMotorPWM();
     void setupLineSensor();

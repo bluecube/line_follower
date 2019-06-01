@@ -1,7 +1,7 @@
 #include "StateMachine.h"
 
 StateMachine::StateMachine() {
-    this->variant = Variant::Waiting;
+    this->changeState(Bootup());
 }
 
 StateMachine::~StateMachine() {
@@ -33,6 +33,8 @@ void StateMachine::changeState(StateName&& state) { \
 
 void StateMachine::destroyState() {
     switch (this->variant) {
+    case Variant::NoState:
+        break;
     #define X(StateName) \
     case Variant::StateName: \
         this->state.s##StateName.~StateName(); \
@@ -51,8 +53,4 @@ const char* StateMachine::getStateName() const
     #include "StatesXMacro.h"
     #undef X
     }
-}
-
-StateMachine::State::State() {
-    new (&this->sWaiting) Waiting();
 }

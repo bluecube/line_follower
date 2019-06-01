@@ -1,7 +1,8 @@
+#include "FollowingLine.h"
+
 #include <algorithm>
 
 #include "parameters.h"
-#include "FollowingLine.h"
 #include "Hal.h"
 #include "StateMachine.h"
 #include "Waiting.h"

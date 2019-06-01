@@ -11,6 +11,8 @@ RobotHal& RobotHal::instance() {
 }
 
 RobotHal::RobotHal() {
+    Serial.begin(9600);
+
     this->setupMotorPWM();
     this->setupLineSensor();
     this->setupButton();
@@ -154,4 +156,9 @@ RobotHal::ButtonEvent RobotHal::pollButton() {
         return ButtonEvent::LongPress;
     else
         return ButtonEvent::ShortPress;
+}
+
+bool RobotHal::isSerialReady()
+{
+    return !!Serial;
 }
