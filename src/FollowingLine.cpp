@@ -27,18 +27,15 @@ void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapse
 
     // TODO: Refactor the speed control part somewhere else.
 
-    // The intended linear speed when limited by turning speed
     auto absTurningSpeed = turningSpeed > 0 ? turningSpeed : -turningSpeed;
     int32_t speed;
 
     if (absTurningSpeed != 0)
         speed = std::min<decltype(turningSpeed)>(
             Parameters::FollowingLine::turningSpeedParameter / absTurningSpeed + absTurningSpeed / 2,
-            Hal::motorMaxValue);
+            Hal::motorMaxValue / 2);
     else
-        speed = Hal::motorMaxValue;
-
-    //speed = speed / 2;
+        speed = Hal::motorMaxValue / 2;
 
     if (turningSpeed >= 0)
         Hal::instance().setMotors(speed, speed - absTurningSpeed);
