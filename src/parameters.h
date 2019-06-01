@@ -25,6 +25,8 @@ namespace Hardware {
     static constexpr Hal::MicrosecondsT lineSensorLedDelay = 250; // Microseconds to wait after setting line sensor LED to give the sensor time to react
     static constexpr Hal::MillisecondsT buttonDebounceDelay = 40; // Time in miliseconds after the first switch of the button that is taken as bounce period.
     static constexpr Hal::MillisecondsT buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
+
+    static constexpr Hal::MillisecondsT period = 20;
 }
 
 }
