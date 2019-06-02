@@ -43,7 +43,7 @@ void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapse
         Hal::instance().setMotors(speed - absTurningSpeed, speed);
 }
 
-int_fast8_t FollowingLine::findLine() {
+int32_t FollowingLine::findLine() {
     constexpr auto& kernel = Parameters::LineDetector::detectionKernel;
 
     Hal::LineSensorT minValue, maxValue;
@@ -53,8 +53,11 @@ int_fast8_t FollowingLine::findLine() {
     constexpr auto valueSign = Parameters::LineDetector::lineType == LineType::WhiteOnBlack ? 1 : -1;
     auto valueOffset = Parameters::LineDetector::lineType == LineType::WhiteOnBlack ? minValue : maxValue;
 
-    auto bestWeight = std::numeric_limits<int32_t>::min();
-    auto bestPosition = std::numeric_limits<int32_t>::min();
+    int32_t sum = 0;
+    int32_t sumWeights = 0;
+
+    int32_t bestPosition;
+    int32_t bestSumWeights = 0;
 
     for (int32_t offsetIndex = 1 - kernel.size();
          offsetIndex < static_cast<int32_t>(buffer.size());
@@ -63,6 +66,9 @@ int_fast8_t FollowingLine::findLine() {
         const size_t min = std::max<int32_t>(-offsetIndex, 0);
         const size_t max = std::min<int32_t>(buffer.size() - offsetIndex, kernel.size());
 
+        static_assert((kernel.size() - buffer.size()) % 2 == 0, "Kernel size must be even iff buffer size is even");
+        const int32_t position = offsetIndex - (buffer.size() - kernel.size()) / 2;
+
         Hal::LineSensorT weight = 0;
 
         for (size_t i = min; i < max; ++i)
@@ -70,15 +76,28 @@ int_fast8_t FollowingLine::findLine() {
             auto value = valueSign * (buffer[offsetIndex + i] - valueOffset);
             weight += kernel[i] * value;
         }
-
-        if (weight > bestWeight)
+        if (weight > 0)
         {
-            bestWeight = weight;
-            bestPosition = offsetIndex;
+            sum += weight * position;
+            sumWeights += weight;
+        }
+        else if (sumWeights > 0)
+        {
+            auto averagedPosition = (16 * sum) / sumWeights;
+            if (sumWeights >= bestSumWeights) {
+                bestSumWeights = sumWeights;
+                bestPosition = averagedPosition;
+            }
+            sum = 0;
+            sumWeights = 0;
         }
     }
 
-    // TODO: return fractional position based on the weights of the response (center of mass?)
-    static_assert((kernel.size() - buffer.size()) % 2 == 0, "Kernel size must be even iff buffer size is even");
-    return bestPosition - (buffer.size() - kernel.size()) / 2;
+    auto averagedPosition = (16 * sum) / sumWeights;
+    if (sumWeights >= bestSumWeights) {
+        bestSumWeights = sumWeights;
+        bestPosition = averagedPosition;
+    }
+    // TODO: Also return bestSumWeights.
+    return bestPosition;
 }

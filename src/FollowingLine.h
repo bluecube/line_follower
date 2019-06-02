@@ -13,7 +13,7 @@ public:
     FollowingLine();
     void update(StateMachine& stateMachine, Hal::MillisecondsT elapsed);
 
-    static int_fast8_t findLine();
+    static int32_t findLine();
 
 private:
     Pid<int32_t, uint32_t> pid;
