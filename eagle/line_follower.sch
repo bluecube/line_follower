@@ -8,20 +8,20 @@
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="yes" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="no"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="no"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="no"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="no"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="no"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="no"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="no"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="no"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="no"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="no"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="no"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="no"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="no"/>
+<layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="no" active="no"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="no" active="no"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="no"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="no"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="no"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="no"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="no"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="no"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="no" active="no"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="no" active="no"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="no"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="no"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="no"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="no"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="no"/>
@@ -30,8 +30,8 @@
 <layer number="34" name="bFinish" color="6" fill="6" visible="no" active="no"/>
 <layer number="35" name="tGlue" color="7" fill="4" visible="no" active="no"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="no"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="no"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="no"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="no"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="no"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="no"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="no"/>
 <layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="no"/>
@@ -39,19 +39,19 @@
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="no"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="no"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="no"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="no"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="no"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="no"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="no"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="yes" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="no"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="no"/>
-<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="yes" active="no"/>
-<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="yes" active="no"/>
-<layer number="56" name="wert" color="7" fill="1" visible="yes" active="no"/>
-<layer number="57" name="tCAD" color="7" fill="1" visible="yes" active="no"/>
-<layer number="59" name="tCarbon" color="7" fill="1" visible="yes" active="no"/>
-<layer number="60" name="bCarbon" color="7" fill="1" visible="yes" active="no"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="no"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="no"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="no"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="no"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="no"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="no"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
+<layer number="57" name="tCAD" color="7" fill="1" visible="no" active="no"/>
+<layer number="59" name="tCarbon" color="7" fill="1" visible="no" active="no"/>
+<layer number="60" name="bCarbon" color="7" fill="1" visible="no" active="no"/>
 <layer number="88" name="SimResults" color="9" fill="1" visible="yes" active="yes"/>
 <layer number="89" name="SimProbes" color="9" fill="1" visible="yes" active="yes"/>
 <layer number="90" name="Modules" color="5" fill="1" visible="yes" active="yes"/>
@@ -16899,73 +16899,89 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <library name="ESP32-DEVKITV1">
 <packages>
 <package name="ESP32-DEVKITV1">
-<pad name="1" x="-22.87" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="2" x="-20.33" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="3" x="-17.79" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="4" x="-15.25" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="5" x="-12.71" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="6" x="-10.17" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="7" x="-7.63" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="8" x="-5.09" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="9" x="-2.55" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="10" x="-0.01" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="11" x="2.53" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="12" x="5.07" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="13" x="7.61" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="14" x="10.15" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="15" x="12.69" y="-13.54" drill="1" diameter="1.9304"/>
-<pad name="30" x="-22.87" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="29" x="-20.33" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="28" x="-17.79" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="27" x="-15.25" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="26" x="-12.71" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="25" x="-10.17" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="24" x="-7.63" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="23" x="-5.09" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="22" x="-2.55" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="21" x="-0.01" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="20" x="2.53" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="19" x="5.07" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="18" x="7.61" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="17" x="10.15" y="11.23" drill="1" diameter="1.9304"/>
-<pad name="16" x="12.69" y="11.23" drill="1" diameter="1.9304"/>
-<text x="-22.21" y="-11.2" size="1.016" layer="21" rot="R90">3V3</text>
-<text x="-19.67" y="-11.2" size="1.016" layer="21" rot="R90">GND</text>
-<text x="-17.13" y="-11.2" size="1.016" layer="21" rot="R90">IO15</text>
-<text x="-14.59" y="-11.2" size="1.016" layer="21" rot="R90">IO2</text>
-<text x="-12.05" y="-11.2" size="1.016" layer="21" rot="R90">IO4</text>
-<text x="-9.51" y="-11.2" size="1.016" layer="21" rot="R90">IO16</text>
-<text x="-6.97" y="-11.2" size="1.016" layer="21" rot="R90">IO17</text>
-<text x="-4.43" y="-11.2" size="1.016" layer="21" rot="R90">IO5</text>
-<text x="-1.89" y="-11.2" size="1.016" layer="21" rot="R90">IO18</text>
-<text x="0.65" y="-11.2" size="1.016" layer="21" rot="R90">IO19</text>
-<text x="3.19" y="-11.2" size="1.016" layer="21" rot="R90">IO21</text>
-<text x="5.73" y="-11.2" size="1.016" layer="21" rot="R90">IO3</text>
-<text x="8.27" y="-11.2" size="1.016" layer="21" rot="R90">IO1</text>
-<text x="10.81" y="-11.2" size="1.016" layer="21" rot="R90">IO22</text>
-<text x="13.35" y="-11.2" size="1.016" layer="21" rot="R90">IO23</text>
-<text x="-22.19" y="6.52" size="1.016" layer="21" rot="R90">VIN</text>
-<text x="-19.65" y="6.52" size="1.016" layer="21" rot="R90">GND</text>
-<text x="-17.11" y="6.52" size="1.016" layer="21" rot="R90">IO13</text>
-<text x="-14.57" y="6.52" size="1.016" layer="21" rot="R90">IO12</text>
-<text x="-12.03" y="6.52" size="1.016" layer="21" rot="R90">IO14</text>
-<text x="-9.49" y="6.52" size="1.016" layer="21" rot="R90">IO27</text>
-<text x="-6.95" y="6.52" size="1.016" layer="21" rot="R90">IO26</text>
-<text x="-4.41" y="6.52" size="1.016" layer="21" rot="R90">IO25</text>
-<text x="-1.87" y="6.52" size="1.016" layer="21" rot="R90">IO33</text>
-<text x="0.67" y="6.52" size="1.016" layer="21" rot="R90">IO32</text>
-<text x="3.21" y="6.52" size="1.016" layer="21" rot="R90">IO35</text>
-<text x="5.75" y="6.52" size="1.016" layer="21" rot="R90">IO34</text>
-<text x="8.29" y="6.52" size="1.016" layer="21" rot="R90">VN</text>
-<text x="10.83" y="6.52" size="1.016" layer="21" rot="R90">VP</text>
-<text x="13.37" y="6.52" size="1.016" layer="21" rot="R90">EN</text>
-<text x="-4.93" y="-3.18" size="1.9304" layer="21">ESP32-Devkit V1</text>
-<wire x1="-33" y1="12.7" x2="19" y2="12.7" width="0.254" layer="21"/>
-<wire x1="19" y1="12.7" x2="19" y2="-15.2" width="0.254" layer="21"/>
-<wire x1="19" y1="-15.2" x2="-33" y2="-15.2" width="0.254" layer="21"/>
-<wire x1="-33" y1="-15.2" x2="-33" y2="12.7" width="0.254" layer="21"/>
-<text x="-24.13" y="13.97" size="1.27" layer="21">&gt;NAME</text>
-<text x="5" y="-17.24" size="1.27" layer="27">ESP32-DEVKITV1</text>
+<pad name="1" x="-17.78" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="2" x="-15.24" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="3" x="-12.7" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="4" x="-10.16" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="5" x="-7.62" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="6" x="-5.08" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="7" x="-2.54" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="8" x="0" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="9" x="2.54" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="10" x="5.08" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="11" x="7.62" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="12" x="10.16" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="13" x="12.7" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="14" x="15.24" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="15" x="17.78" y="-12.7" drill="1" diameter="1.9304"/>
+<pad name="30" x="-17.78" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="29" x="-15.24" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="28" x="-12.7" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="27" x="-10.16" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="26" x="-7.62" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="25" x="-5.08" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="24" x="-2.54" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="23" x="0" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="22" x="2.54" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="21" x="5.08" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="20" x="7.62" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="19" x="10.16" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="18" x="12.7" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="17" x="15.24" y="12.7" drill="1" diameter="1.9304"/>
+<pad name="16" x="17.78" y="12.7" drill="1" diameter="1.9304"/>
+<text x="-17.78" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">3V3</text>
+<text x="-15.24" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">GND</text>
+<text x="-12.7" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO15</text>
+<text x="-10.16" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO2</text>
+<text x="-7.62" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO4</text>
+<text x="-5.08" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO16</text>
+<text x="-2.54" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO17</text>
+<text x="0" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO5</text>
+<text x="2.54" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO18</text>
+<text x="5.08" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO19</text>
+<text x="7.62" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO21</text>
+<text x="10.16" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO3</text>
+<text x="12.7" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO1</text>
+<text x="15.24" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO22</text>
+<text x="17.78" y="-10.16" size="1.016" layer="21" rot="R90" align="center-left">IO23</text>
+<text x="-17.78" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">VIN</text>
+<text x="-15.24" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">GND</text>
+<text x="-12.7" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO13</text>
+<text x="-10.16" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO12</text>
+<text x="-7.62" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO14</text>
+<text x="-5.08" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO27</text>
+<text x="-2.54" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO26</text>
+<text x="0" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO25</text>
+<text x="2.54" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO33</text>
+<text x="5.08" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO32</text>
+<text x="7.62" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO35</text>
+<text x="10.16" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">IO34</text>
+<text x="12.7" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">VN</text>
+<text x="15.24" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">VP</text>
+<text x="17.78" y="10.16" size="1.016" layer="21" rot="R90" align="center-right">EN</text>
+<text x="0" y="0" size="1.9304" layer="21" align="center">ESP32-Devkit V1</text>
+<wire x1="-27.79" y1="14.2" x2="23.77" y2="14.2" width="0.254" layer="21"/>
+<wire x1="23.77" y1="14.2" x2="23.77" y2="-14.2" width="0.254" layer="21"/>
+<wire x1="23.77" y1="-14.2" x2="-27.79" y2="-14.2" width="0.254" layer="21"/>
+<wire x1="-27.79" y1="-14.2" x2="-27.79" y2="-4" width="0.254" layer="21"/>
+<text x="-19.05" y="15.24" size="1.27" layer="21">&gt;NAME</text>
+<text x="10.08" y="-15.97" size="1.27" layer="27">ESP32-DEVKITV1</text>
+<wire x1="-27.79" y1="-4" x2="-27.79" y2="4" width="0.254" layer="21"/>
+<wire x1="-27.79" y1="4" x2="-27.79" y2="14.2" width="0.254" layer="21"/>
+<wire x1="22.86" y1="6.35" x2="15.24" y2="6.35" width="0.127" layer="51"/>
+<wire x1="15.24" y1="6.35" x2="-2.54" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="6.35" x2="-2.54" y2="-6.35" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="-6.35" x2="15.24" y2="-6.35" width="0.127" layer="51"/>
+<wire x1="15.24" y1="-6.35" x2="22.86" y2="-6.35" width="0.127" layer="51"/>
+<wire x1="22.86" y1="-6.35" x2="22.86" y2="6.35" width="0.127" layer="51"/>
+<wire x1="15.24" y1="6.35" x2="15.24" y2="-6.35" width="0.127" layer="51"/>
+<circle x="-25.29" y="11.7" radius="1.5" width="0.127" layer="51"/>
+<circle x="-25.29" y="-11.7" radius="1.5" width="0.127" layer="51"/>
+<circle x="21.27" y="-11.7" radius="1.5" width="0.127" layer="51"/>
+<circle x="21.27" y="11.7" radius="1.5" width="0.127" layer="51"/>
+<wire x1="-27.79" y1="4" x2="-22.29" y2="4" width="0.127" layer="21"/>
+<wire x1="-22.29" y1="4" x2="-22.29" y2="-4" width="0.127" layer="21"/>
+<wire x1="-22.29" y1="-4" x2="-27.79" y2="-4" width="0.127" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -17019,7 +17035,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <connect gate="G$1" pin="3V3" pad="1"/>
 <connect gate="G$1" pin="EN" pad="16"/>
 <connect gate="G$1" pin="GND" pad="2"/>
-<connect gate="G$1" pin="GND1" pad="28"/>
+<connect gate="G$1" pin="GND1" pad="29"/>
 <connect gate="G$1" pin="IO1" pad="13"/>
 <connect gate="G$1" pin="IO12" pad="27"/>
 <connect gate="G$1" pin="IO13" pad="28"/>
@@ -17035,7 +17051,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <connect gate="G$1" pin="IO23" pad="15"/>
 <connect gate="G$1" pin="IO25" pad="23"/>
 <connect gate="G$1" pin="IO26" pad="24"/>
-<connect gate="G$1" pin="IO27" pad="24"/>
+<connect gate="G$1" pin="IO27" pad="25"/>
 <connect gate="G$1" pin="IO3" pad="12"/>
 <connect gate="G$1" pin="IO32" pad="21"/>
 <connect gate="G$1" pin="IO33" pad="22"/>
@@ -17088,8 +17104,8 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="C2" library="rcl" deviceset="CPOL-EU" device="UD-6,3X8,8" value="100uF 25V"/>
 <part name="C3" library="rcl" deviceset="CPOL-EU" device="UD-6,3X8,8" value="100uF 25V"/>
-<part name="R9" library="rcl" deviceset="R-EU_" device="R0805" value="4k7"/>
-<part name="R10" library="rcl" deviceset="R-EU_" device="R0805" value="1k5"/>
+<part name="R9" library="rcl" deviceset="R-EU_" device="R0805" value="82k"/>
+<part name="R10" library="rcl" deviceset="R-EU_" device="R0805" value="15k"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="SW1" library="untitled" deviceset="12MM_BUTTON" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
@@ -17113,7 +17129,6 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
-<part name="X1" library="ESP32-DEVKITV1" deviceset="ESP32DEVKITV1" device=""/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="R0805" value="5k6"/>
 <part name="C12" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
@@ -17132,6 +17147,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <part name="Q3" library="untitled" deviceset="ALS-PT19-315C/L177/TR8" device=""/>
 <part name="Q4" library="untitled" deviceset="ALS-PT19-315C/L177/TR8" device=""/>
 <part name="Q5" library="untitled" deviceset="ALS-PT19-315C/L177/TR8" device=""/>
+<part name="X1" library="ESP32-DEVKITV1" deviceset="ESP32DEVKITV1" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -17154,6 +17170,8 @@ Should be fairly safe even at max drive strength at about 30mA per LED.
 See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <wire x1="-5.08" y1="-58.42" x2="208.28" y2="-58.42" width="0.1524" layer="97"/>
 <wire x1="-5.08" y1="-116.84" x2="-5.08" y2="-58.42" width="0.1524" layer="97"/>
+<text x="-233.68" y="-25.4" size="1.778" layer="97">GPIO12 &amp; 13 are UART TX/RX connected to USB</text>
+<text x="-233.68" y="-45.72" size="1.778" layer="97">GPIO2 has the on-board LED</text>
 </plain>
 <instances>
 <instance part="LED1" gate="G$1" x="35.56" y="-33.02" rot="R180"/>
@@ -17216,7 +17234,6 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <instance part="GND7" gate="1" x="205.74" y="10.16" rot="R270"/>
 <instance part="GND11" gate="1" x="-228.6" y="-50.8" rot="R90"/>
 <instance part="GND16" gate="1" x="-279.4" y="-50.8" rot="R270"/>
-<instance part="X1" gate="G$1" x="-254" y="-30.48" rot="R90"/>
 <instance part="P+6" gate="1" x="-53.34" y="53.34" rot="R270"/>
 <instance part="R5" gate="G$1" x="45.72" y="-154.94" rot="R180"/>
 <instance part="C12" gate="G$1" x="45.72" y="-160.02" rot="R270"/>
@@ -17235,6 +17252,7 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <instance part="Q3" gate="G$1" x="25.4" y="-114.3" rot="MR270"/>
 <instance part="Q4" gate="G$1" x="25.4" y="-134.62" rot="MR270"/>
 <instance part="Q5" gate="G$1" x="25.4" y="-154.94" rot="MR270"/>
+<instance part="X1" gate="G$1" x="-254" y="-30.48" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -17422,8 +17440,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="LINE_LED0" class="0">
 <segment>
-<wire x1="-271.78" y1="-40.64" x2="-292.1" y2="-40.64" width="0.1524" layer="91"/>
-<label x="-292.1" y="-40.64" size="1.778" layer="95"/>
+<wire x1="-271.78" y1="-40.64" x2="-297.18" y2="-40.64" width="0.1524" layer="91"/>
+<label x="-297.18" y="-40.64" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO27"/>
 </segment>
 <segment>
@@ -17447,8 +17465,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="LINE_LED1" class="0">
 <segment>
-<wire x1="-271.78" y1="-38.1" x2="-292.1" y2="-38.1" width="0.1524" layer="91"/>
-<label x="-292.1" y="-38.1" size="1.778" layer="95"/>
+<wire x1="-271.78" y1="-38.1" x2="-297.18" y2="-38.1" width="0.1524" layer="91"/>
+<label x="-297.18" y="-38.1" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO26"/>
 </segment>
 <segment>
@@ -17469,8 +17487,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="LINE_LED2" class="0">
 <segment>
-<wire x1="-292.1" y1="-35.56" x2="-271.78" y2="-35.56" width="0.1524" layer="91"/>
-<label x="-292.1" y="-35.56" size="1.778" layer="95"/>
+<wire x1="-297.18" y1="-35.56" x2="-271.78" y2="-35.56" width="0.1524" layer="91"/>
+<label x="-297.18" y="-35.56" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO25"/>
 </segment>
 <segment>
@@ -17494,8 +17512,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="MOTOR0A" class="0">
 <segment>
-<wire x1="-236.22" y1="-30.48" x2="-215.9" y2="-30.48" width="0.1524" layer="91"/>
-<label x="-215.9" y="-30.48" size="1.778" layer="95" rot="MR0"/>
+<wire x1="-236.22" y1="-30.48" x2="-210.82" y2="-30.48" width="0.1524" layer="91"/>
+<label x="-210.82" y="-30.48" size="1.778" layer="95" rot="MR0"/>
 <pinref part="X1" gate="G$1" pin="IO19"/>
 </segment>
 <segment>
@@ -17517,8 +17535,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </segment>
 <segment>
 <pinref part="+3V7" gate="G$1" pin="+3V3"/>
-<pinref part="X1" gate="G$1" pin="3V3"/>
 <wire x1="-236.22" y1="-53.34" x2="-233.68" y2="-53.34" width="0.1524" layer="91"/>
+<pinref part="X1" gate="G$1" pin="3V3"/>
 </segment>
 <segment>
 <pinref part="+3V3" gate="G$1" pin="+3V3"/>
@@ -17555,8 +17573,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="SDA" class="0">
 <segment>
-<wire x1="-236.22" y1="-27.94" x2="-215.9" y2="-27.94" width="0.1524" layer="91"/>
-<label x="-215.9" y="-27.94" size="1.778" layer="95" rot="MR0"/>
+<wire x1="-236.22" y1="-27.94" x2="-210.82" y2="-27.94" width="0.1524" layer="91"/>
+<label x="-210.82" y="-27.94" size="1.778" layer="95" rot="MR0"/>
 <pinref part="X1" gate="G$1" pin="IO21"/>
 </segment>
 <segment>
@@ -17567,8 +17585,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="SCL" class="0">
 <segment>
-<wire x1="-236.22" y1="-20.32" x2="-215.9" y2="-20.32" width="0.1524" layer="91"/>
-<label x="-215.9" y="-20.32" size="1.778" layer="95" rot="MR0"/>
+<wire x1="-236.22" y1="-20.32" x2="-210.82" y2="-20.32" width="0.1524" layer="91"/>
+<label x="-210.82" y="-20.32" size="1.778" layer="95" rot="MR0"/>
 <pinref part="X1" gate="G$1" pin="IO22"/>
 </segment>
 <segment>
@@ -17579,8 +17597,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="MOTOR0B" class="0">
 <segment>
-<wire x1="-236.22" y1="-33.02" x2="-215.9" y2="-33.02" width="0.1524" layer="91"/>
-<label x="-215.9" y="-33.02" size="1.778" layer="95" rot="MR0"/>
+<wire x1="-236.22" y1="-33.02" x2="-210.82" y2="-33.02" width="0.1524" layer="91"/>
+<label x="-210.82" y="-33.02" size="1.778" layer="95" rot="MR0"/>
 <pinref part="X1" gate="G$1" pin="IO18"/>
 </segment>
 <segment>
@@ -17591,9 +17609,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="MOTOR1B" class="0">
 <segment>
-<wire x1="-236.22" y1="-43.18" x2="-215.9" y2="-43.18" width="0.1524" layer="91"/>
-<label x="-215.9" y="-43.18" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO4"/>
+<wire x1="-271.78" y1="-45.72" x2="-297.18" y2="-45.72" width="0.1524" layer="91"/>
+<label x="-297.18" y="-45.72" size="1.778" layer="95"/>
+<pinref part="X1" gate="G$1" pin="IO12"/>
 </segment>
 <segment>
 <pinref part="IC2" gate="G$1" pin="IN1"/>
@@ -17603,9 +17621,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 </net>
 <net name="MOTOR1A" class="0">
 <segment>
-<wire x1="-236.22" y1="-40.64" x2="-218.44" y2="-40.64" width="0.1524" layer="91"/>
-<label x="-215.9" y="-40.64" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO16"/>
+<wire x1="-236.22" y1="-17.78" x2="-210.82" y2="-17.78" width="0.1524" layer="91"/>
+<label x="-210.82" y="-17.78" size="1.778" layer="95" rot="MR0"/>
 </segment>
 <segment>
 <pinref part="IC2" gate="G$1" pin="IN2"/>
@@ -17623,15 +17640,15 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="-165.1" y="17.78" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-236.22" y1="-25.4" x2="-215.9" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-215.9" y="-25.4" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO3"/>
+<wire x1="-236.22" y1="-35.56" x2="-210.82" y2="-35.56" width="0.1524" layer="91"/>
+<label x="-210.82" y="-35.56" size="1.778" layer="95" rot="MR0"/>
+<pinref part="X1" gate="G$1" pin="IO5"/>
 </segment>
 </net>
 <net name="RANGE" class="0">
 <segment>
-<wire x1="-271.78" y1="-27.94" x2="-292.1" y2="-27.94" width="0.1524" layer="91"/>
-<label x="-292.1" y="-27.94" size="1.778" layer="95"/>
+<wire x1="-271.78" y1="-27.94" x2="-297.18" y2="-27.94" width="0.1524" layer="91"/>
+<label x="-297.18" y="-27.94" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO35"/>
 </segment>
 <segment>
@@ -17687,15 +17704,15 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <segment>
 <pinref part="R9" gate="G$1" pin="2"/>
 <pinref part="R10" gate="G$1" pin="1"/>
-<label x="43.18" y="96.52" size="1.778" layer="95" rot="MR0"/>
+<label x="45.72" y="96.52" size="1.778" layer="95" rot="MR0"/>
 <wire x1="27.94" y1="93.98" x2="27.94" y2="96.52" width="0.1524" layer="91"/>
 <wire x1="27.94" y1="96.52" x2="27.94" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="27.94" y1="96.52" x2="43.18" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="27.94" y1="96.52" x2="45.72" y2="96.52" width="0.1524" layer="91"/>
 <junction x="27.94" y="96.52"/>
 </segment>
 <segment>
-<wire x1="-271.78" y1="-43.18" x2="-292.1" y2="-43.18" width="0.1524" layer="91"/>
-<label x="-292.1" y="-43.18" size="1.778" layer="95"/>
+<wire x1="-271.78" y1="-43.18" x2="-297.18" y2="-43.18" width="0.1524" layer="91"/>
+<label x="-297.18" y="-43.18" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO14"/>
 </segment>
 </net>
@@ -17752,9 +17769,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="68.58" y="22.86" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-215.9" y1="-35.56" x2="-236.22" y2="-35.56" width="0.1524" layer="91"/>
-<label x="-215.9" y="-35.56" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO5"/>
+<wire x1="-297.18" y1="-20.32" x2="-271.78" y2="-20.32" width="0.1524" layer="91"/>
+<label x="-297.18" y="-20.32" size="1.778" layer="95" rot="MR0"/>
 </segment>
 </net>
 <net name="ENCODER0B" class="0">
@@ -17764,9 +17780,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="68.58" y="17.78" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-215.9" y1="-38.1" x2="-236.22" y2="-38.1" width="0.1524" layer="91"/>
-<label x="-215.9" y="-38.1" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO17"/>
+<wire x1="-297.18" y1="-22.86" x2="-271.78" y2="-22.86" width="0.1524" layer="91"/>
+<label x="-297.18" y="-22.86" size="1.778" layer="95" rot="MR0"/>
 </segment>
 </net>
 <net name="ENCODER1B" class="0">
@@ -17776,9 +17791,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="185.42" y="20.32" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-215.9" y1="-48.26" x2="-236.22" y2="-48.26" width="0.1524" layer="91"/>
-<label x="-215.9" y="-48.26" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO15"/>
+<wire x1="-210.82" y1="-40.64" x2="-236.22" y2="-40.64" width="0.1524" layer="91"/>
+<label x="-210.82" y="-40.64" size="1.778" layer="95" rot="MR0"/>
+<pinref part="X1" gate="G$1" pin="IO16"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -17795,21 +17810,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="185.42" y="15.24" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="-215.9" y1="-45.72" x2="-236.22" y2="-45.72" width="0.1524" layer="91"/>
-<label x="-215.9" y="-45.72" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO2"/>
-</segment>
-</net>
-<net name="MPU6050_INT" class="0">
-<segment>
-<pinref part="X2" gate="G$1" pin="INT"/>
-<wire x1="-88.9" y1="40.64" x2="-106.68" y2="40.64" width="0.1524" layer="91"/>
-<label x="-106.68" y="40.64" size="1.778" layer="95"/>
-</segment>
-<segment>
-<wire x1="-215.9" y1="-22.86" x2="-236.22" y2="-22.86" width="0.1524" layer="91"/>
-<label x="-215.9" y="-22.86" size="1.778" layer="95" rot="MR0"/>
-<pinref part="X1" gate="G$1" pin="IO1"/>
+<wire x1="-297.18" y1="-48.26" x2="-271.78" y2="-48.26" width="0.1524" layer="91"/>
+<label x="-297.18" y="-48.26" size="1.778" layer="95"/>
+<pinref part="X1" gate="G$1" pin="IO13"/>
 </segment>
 </net>
 <net name="LINE_SENSOR4" class="0">
@@ -17827,8 +17830,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <pinref part="Q5" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<wire x1="-292.1" y1="-25.4" x2="-271.78" y2="-25.4" width="0.1524" layer="91"/>
-<label x="-292.1" y="-25.4" size="1.778" layer="95"/>
+<wire x1="-297.18" y1="-25.4" x2="-271.78" y2="-25.4" width="0.1524" layer="91"/>
+<label x="-297.18" y="-25.4" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO34"/>
 </segment>
 </net>
@@ -17847,9 +17850,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <pinref part="Q4" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<wire x1="-292.1" y1="-45.72" x2="-271.78" y2="-45.72" width="0.1524" layer="91"/>
-<label x="-292.1" y="-45.72" size="1.778" layer="95"/>
-<pinref part="X1" gate="G$1" pin="IO12"/>
+<wire x1="-210.82" y1="-43.18" x2="-236.22" y2="-43.18" width="0.1524" layer="91"/>
+<label x="-210.82" y="-43.18" size="1.778" layer="95" rot="MR0"/>
+<pinref part="X1" gate="G$1" pin="IO4"/>
 </segment>
 </net>
 <net name="LINE_SENSOR2" class="0">
@@ -17867,8 +17870,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <pinref part="Q3" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<wire x1="-292.1" y1="-33.02" x2="-271.78" y2="-33.02" width="0.1524" layer="91"/>
-<label x="-292.1" y="-33.02" size="1.778" layer="95"/>
+<wire x1="-297.18" y1="-33.02" x2="-271.78" y2="-33.02" width="0.1524" layer="91"/>
+<label x="-297.18" y="-33.02" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO33"/>
 </segment>
 </net>
@@ -17887,9 +17890,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <pinref part="Q2" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<wire x1="-292.1" y1="-48.26" x2="-271.78" y2="-48.26" width="0.1524" layer="91"/>
-<label x="-292.1" y="-48.26" size="1.778" layer="95"/>
-<pinref part="X1" gate="G$1" pin="IO13"/>
+<wire x1="-210.82" y1="-48.26" x2="-236.22" y2="-48.26" width="0.1524" layer="91"/>
+<label x="-210.82" y="-48.26" size="1.778" layer="95" rot="MR0"/>
+<pinref part="X1" gate="G$1" pin="IO15"/>
 </segment>
 </net>
 <net name="LINE_SENSOR0" class="0">
@@ -17907,8 +17910,8 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <pinref part="Q1" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<wire x1="-292.1" y1="-30.48" x2="-271.78" y2="-30.48" width="0.1524" layer="91"/>
-<label x="-292.1" y="-30.48" size="1.778" layer="95"/>
+<wire x1="-297.18" y1="-30.48" x2="-271.78" y2="-30.48" width="0.1524" layer="91"/>
+<label x="-297.18" y="-30.48" size="1.778" layer="95"/>
 <pinref part="X1" gate="G$1" pin="IO32"/>
 </segment>
 </net>
