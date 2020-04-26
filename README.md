@@ -1,5 +1,9 @@
-Line follower
-=============
+Line follower v2
+================
+
+Currently work in progress! See [master branch](https://github.com/bluecube/line_follower/) for the most useable version so far.
+
+
 
 This is a robot I made to tinker with and to compete in [Robotic Day 2019](https://roboticday.org/) (Actually the original goal was Robotic Day 2016, but stuff got delayed :) )
 
