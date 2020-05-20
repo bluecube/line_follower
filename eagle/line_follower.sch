@@ -15510,9 +15510,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="73.66" y="-48.26" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="X1" gate="G$1" pin="VN"/>
-<wire x1="-271.78" y1="-22.86" x2="-297.18" y2="-22.86" width="0.1524" layer="91"/>
-<label x="-297.18" y="-22.86" size="1.778" layer="95"/>
+<pinref part="X1" gate="G$1" pin="VP"/>
+<wire x1="-271.78" y1="-20.32" x2="-297.18" y2="-20.32" width="0.1524" layer="91"/>
+<label x="-297.18" y="-20.32" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="ENCODER1A" class="0">
@@ -15522,9 +15522,9 @@ See https://www.esp32.com/viewtopic.php?f=12&amp;t=5840#p25550</text>
 <label x="73.66" y="-50.8" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="X1" gate="G$1" pin="VP"/>
-<wire x1="-271.78" y1="-20.32" x2="-297.18" y2="-20.32" width="0.1524" layer="91"/>
-<label x="-297.18" y="-20.32" size="1.778" layer="95"/>
+<pinref part="X1" gate="G$1" pin="VN"/>
+<wire x1="-271.78" y1="-22.86" x2="-297.18" y2="-22.86" width="0.1524" layer="91"/>
+<label x="-297.18" y="-22.86" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="ENCODER0A" class="0">
