@@ -46,19 +46,19 @@ Connection ~ 3350 6600
 Wire Wire Line
 	550  1450 1350 1450
 Text Label 550  1450 0    70   ~ 0
-LINE_LED0
+LINE_LED1
 Wire Wire Line
 	1350 1550 550  1550
 Text Label 550  1550 0    70   ~ 0
-LINE_LED1
+LINE_LED2
 Wire Wire Line
 	1350 1650 550  1650
 Text Label 550  1650 0    70   ~ 0
-LINE_LED2
+LINE_LED0
 Wire Wire Line
 	1350 1850 550  1850
 Text Label 550  1850 0    70   ~ 0
-MOTOR2A
+MOTOR1B
 Wire Wire Line
 	2450 2150 2550 2150
 Wire Wire Line
@@ -80,15 +80,15 @@ SCL
 Wire Wire Line
 	1350 1950 550  1950
 Text Label 550  1950 0    70   ~ 0
-MOTOR2B
+MOTOR1A
 Wire Wire Line
 	2450 750  3250 750 
 Text Label 3250 750  2    70   ~ 0
-MOTOR1B
+MOTOR2A
 Wire Wire Line
 	2450 1250 3250 1250
 Text Label 3250 1250 2    70   ~ 0
-MOTOR1A
+MOTOR2B
 Text Label 1000 4700 0    70   ~ 0
 BUTTON
 Wire Wire Line
@@ -98,7 +98,7 @@ BUTTON
 Wire Wire Line
 	1350 1150 550  1150
 Text Label 550  1150 0    70   ~ 0
-RANGE
+LINE_SENSOR3
 Wire Wire Line
 	1000 7000 1200 7000
 Wire Wire Line
@@ -130,11 +130,11 @@ BAT_SENSE
 Wire Wire Line
 	550  1350 1350 1350
 Text Label 550  1350 0    70   ~ 0
-LINE_SENSOR4
+LINE_SENSOR0
 Wire Wire Line
 	550  1750 1350 1750
 Text Label 550  1750 0    70   ~ 0
-LINE_SENSOR3
+RANGE
 Wire Wire Line
 	550  1250 1350 1250
 Text Label 550  1250 0    70   ~ 0
@@ -146,23 +146,23 @@ LINE_SENSOR1
 Wire Wire Line
 	550  1050 1350 1050
 Text Label 550  1050 0    70   ~ 0
-LINE_SENSOR0
+LINE_SENSOR4
 Wire Wire Line
 	1350 850  550  850 
 Text Label 550  850  0    70   ~ 0
-ENCODER1B
+ENCODER2A
 Wire Wire Line
 	1350 950  550  950 
 Text Label 550  950  0    70   ~ 0
-ENCODER1A
+ENCODER2B
 Wire Wire Line
 	2450 1550 3250 1550
 Text Label 3250 1550 2    70   ~ 0
-ENCODER2A
+ENCODER1B
 Wire Wire Line
 	2450 1650 3250 1650
 Text Label 3250 1650 2    70   ~ 0
-ENCODER2B
+ENCODER1A
 Wire Wire Line
 	1500 3200 800  3200
 Text Label 800  3200 0    70   ~ 0
@@ -545,17 +545,6 @@ F 3 "" H 6750 7200 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L power:+5V #PWR0104
-U 1 1 5F6B266B
-P 4750 6950
-F 0 "#PWR0104" H 4750 6800 50  0001 C CNN
-F 1 "+5V" V 4765 7078 50  0000 L CNN
-F 2 "" H 4750 6950 50  0001 C CNN
-F 3 "" H 4750 6950 50  0001 C CNN
-	1    4750 6950
-	0    -1   -1   0   
-$EndComp
-$Comp
 L cube-library:MOTOR_ENC M2
 U 1 1 5F092189
 P 7450 7100
@@ -729,17 +718,6 @@ F 3 "" H 6750 4500 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L power:+5V #PWR0103
-U 1 1 5F6B001E
-P 4750 4250
-F 0 "#PWR0103" H 4750 4100 50  0001 C CNN
-F 1 "+5V" V 4765 4378 50  0000 L CNN
-F 2 "" H 4750 4250 50  0001 C CNN
-F 3 "" H 4750 4250 50  0001 C CNN
-	1    4750 4250
-	0    -1   -1   0   
-$EndComp
-$Comp
 L cube-library:MOTOR_ENC M1
 U 1 1 5F08FA5D
 P 7450 4400
@@ -805,8 +783,6 @@ Wire Wire Line
 	4850 3950 4350 3950
 Wire Wire Line
 	5250 4650 5250 4800
-Wire Wire Line
-	5250 4650 5250 4550
 Connection ~ 5250 4650
 Wire Wire Line
 	5350 4650 5250 4650
@@ -1291,4 +1267,116 @@ Wire Wire Line
 Connection ~ 10050 4200
 Wire Wire Line
 	9850 4200 10050 4200
+$Comp
+L Mechanical:Heatsink_Pad HS1
+U 1 1 5F1F9B2A
+P 6750 3050
+F 0 "HS1" H 6891 3089 50  0000 L CNN
+F 1 "Heatsink_Pad" H 6891 2998 50  0000 L CNN
+F 2 "cube-library:3x3_thermal_vias" H 6762 3000 50  0001 C CNN
+F 3 "~" H 6762 3000 50  0001 C CNN
+	1    6750 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Heatsink_Pad HS2
+U 1 1 5F204F60
+P 6750 3550
+F 0 "HS2" H 6891 3589 50  0000 L CNN
+F 1 "Heatsink_Pad" H 6891 3498 50  0000 L CNN
+F 2 "cube-library:3x3_thermal_vias" H 6762 3500 50  0001 C CNN
+F 3 "~" H 6762 3500 50  0001 C CNN
+	1    6750 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5250 4650 5250 4550
+$Comp
+L power:GND #PWR0127
+U 1 1 5F2722C1
+P 6750 3150
+F 0 "#PWR0127" H 6750 2900 50  0001 C CNN
+F 1 "GND" H 6755 2977 50  0000 C CNN
+F 2 "" H 6750 3150 50  0001 C CNN
+F 3 "" H 6750 3150 50  0001 C CNN
+	1    6750 3150
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0128
+U 1 1 5F27922E
+P 6750 3650
+F 0 "#PWR0128" H 6750 3400 50  0001 C CNN
+F 1 "GND" H 6755 3477 50  0000 C CNN
+F 2 "" H 6750 3650 50  0001 C CNN
+F 3 "" H 6750 3650 50  0001 C CNN
+	1    6750 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Heatsink_Pad HS3
+U 1 1 5F292D49
+P 6700 5750
+F 0 "HS3" H 6841 5789 50  0000 L CNN
+F 1 "Heatsink_Pad" H 6841 5698 50  0000 L CNN
+F 2 "cube-library:3x3_thermal_vias" H 6712 5700 50  0001 C CNN
+F 3 "~" H 6712 5700 50  0001 C CNN
+	1    6700 5750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:Heatsink_Pad HS4
+U 1 1 5F29358A
+P 6700 6250
+F 0 "HS4" H 6841 6289 50  0000 L CNN
+F 1 "Heatsink_Pad" H 6841 6198 50  0000 L CNN
+F 2 "cube-library:3x3_thermal_vias" H 6712 6200 50  0001 C CNN
+F 3 "~" H 6712 6200 50  0001 C CNN
+	1    6700 6250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0129
+U 1 1 5F29604C
+P 6700 6350
+F 0 "#PWR0129" H 6700 6100 50  0001 C CNN
+F 1 "GND" H 6705 6177 50  0000 C CNN
+F 2 "" H 6700 6350 50  0001 C CNN
+F 3 "" H 6700 6350 50  0001 C CNN
+	1    6700 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0130
+U 1 1 5F29648E
+P 6700 5850
+F 0 "#PWR0130" H 6700 5600 50  0001 C CNN
+F 1 "GND" H 6705 5677 50  0000 C CNN
+F 2 "" H 6700 5850 50  0001 C CNN
+F 3 "" H 6700 5850 50  0001 C CNN
+	1    6700 5850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5F2EDDA3
+P 4750 4250
+F 0 "#PWR?" H 4750 4100 50  0001 C CNN
+F 1 "+3.3V" V 4765 4378 50  0000 L CNN
+F 2 "" H 4750 4250 50  0001 C CNN
+F 3 "" H 4750 4250 50  0001 C CNN
+	1    4750 4250
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5F2F0575
+P 4750 6950
+F 0 "#PWR?" H 4750 6800 50  0001 C CNN
+F 1 "+3.3V" V 4765 7078 50  0000 L CNN
+F 2 "" H 4750 6950 50  0001 C CNN
+F 3 "" H 4750 6950 50  0001 C CNN
+	1    4750 6950
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
