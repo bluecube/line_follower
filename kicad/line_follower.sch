@@ -16,7 +16,7 @@ $EndDescr
 Wire Wire Line
 	1300 6800 1500 6800
 Wire Wire Line
-	1500 6800 1500 7300
+	1500 6800 1500 6950
 Wire Wire Line
 	1800 7200 1800 7300
 Wire Wire Line
@@ -187,17 +187,6 @@ F 2 "cube-library:ESP32_DEVKITV1" H 1800 2550 50  0001 C CNN
 F 3 "https://docs.zerynth.com/latest/official/board.zerynth.doit_esp32/docs/index.html" H 1800 2550 50  0001 C CNN
 	1    2000 1450
 	1    0    0    -1  
-$EndComp
-$Comp
-L cube-library:XT30PW-M J1
-U 1 1 5EDD27F3
-P 1100 6550
-F 0 "J1" H 1163 6625 50  0000 C CNN
-F 1 "XT30PW-M" H 1163 6534 50  0000 C CNN
-F 2 "cube-library:XT30PW-M" H 1200 5900 50  0001 C CNN
-F 3 "https://www.tme.eu/Document/ce4077e36b79046da520ca73227e15de/XT30PW%20SPEC.pdf" H 1100 6550 50  0001 C CNN
-	1    1100 6550
-	-1   0    0    -1  
 $EndComp
 $Comp
 L Regulator_Linear:L7805 U3
@@ -1434,4 +1423,25 @@ F 3 "~" H 4750 7300 50  0001 C CNN
 	1    4750 7300
 	1    0    0    -1  
 $EndComp
+$Comp
+L cube-library:XT30PW-M J1
+U 1 1 5EDD27F3
+P 1100 6550
+F 0 "J1" H 1163 6625 50  0000 C CNN
+F 1 "XT30PW-M" H 1163 6534 50  0000 C CNN
+F 2 "cube-library:XT30PW-M" H 1200 5900 50  0001 C CNN
+F 3 "https://www.tme.eu/Document/ce4077e36b79046da520ca73227e15de/XT30PW%20SPEC.pdf" H 1100 6550 50  0001 C CNN
+	1    1100 6550
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	1300 6950 1500 6950
+Connection ~ 1500 6950
+Wire Wire Line
+	1500 6950 1500 7050
+Wire Wire Line
+	1300 7050 1500 7050
+Connection ~ 1500 7050
+Wire Wire Line
+	1500 7050 1500 7300
 $EndSCHEMATC
