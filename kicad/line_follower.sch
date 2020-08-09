@@ -46,7 +46,7 @@ Connection ~ 3650 6300
 Wire Wire Line
 	650  1450 1450 1450
 Text Label 650  1450 0    70   ~ 0
-LINE_LED1
+RANGE
 Wire Wire Line
 	1450 1550 650  1550
 Text Label 650  1550 0    70   ~ 0
@@ -58,7 +58,7 @@ LINE_LED0
 Wire Wire Line
 	1450 1850 650  1850
 Text Label 650  1850 0    70   ~ 0
-MOTOR1B
+LINE_SENSOR3
 Wire Wire Line
 	2550 2150 2650 2150
 Wire Wire Line
@@ -98,7 +98,7 @@ BUTTON
 Wire Wire Line
 	1450 1150 650  1150
 Text Label 650  1150 0    70   ~ 0
-LINE_SENSOR3
+LINE_SENSOR2
 Wire Wire Line
 	1300 6700 1500 6700
 Wire Wire Line
@@ -134,15 +134,15 @@ LINE_SENSOR0
 Wire Wire Line
 	650  1750 1450 1750
 Text Label 650  1750 0    70   ~ 0
-RANGE
+LINE_SENSOR1
 Wire Wire Line
 	650  1250 1450 1250
 Text Label 650  1250 0    70   ~ 0
-LINE_SENSOR2
+LINE_LED1
 Wire Wire Line
 	3350 1750 2550 1750
 Text Label 3350 1750 2    70   ~ 0
-LINE_SENSOR1
+MOTOR1B
 Wire Wire Line
 	650  1050 1450 1050
 Text Label 650  1050 0    70   ~ 0
@@ -1444,4 +1444,8 @@ Wire Wire Line
 Connection ~ 1500 7050
 Wire Wire Line
 	1500 7050 1500 7300
+Text Notes 1150 4300 0    50   ~ 0
+GPIO5 has a pull-up on X1
+Text Notes 3400 1950 0    50   ~ 0
+Has pull up on reset!
 $EndSCHEMATC
