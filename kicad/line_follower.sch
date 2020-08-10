@@ -45,8 +45,6 @@ Wire Wire Line
 Connection ~ 3650 6300
 Wire Wire Line
 	650  1450 1450 1450
-Text Label 650  1450 0    70   ~ 0
-RANGE
 Wire Wire Line
 	1450 1550 650  1550
 Text Label 650  1550 0    70   ~ 0
@@ -57,8 +55,6 @@ Text Label 650  1650 0    70   ~ 0
 LINE_LED0
 Wire Wire Line
 	1450 1850 650  1850
-Text Label 650  1850 0    70   ~ 0
-LINE_SENSOR3
 Wire Wire Line
 	2550 2150 2650 2150
 Wire Wire Line
@@ -129,16 +125,12 @@ Text Label 3350 1950 2    70   ~ 0
 BAT_SENSE
 Wire Wire Line
 	650  1350 1450 1350
-Text Label 650  1350 0    70   ~ 0
-LINE_SENSOR0
 Wire Wire Line
 	650  1750 1450 1750
 Text Label 650  1750 0    70   ~ 0
 LINE_SENSOR1
 Wire Wire Line
 	650  1250 1450 1250
-Text Label 650  1250 0    70   ~ 0
-LINE_LED1
 Wire Wire Line
 	3350 1750 2550 1750
 Text Label 3350 1750 2    70   ~ 0
@@ -987,61 +979,6 @@ F 3 "~" H 9150 900 50  0001 C CNN
 	0    -1   1    0   
 $EndComp
 $Comp
-L Device:C C5
-U 1 1 5F8649E1
-P 9900 4400
-F 0 "C5" V 9648 4400 50  0000 C CNN
-F 1 "100nF" V 9739 4400 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 4250 50  0001 C CNN
-F 3 "~" H 9900 4400 50  0001 C CNN
-	1    9900 4400
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:C C4
-U 1 1 5F864455
-P 9900 3600
-F 0 "C4" V 9648 3600 50  0000 C CNN
-F 1 "100nF" V 9739 3600 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 3450 50  0001 C CNN
-F 3 "~" H 9900 3600 50  0001 C CNN
-	1    9900 3600
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:C C3
-U 1 1 5F863E50
-P 9900 2800
-F 0 "C3" V 9648 2800 50  0000 C CNN
-F 1 "100nF" V 9739 2800 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 2650 50  0001 C CNN
-F 3 "~" H 9900 2800 50  0001 C CNN
-	1    9900 2800
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:C C2
-U 1 1 5F863769
-P 9900 2000
-F 0 "C2" V 9648 2000 50  0000 C CNN
-F 1 "100nF" V 9739 2000 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 1850 50  0001 C CNN
-F 3 "~" H 9900 2000 50  0001 C CNN
-	1    9900 2000
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:C C1
-U 1 1 5F862D5E
-P 9900 1200
-F 0 "C1" V 9648 1200 50  0000 C CNN
-F 1 "100nF" V 9739 1200 50  0000 C CNN
-F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 1050 50  0001 C CNN
-F 3 "~" H 9900 1200 50  0001 C CNN
-	1    9900 1200
-	0    1    1    0   
-$EndComp
-$Comp
 L Device:R R5
 U 1 1 5F810985
 P 9900 4200
@@ -1061,17 +998,6 @@ F 1 "5k6" V 9784 3400 50  0000 C CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 9830 3400 50  0001 C CNN
 F 3 "~" H 9900 3400 50  0001 C CNN
 	1    9900 3400
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:R R3
-U 1 1 5F8100EF
-P 9900 2600
-F 0 "R3" V 9693 2600 50  0000 C CNN
-F 1 "5k6" V 9784 2600 50  0000 C CNN
-F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 9830 2600 50  0001 C CNN
-F 3 "~" H 9900 2600 50  0001 C CNN
-	1    9900 2600
 	0    1    1    0   
 $EndComp
 $Comp
@@ -1448,4 +1374,78 @@ Text Notes 1150 4300 0    50   ~ 0
 GPIO5 has a pull-up on X1
 Text Notes 3400 1950 0    50   ~ 0
 Has pull up on reset!
+Text Label 650  1350 0    70   ~ 0
+LINE_SENSOR0
+Text Label 650  1250 0    70   ~ 0
+LINE_LED1
+$Comp
+L Device:R R3
+U 1 1 5F8100EF
+P 9900 2600
+F 0 "R3" V 9693 2600 50  0000 C CNN
+F 1 "5k6" V 9784 2600 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 9830 2600 50  0001 C CNN
+F 3 "~" H 9900 2600 50  0001 C CNN
+	1    9900 2600
+	0    1    1    0   
+$EndComp
+Text Label 650  1450 0    70   ~ 0
+LINE_SENSOR3
+$Comp
+L Device:C C5
+U 1 1 5F8649E1
+P 9900 4400
+F 0 "C5" V 9648 4400 50  0000 C CNN
+F 1 "100nF" V 9739 4400 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 4250 50  0001 C CNN
+F 3 "~" H 9900 4400 50  0001 C CNN
+	1    9900 4400
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C4
+U 1 1 5F864455
+P 9900 3600
+F 0 "C4" V 9648 3600 50  0000 C CNN
+F 1 "100nF" V 9739 3600 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 3450 50  0001 C CNN
+F 3 "~" H 9900 3600 50  0001 C CNN
+	1    9900 3600
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C3
+U 1 1 5F863E50
+P 9900 2800
+F 0 "C3" V 9648 2800 50  0000 C CNN
+F 1 "100nF" V 9739 2800 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 2650 50  0001 C CNN
+F 3 "~" H 9900 2800 50  0001 C CNN
+	1    9900 2800
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C2
+U 1 1 5F863769
+P 9900 2000
+F 0 "C2" V 9648 2000 50  0000 C CNN
+F 1 "100nF" V 9739 2000 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 1850 50  0001 C CNN
+F 3 "~" H 9900 2000 50  0001 C CNN
+	1    9900 2000
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 5F862D5E
+P 9900 1200
+F 0 "C1" V 9648 1200 50  0000 C CNN
+F 1 "100nF" V 9739 1200 50  0000 C CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 9938 1050 50  0001 C CNN
+F 3 "~" H 9900 1200 50  0001 C CNN
+	1    9900 1200
+	0    1    1    0   
+$EndComp
+Text Label 650  1850 0    70   ~ 0
+RANGE
 $EndSCHEMATC
