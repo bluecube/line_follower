@@ -789,12 +789,6 @@ Text Notes 8000 5150 0    59   ~ 0
 Line sensor LEDs\n\nCharlieplexing leds, using ESP32 GPIO drive strength to limit current.\nShould be safe even at max drive strength at about 30mA per LED.\n\nSee https://www.esp32.com/viewtopic.php?f=12&t=5840#p25550
 Text Notes 8050 600  0    59   ~ 0
 Line sensor
-Text GLabel 8850 6300 0    50   Input ~ 0
-LINE_LED2
-Text GLabel 8850 5800 0    50   Input ~ 0
-LINE_LED1
-Text GLabel 8850 5300 0    50   Input ~ 0
-LINE_LED0
 Wire Wire Line
 	9900 6200 9900 6300
 Connection ~ 9900 6300
@@ -913,16 +907,6 @@ Wire Wire Line
 Connection ~ 9500 5800
 Wire Wire Line
 	8850 5800 9500 5800
-Text GLabel 10600 4000 2    50   Output ~ 0
-LINE_SENSOR4
-Text GLabel 10600 3200 2    50   Output ~ 0
-LINE_SENSOR3
-Text GLabel 10600 2400 2    50   Output ~ 0
-LINE_SENSOR2
-Text GLabel 10600 1600 2    50   Output ~ 0
-LINE_SENSOR1
-Text GLabel 10600 800  2    50   Output ~ 0
-LINE_SENSOR0
 $Comp
 L Device:Q_Photo_NPN Q5
 U 1 1 5F8D10CE
@@ -1448,4 +1432,20 @@ F 3 "~" H 9900 1200 50  0001 C CNN
 $EndComp
 Text Label 650  1850 0    70   ~ 0
 RANGE
+Text Label 8850 5300 0    50   ~ 0
+LINE_LED0
+Text Label 8850 5800 0    50   ~ 0
+LINE_LED1
+Text Label 8850 6300 0    50   ~ 0
+LINE_LED2
+Text Label 10600 800  0    50   ~ 0
+LINE_SENSOR0
+Text Label 10600 1600 0    50   ~ 0
+LINE_SENSOR1
+Text Label 10600 2400 0    50   ~ 0
+LINE_SENSOR2
+Text Label 10600 3200 0    50   ~ 0
+LINE_SENSOR3
+Text Label 10600 4000 0    50   ~ 0
+LINE_SENSOR4
 $EndSCHEMATC
