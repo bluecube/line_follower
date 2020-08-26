@@ -1356,8 +1356,6 @@ Wire Wire Line
 	1500 7050 1500 7300
 Text Notes 1150 4300 0    50   ~ 0
 GPIO5 has a pull-up on X1
-Text Notes 3400 1950 0    50   ~ 0
-Has pull up on reset!
 Text Label 650  1350 0    70   ~ 0
 LINE_SENSOR0
 Text Label 650  1250 0    70   ~ 0
