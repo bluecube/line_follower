@@ -821,7 +821,7 @@
     )
   )
 
-  (module cube-library:4.5mm_tact_switch (layer F.Cu) (tedit 5EE1370C) (tstamp 5EE13CE1)
+  (module cube-library:4.5mm_tact_switch (layer F.Cu) (tedit 5F36EF4B) (tstamp 5EE13CE1)
     (at 0 9 180)
     (path /5EFF085D)
     (fp_text reference SW1 (at -5.715 0.11 270) (layer F.SilkS)
@@ -843,6 +843,11 @@
       (net 14 /BUTTON))
     (pad 1 smd roundrect (at -2.7 -1.6 180) (size 1.7 1) (layers F.Cu F.Paste F.Mask) (roundrect_rratio 0.25)
       (net 14 /BUTTON))
+    (model /home/cube/development/kicad/cube-library-3d/microswitch_4.5mm.step
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
   )
 
   (module cube-library:SolderWirePad1x3_p2.54 (layer F.Cu) (tedit 5EE748C3) (tstamp 5F3060DC)
