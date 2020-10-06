@@ -3,7 +3,16 @@ Line follower v2
 
 Currently work in progress! See [master branch](https://github.com/bluecube/line_follower/) for the most useable version so far.
 
-
+Changes for version 2:
+----------------------
+- Motors with encoders
+  - Previous version had problems with unpredictable acceleration, since the motors are fast and relatively under-torqued for the robot.
+- Bluetooth support with ESP32
+- Removable front armor, allowing the robot to take place in sumo competitions as well
+- Visible light line sensor, hopefully simplifying debugging
+- Whole deck is a (stop) button now
+  - improvement over the hard to press wobbly button from v1.
+- Enough space on the deck to place race start number sticker.
 
 This is a robot I made to tinker with and to compete in [Robotic Day 2019](https://roboticday.org/) (Actually the original goal was Robotic Day 2016, but stuff got delayed :) )
 
@@ -15,4 +24,4 @@ The most important electronic components are Teensy 3.2 development board for co
 This repository should contain everything necessary to build and run the robot in the competition.
 Let me know if you decide to build it!
 
-![Photo of the robot](https://github.com/bluecube/line_follower/raw/master/doc/photo0.jpg)
+![Render of the robot](https://github.com/bluecube/line_follower/raw/v2/fusion360/render.png)
