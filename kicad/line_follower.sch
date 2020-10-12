@@ -164,7 +164,7 @@ Wire Wire Line
 Text Label 3350 1350 2    70   ~ 0
 ACCEL_INT
 Text Notes 750  5750 0    59   ~ 0
-Power supply:\n\nBoth ESP32-DEVKITV1 and GY-521 have on board 3.3V regulators.\nWe're using the one on ESP32 to power small stuff around the board.\n\nNCV4274CDT low dropout voltage regulator was chosen because it\nhas low enough dropout voltage to power the board from 2S LiPo,\nand has an internal diode in series, so that back powering the board\nfrom USB is safe (Powers everything except the motors).
+Power supply:\n\nTotal current on the 5V rail should be < 250mA at all times.\n\nBoth ESP32-DEVKITV1 and GY-521 have on board 3.3V regulators.\nWe're using the one on ESP32 to power small stuff around the board.\n\nLow dropout voltage regulator was chosen because it\nhas low enough dropout voltage to power the board from 2S LiPo.\n\nWhen connecting board with USB without battery, the motors\nare powered from the USB as well (-2*diode drop)
 Text Notes 2600 1050 0    59   ~ 0
 UART TX/RX\nconnected to USB
 Text Notes 2600 1850 0    59   ~ 0
@@ -185,7 +185,7 @@ L Regulator_Linear:L7805 U3
 U 1 1 5EE384A3
 P 3150 6300
 F 0 "U3" H 3150 6542 50  0000 C CNN
-F 1 "NCV4274CDT50RKG" H 3150 6451 50  0000 C CNN
+F 1 "NCP1117DT50G" H 3150 6451 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:TO-252-2" H 3175 6150 50  0001 L CIN
 F 3 "http://www.st.com/content/ccc/resource/technical/document/datasheet/41/4f/b3/b0/12/d4/47/88/CD00000444.pdf/files/CD00000444.pdf/jcr:content/translations/en.CD00000444.pdf" H 3150 6250 50  0001 C CNN
 	1    3150 6300
