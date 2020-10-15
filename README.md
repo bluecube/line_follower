@@ -24,4 +24,4 @@ The most important electronic components are Teensy 3.2 development board for co
 This repository should contain everything necessary to build and run the robot in the competition.
 Let me know if you decide to build it!
 
-![Render of the robot](https://github.com/bluecube/line_follower/raw/v2/fusion360/render.png)
+![Render of the robot](https://github.com/bluecube/line_follower/raw/v2/fusion360/output-exports/render.png)
