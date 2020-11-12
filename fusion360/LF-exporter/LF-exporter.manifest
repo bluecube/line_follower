@@ -1,0 +1,10 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"script",
+	"author":	"Kuba Marek (https://github.com/bluecube)",
+	"description":	{
+		"":	"Script for exporting the F360 design of my line follower robot"
+	},
+	"supportedOS":	"windows|mac",
+	"editEnabled":	true
+}
