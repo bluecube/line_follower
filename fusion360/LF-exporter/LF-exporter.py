@@ -26,14 +26,19 @@ def export_screenshot(component, export_manager, full_path):
 
     camera.cameraType = adsk.core.CameraTypes.PerspectiveCameraType
     camera.viewOrientation = adsk.core.ViewOrientations.IsoTopRightViewOrientation
-    camera.isFitView = True
+    camera.isSmoothTransition = False
 
     try:
+        view.camera = camera
+        view.fit()
+        camera = view.camera
+        camera.viewExtents *= 0.75 # Tighter framing than the default
         view.camera = camera
         view.refresh()
         view.saveAsImageFile(full_path, 1024, 768)
     finally:
         view.camera = old_camera
+        pass
 
     
 def collect_visibility(component):
@@ -150,6 +155,7 @@ def get_export_path(ui):
 def run(context):
     app = adsk.core.Application.get()
     ui = app.userInterface
+    ui.activeSelections.clear()
 
     try:
         design = adsk.fusion.Design.cast(app.activeProduct)
