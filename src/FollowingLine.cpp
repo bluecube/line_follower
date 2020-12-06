@@ -56,10 +56,10 @@ int32_t FollowingLine::findLine() {
     int32_t sum = 0;
     int32_t sumWeights = 0;
 
-    int32_t bestPosition;
+    int32_t bestPosition = -1;
     int32_t bestSumWeights = 0;
 
-    for (int32_t offsetIndex = 1 - kernel.size();
+    for (int32_t offsetIndex = 1 - static_cast<int32_t>(kernel.size());
          offsetIndex < static_cast<int32_t>(buffer.size());
          ++offsetIndex)
     {
