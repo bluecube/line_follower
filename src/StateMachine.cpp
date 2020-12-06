@@ -25,7 +25,6 @@ void StateMachine::update(Hal::MillisecondsT elapsed) {
 Beware that this destroys the currently existing state, so calling it from a state is risky */
 #define X(StateName) \
 void StateMachine::changeState(StateName&& state) { \
-    Serial.println("Changing state to " #StateName); \
     this->destroyState(); \
     this->variant = Variant::StateName; \
     new (&(this->state.s##StateName)) StateName(state); \

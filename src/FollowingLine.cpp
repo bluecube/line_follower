@@ -20,10 +20,10 @@ void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapse
     }
 
     auto linePosition = findLine();
-    Serial.print("LP: "); Serial.print(linePosition);
+    //Serial.print("LP: "); Serial.print(linePosition);
     auto turningSpeed = -this->pid.update(linePosition, 0, elapsed);
-    Serial.print(" TS: "); Serial.print(turningSpeed);
-    Serial.println();
+    //Serial.print(" TS: "); Serial.print(turningSpeed);
+    //Serial.println();
 
     // TODO: Refactor the speed control part somewhere else.
 
