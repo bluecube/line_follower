@@ -9,7 +9,16 @@
 class RobotHal
 {
 protected:
+    RobotHal(); // Hal is only accessible through its singleton instance.
 public:
+    RobotHal(const RobotHal&) = delete;
+    RobotHal(RobotHal&&) = delete;
+    RobotHal& operator=(const RobotHal&) = delete;
+    RobotHal& operator=(RobotHal&&) = delete;
+
+    /// Return reference to the current HAL instance.
+    static RobotHal& instance();
+
     enum class ButtonEvent: uint8_t {
         None,
         ShortPress,
@@ -25,9 +34,6 @@ public:
 
     using LineSensorT = int;
     using LineSensorBufferT = std::array<LineSensorT, 8>;
-
-    /// Return reference to the current HAL instance.
-    static RobotHal& instance();
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
@@ -87,8 +93,4 @@ protected:
     void setupMotorPWM();
     void setupLineSensor();
     void setupButton();
-private:
-    RobotHal(); // Hal is only accessible through its singleton instance.
-    RobotHal(const RobotHal&) = delete;
-    void operator=(const RobotHal&) = delete;
 };
