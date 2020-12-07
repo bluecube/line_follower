@@ -9,26 +9,6 @@
 class RobotHal
 {
 protected:
-    enum PinT: uint8_t
-    {
-        motor0a = 3,
-        motor0b = 4,
-        motor1a = 5,
-        motor1b = 6,
-        lineSensorLedFirst = 7,
-        lineSensorLedLast = 11,
-        button = 12,
-        builtinLed = 13,
-        lineSensorLast = 14,
-        lineSensorFirst = 17,
-        i2cSda = 18,
-        i2cScl = 19,
-        motor1Current = 20,
-        motor0Current = 21,
-        batteryVoltage = 22,
-        rangeSensor = 23,
-    };
-
 public:
     enum class ButtonEvent: uint8_t {
         None,
@@ -45,13 +25,6 @@ public:
 
     using LineSensorT = int;
     using LineSensorBufferT = std::array<LineSensorT, 8>;
-
-    static constexpr uint8_t lineSensorLedCount = std::tuple_size<LineSensorBufferT>::value / 2 + 1;
-    static_assert(PinT::lineSensorLedLast - PinT::lineSensorLedFirst == lineSensorLedCount - 1,
-        "Line sensor LED pins must be consecutive and the exactly right count.");
-    static constexpr uint8_t lineSensorCount = std::tuple_size<LineSensorBufferT>::value / 2;
-    static_assert(lineSensorFirst - lineSensorLast == lineSensorCount - 1,
-        "Line sensor pins must be reversely consecutive and the exactly right count.");
 
     /// Return reference to the current HAL instance.
     static RobotHal& instance();
@@ -86,6 +59,31 @@ public:
 
 
 protected:
+    using PinT = int; // Int to match the ESP-IDF function signatures.
+
+    // Board pins, manually copied from the schematic
+    struct Pins
+    {
+        static constexpr std::array<std::pair<PinT, PinT>, 2> motor = {
+            std::make_pair(13, 4),
+            std::make_pair(23, 19)
+        };
+        static constexpr std::array<std::pair<PinT, PinT>, 2> encoder = {
+            std::make_pair(16, 17),
+            std::make_pair(36, 39)
+        };
+        static constexpr std::array<PinT, 5> lineSensor = {33, 14, 35, 25, 34};
+        static constexpr std::array<PinT, 3> lineLed = {27, 32, 26};
+        static constexpr PinT range = 12;
+        static constexpr PinT scl = 22;
+        static constexpr PinT sda = 21;
+        static constexpr PinT accel_PinT = 18;
+        static constexpr PinT mainBbutton = 5;
+        static constexpr PinT bootBbutton = 0;
+        static constexpr PinT batSense = 15;
+        static constexpr PinT indicatorLed = 2;
+    };
+
     void setupMotorPWM();
     void setupLineSensor();
     void setupButton();
