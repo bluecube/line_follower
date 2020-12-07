@@ -5,9 +5,7 @@
 #include <array>
 #include <tuple>
 
-
-class RobotHal
-{
+class RobotHal {
 protected:
     RobotHal(); // Hal is only accessible through its singleton instance.
 public:
@@ -63,13 +61,11 @@ public:
 
     ButtonEvent pollButton();
 
-
 protected:
     using PinT = int; // Int to match the ESP-IDF function signatures.
 
     // Board pins, manually copied from the schematic
-    struct Pins
-    {
+    struct Pins {
         static constexpr std::array<std::pair<PinT, PinT>, 2> motor = {
             std::make_pair(13, 4),
             std::make_pair(23, 19)
