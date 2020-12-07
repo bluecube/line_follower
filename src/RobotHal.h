@@ -5,7 +5,6 @@
 #include <array>
 #include <tuple>
 
-#include "ADC.h"
 
 class RobotHal
 {
@@ -30,7 +29,6 @@ protected:
         rangeSensor = 23,
     };
 
-    static constexpr float batteryVoltsPerUnit = 0.03546; // Empirically measured value
 public:
     enum class ButtonEvent: uint8_t {
         None,
@@ -86,26 +84,11 @@ public:
 
     ButtonEvent pollButton();
 
-    bool isSerialReady();
 
 protected:
     void setupMotorPWM();
     void setupLineSensor();
     void setupButton();
-
-    /// Helper function to set pwm output for a single motor, handlnig
-    /// reversing correctly.
-    void setSingleMotor(PinT pinA, PinT pinB, PwmT value);
-
-    /// Line sensor led pin that is currently enabled, or any of the line sensor
-    /// led pins if none is enabled.
-    PinT enabledLineSensorLed = lineSensorLedFirst;
-
-    ADC adc;
-
-    bool buttonState = false;
-    uint32_t buttonStateChangeTime;
-
 private:
     RobotHal(); // Hal is only accessible through its singleton instance.
     RobotHal(const RobotHal&) = delete;

@@ -20,7 +20,7 @@ void Bootup::update(StateMachine& stateMachine, Hal::MillisecondsT elapsed) {
         Hal::instance().setBuiltinLed(false);
         return;
     }
-    else if (buttonState == Hal::ButtonEvent::ShortPress || Hal::instance().isSerialReady()) {
+    else if (buttonState == Hal::ButtonEvent::ShortPress) {
         stateMachine.changeState(Waiting());
         Hal::instance().setBuiltinLed(false);
         return;

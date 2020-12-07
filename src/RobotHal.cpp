@@ -1,7 +1,6 @@
 #include "RobotHal.h"
 
 #include <algorithm>
-#include <Arduino.h>
 
 #include "parameters.h"
 
@@ -11,77 +10,43 @@ RobotHal& RobotHal::instance() {
 }
 
 RobotHal::RobotHal() {
-    Serial.begin(9600);
-
-    this->setupMotorPWM();
-    this->setupLineSensor();
-    this->setupButton();
-
-    pinMode(builtinLed, OUTPUT);
 }
 
 void RobotHal::setupMotorPWM() {
-    analogWriteRes(std::numeric_limits<PwmT>::digits);
-    for (auto pin: {motor0a, motor0b, motor1a, motor1b}) {
-        pinMode(pin, OUTPUT);
-        analogWriteFrequency(pin, Parameters::Hardware::motorPWMFrequency);
-    }
 }
 
 void RobotHal::setupLineSensor() {
-    for (uint8_t pin = lineSensorLedFirst; pin <= lineSensorLedLast; ++pin) {
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, HIGH); // line leds are active low.
-    }
 }
 
 void RobotHal::setupButton() {
-    pinMode(button, INPUT_PULLUP);
-    delay(Parameters::Hardware::buttonDebounceDelay);
-    this->buttonState = !digitalRead(button);
-    this->buttonStateChangeTime = millis();
-}
-
-void RobotHal::setSingleMotor(PinT pinA, PinT pinB, PwmT value) {
-    if (value > 0) {
-        analogWrite(pinA, value);
-        analogWrite(pinB, 0);
-    } else {
-        analogWrite(pinA, 0);
-        analogWrite(pinB, -value);
-    }
 }
 
 void RobotHal::setMotors(PwmT left, PwmT right) {
-    setSingleMotor(motor0a, motor0b, left);
-    setSingleMotor(motor1a, motor1b, right);
+    (void)left;
+    (void)right;
 }
 
 void RobotHal::enableLineSensorLed(uint8_t ledIndex) {
-    this->disableLineSensorLed();
-    if (ledIndex < lineSensorLedCount) {
-        this->enabledLineSensorLed = static_cast<PinT>(lineSensorLedFirst + ledIndex);
-        digitalWrite(this->enabledLineSensorLed, LOW);
-    }
+    (void)ledIndex;
 }
 
 void RobotHal::disableLineSensorLed() {
-    digitalWrite(this->enabledLineSensorLed, HIGH);
 }
 
 void RobotHal::setBuiltinLed(bool enable) {
-    digitalWrite(builtinLed, enable ? HIGH : LOW);
+    (void)enable;
 }
 
 int RobotHal::readRange() {
-    return analogRead(rangeSensor);
+    return 0;
 }
 
 std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSensor(LineSensorBufferT& buffer) {
     // TODO: Calibration
     // TODO: Make this asynchronous
 
-    static_assert(std::tuple_size<LineSensorBufferT>::value == 8,
+    return std::make_tuple(0, 0);
+    /*static_assert(std::tuple_size<LineSensorBufferT>::value == 8,
         "Must have exactly 8 pixels on the line sensor.");
     static_assert(lineSensorLedCount == 5,
         "Must have exactly 5 LEDs on the line sensor.");
@@ -131,39 +96,11 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
         }
     }
 
-    return std::make_tuple(minValue, maxValue);
-}
-
-RobotHal::ButtonEvent RobotHal::pollButton() {
-    bool currentState = !digitalRead(button); // Active low
-    uint32_t now = millis();
-
-    if (currentState == this->buttonState)
-        return ButtonEvent::None; // No change
-
-    uint32_t elapsed = now - this->buttonStateChangeTime; // TODO: This overflows after 49 days, it's not an issue for this application though.
-
-    if (elapsed < Parameters::Hardware::buttonDebounceDelay)
-        return ButtonEvent::None; // Change within debounce interval
-
-    this->buttonState = currentState;
-    this->buttonStateChangeTime = now;
-
-    if (currentState)
-        return ButtonEvent::None; // We only report releasing events, not pressing
-
-    if (elapsed > Parameters::Hardware::buttonLongPressDelay)
-        return ButtonEvent::LongPress;
-    else
-        return ButtonEvent::ShortPress;
-}
-
-bool RobotHal::isSerialReady()
-{
-    return !!Serial;
+    return std::make_tuple(minValue, maxValue);*/
 }
 
 float RobotHal::readBatteryVoltage()
 {
-    return analogRead(batteryVoltage) * batteryVoltsPerUnit;
+    return 0.0f;
+    //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
 }
