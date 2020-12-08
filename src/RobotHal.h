@@ -31,7 +31,7 @@ public:
     static constexpr PwmT motorMinValue = -motorMaxValue;
 
     using LineSensorT = int;
-    using LineSensorBufferT = std::array<LineSensorT, 8>;
+    using LineSensorBufferT = std::array<LineSensorT, 10>;
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
@@ -41,7 +41,7 @@ public:
 
     /// Enable given line sensor LED or disable all (for index out of range).
     /// Makes sure that only one is on at a time.
-    void enableLineSensorLed(uint8_t ledIndex);
+    void enableLineSensorLed(uint32_t ledIndex);
 
     /// Disable any sensor led currently enabled.
     void disableLineSensorLed();
@@ -62,7 +62,7 @@ public:
     ButtonEvent pollButton();
 
 protected:
-    using PinT = int; // Int to match the ESP-IDF function signatures.
+    using PinT = int; // Int to match some of the ESP-IDF function signatures.
 
     // Board pins, manually copied from the schematic
     struct Pins {
@@ -86,7 +86,9 @@ protected:
         static constexpr PinT indicatorLed = 2;
     };
 
-    void setupMotorPWM();
+    void setupMotors();
     void setupLineSensor();
-    void setupButton();
+    void setupButtons();
+    void setupIMU();
+    void setupMisc();
 };
