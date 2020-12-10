@@ -11,7 +11,7 @@ The most important electronic components are ESP32 development board for computi
 This repository should contain everything necessary to build and run the robot in the competition.
 Let me know if you decide to build it!
 
-![Render of the robot](https://github.com/bluecube/line_follower/raw/v2/fusion360/output-exports/lf.png)
+![Render of the robot](fusion360/output-exports/lf.png)
 
 Currently in the middle of a rework. See [v1](https://github.com/bluecube/line_follower/tree/v1/) for the most useable version so far.
 
