@@ -13,7 +13,7 @@ Let me know if you decide to build it!
 
 ![Render of the robot](https://github.com/bluecube/line_follower/raw/v2/fusion360/output-exports/lf.png)
 
-Currently in the middle of a rework. See [master branch](https://github.com/bluecube/line_follower/) for the most useable version so far.
+Currently in the middle of a rework. See [v1](https://github.com/bluecube/line_follower/tree/v1/) for the most useable version so far.
 
 Changes for version 2:
 
