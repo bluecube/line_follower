@@ -7,6 +7,30 @@
 
 class RobotHal {
 protected:
+    using PinT = int; // Int to match some of the ESP-IDF function signatures.
+
+    // Board pins, manually copied from the schematic
+    struct Pins {
+        static constexpr std::array<std::pair<PinT, PinT>, 2> motor = {
+            std::make_pair(13, 4),
+            std::make_pair(23, 19)
+        };
+        static constexpr std::array<std::pair<PinT, PinT>, 2> encoder = {
+            std::make_pair(16, 17),
+            std::make_pair(36, 39)
+        };
+        static constexpr std::array<PinT, 5> lineSensor = {33, 14, 35, 25, 34};
+        static constexpr std::array<PinT, 3> lineLed = {27, 32, 26};
+        static constexpr PinT range = 12;
+        static constexpr PinT scl = 22;
+        static constexpr PinT sda = 21;
+        static constexpr PinT accel_PinT = 18;
+        static constexpr PinT mainBbutton = 5;
+        static constexpr PinT bootBbutton = 0;
+        static constexpr PinT batSense = 15;
+        static constexpr PinT indicatorLed = 2;
+    };
+
     RobotHal(); // Hal is only accessible through its singleton instance.
 public:
     RobotHal(const RobotHal&) = delete;
@@ -30,8 +54,8 @@ public:
     static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();
     static constexpr PwmT motorMinValue = -motorMaxValue;
 
-    using LineSensorT = int;
-    using LineSensorBufferT = std::array<LineSensorT, 10>;
+    using LineSensorT = int32_t;
+    using LineSensorBufferT = std::array<LineSensorT, Pins::lineSensor.size() * 2>; // Each line sensor element can be read from two sides
 
     /// Set PWM signals for motors. Positive driving forward,
     /// rangege is from motorMinValue to motorMaxValue.
@@ -60,31 +84,6 @@ public:
     std::tuple<LineSensorT, LineSensorT> readLineSensor(LineSensorBufferT& buffer);
 
     ButtonEvent pollButton();
-
-protected:
-    using PinT = int; // Int to match some of the ESP-IDF function signatures.
-
-    // Board pins, manually copied from the schematic
-    struct Pins {
-        static constexpr std::array<std::pair<PinT, PinT>, 2> motor = {
-            std::make_pair(13, 4),
-            std::make_pair(23, 19)
-        };
-        static constexpr std::array<std::pair<PinT, PinT>, 2> encoder = {
-            std::make_pair(16, 17),
-            std::make_pair(36, 39)
-        };
-        static constexpr std::array<PinT, 5> lineSensor = {33, 14, 35, 25, 34};
-        static constexpr std::array<PinT, 3> lineLed = {27, 32, 26};
-        static constexpr PinT range = 12;
-        static constexpr PinT scl = 22;
-        static constexpr PinT sda = 21;
-        static constexpr PinT accel_PinT = 18;
-        static constexpr PinT mainBbutton = 5;
-        static constexpr PinT bootBbutton = 0;
-        static constexpr PinT batSense = 15;
-        static constexpr PinT indicatorLed = 2;
-    };
 
     void setupMotors();
     void setupLineSensor();
