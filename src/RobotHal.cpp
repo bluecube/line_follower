@@ -6,6 +6,9 @@
 #include <driver/gpio.h>
 #include <driver/adc.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include <limits>
 #include <numeric>
 
@@ -135,14 +138,21 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
     return std::make_pair(minValue, maxValue);
 }
 
-float RobotHal::readBatteryVoltage()
-{
+float RobotHal::readBatteryVoltage() {
     return 0.0f;
     //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
 }
 
+std::pair<int32_t, int32_t> RobotHal::readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2) {
+    int32_t v1 = adc1_get_raw(ch1);
+    int32_t v2;
+    adc2_get_raw(ch2, adcWidth, &v2);
+    // TODO: Actually do the reads in parallel
+    return std::make_pair(v1, v2);
+}
+
 std::pair<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readAdcLineSensorPair(int ch1Sensor, int ch2Sensor) {
-    return readAdcLineSensorPair(
+    return readAdcPair(
         IdfUtil::adc1Pin(Pins::lineSensor[ch1Sensor]),
         IdfUtil::adc2Pin(Pins::lineSensor[ch2Sensor])
     );
@@ -154,8 +164,7 @@ RobotHal::LineSensorT RobotHal::readAdc1LineSensor(int ch1Sensor) {
 
 /// Read ADC on every location of the line sensor.
 template <typename LedFn, typename OutputFn>
-inline void RobotHal::readLineSensor(LedFn ledFn, OutputFn outputFn)
-{
+inline void RobotHal::readLineSensor(LedFn ledFn, OutputFn outputFn) {
     static_assert(Pins::lineSensor.size() == Pins::lineLedCount  - 1,
         "There must be exactly one line sensor between every two charlieplexed line leds.");
     static_assert(Pins::lineSensor.size() & 1,
@@ -186,14 +195,13 @@ inline void RobotHal::readLineSensor(LedFn ledFn, OutputFn outputFn)
 }
 
 template <typename OutputFn>
-inline void RobotHal::readLineSensor(OutputFn outputFn)
-{
+inline void RobotHal::readLineSensor(OutputFn outputFn) {
     static_assert(Pins::lineSensor.size() == Pins::lineLedCount  - 1,
         "There must be exactly one line sensor between every two charlieplexed line leds.");
     static_assert(Pins::lineSensor.size() & 1,
         "Number of line sensors must be odd (so that the last sensor is ADC1 again).");
 
-    for (uint32_t i = 0u; i < (Pins::lineSensor.size() - 1u); i += 2)
+    for (uint32_t i = 0u; i < (Pins::lineSensor.size() - 1); i += 2)
     {
         auto [v1, v2] = readAdcLineSensorPair(i, i + 1);
         outputFn(2 * i + 0, v1);
@@ -206,3 +214,6 @@ inline void RobotHal::readLineSensor(OutputFn outputFn)
     outputFn(2 * Pins::lineSensor.size() - 1, v);
 }
 
+void RobotHal::lineSensorSettle() {
+    vTaskDelay(1 / portTICK_PERIOD_MS); // TODO: Old version used just 250us
+}

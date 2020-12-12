@@ -90,6 +90,8 @@ public:
     ButtonEvent pollButton();
 
 protected:
+    static constexpr auto adcWidth = ADC_WIDTH_BIT_12;
+
     void setupMotors();
     void setupLineSensor();
     void setupButtons();
@@ -119,6 +121,6 @@ protected:
     /// Compared to readLineSensor(ledFn, outputFn) this joins the two readings
     /// per sensor into one, making this function twice as fast.
     template <typename OutputFn>
-    static inline void readLineSensor( OutputFn outputFn);
+    static inline void readLineSensor(OutputFn outputFn);
 };
 
