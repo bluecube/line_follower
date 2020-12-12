@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-static constexpr gpio_num_t gpio_pin(int pin) {
+static constexpr gpio_num_t gpioPin(int pin) {
     return static_cast<gpio_num_t>(pin);
 }
 

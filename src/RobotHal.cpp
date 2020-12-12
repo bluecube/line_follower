@@ -77,9 +77,9 @@ void RobotHal::enableLineSensorLed(uint32_t ledIndex) {
     if (ledIndex & 1)
         std::swap(low, high);
 
-    auto mappedHigh = gpio_pin(Pins::lineLed[high]);
-    auto mappedLow = gpio_pin(Pins::lineLed[low]);
-    auto mappedHighZ = gpio_pin(Pins::lineLed[highZ]);
+    auto mappedHigh = gpioPin(Pins::lineLed[high]);
+    auto mappedLow = gpioPin(Pins::lineLed[low]);
+    auto mappedHighZ = gpioPin(Pins::lineLed[highZ]);
 
     gpio_set_direction(mappedHighZ, GPIO_MODE_DISABLE);
     gpio_set_direction(mappedLow, GPIO_MODE_OUTPUT);
@@ -90,11 +90,11 @@ void RobotHal::enableLineSensorLed(uint32_t ledIndex) {
 
 void RobotHal::disableLineSensorLed() {
     for (auto pin: Pins::lineLed)
-        gpio_set_direction(gpio_pin(pin), GPIO_MODE_DISABLE);
+        gpio_set_direction(gpioPin(pin), GPIO_MODE_DISABLE);
 }
 
 void RobotHal::setBuiltinLed(bool enable) {
-    gpio_set_level(gpio_pin(Pins::indicatorLed), static_cast<uint32_t>(enable));
+    gpio_set_level(gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
 
 int RobotHal::readRange() {
