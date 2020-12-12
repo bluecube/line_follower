@@ -3,10 +3,11 @@
 #include "parameters.h"
 #include "idf_util.h"
 
-#include "driver/gpio.h"
+#include <driver/gpio.h>
+#include <driver/adc.h>
 
+#include <limits>
 #include <numeric>
-#include <algorithm>
 
 RobotHal& RobotHal::instance() {
     static RobotHal instance;
@@ -28,7 +29,7 @@ void RobotHal::setupLineSensor() {
     gpio_config_t config = {
         .pin_bit_mask = std::accumulate(
             Pins::lineLed.begin(), Pins::lineLed.end(), uint64_t(0),
-            [](auto accumulator, auto pin) { return accumulator | bit64(pin); }
+            [](auto accumulator, auto pin) { return accumulator | IdfUtil::bit64(pin); }
         ),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
@@ -49,7 +50,7 @@ void RobotHal::setupIMU() {
 
 void RobotHal::setupMisc() {
     gpio_config_t config = {
-        .pin_bit_mask = bit64(Pins::indicatorLed),
+        .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -70,16 +71,15 @@ void RobotHal::enableLineSensorLed(uint32_t ledIndex) {
     );
 
     uint32_t pairIndex = ledIndex >> 1;
-    uint32_t high = (pairIndex & 1) + 1;
     uint32_t low = pairIndex & 2;
+    uint32_t high = (pairIndex & 1) + 1;
     uint32_t highZ = 2 - pairIndex;
 
-    if (ledIndex & 1)
-        std::swap(low, high);
+    bool firstInPair = !(ledIndex & 1);
 
-    auto mappedHigh = gpioPin(Pins::lineLed[high]);
-    auto mappedLow = gpioPin(Pins::lineLed[low]);
-    auto mappedHighZ = gpioPin(Pins::lineLed[highZ]);
+    auto mappedLow = IdfUtil::gpioPin(Pins::lineLed[firstInPair ? low : high]);
+    auto mappedHigh = IdfUtil::gpioPin(Pins::lineLed[firstInPair ? high : low]);
+    auto mappedHighZ = IdfUtil::gpioPin(Pins::lineLed[highZ]);
 
     gpio_set_direction(mappedHighZ, GPIO_MODE_DISABLE);
     gpio_set_direction(mappedLow, GPIO_MODE_OUTPUT);
@@ -90,73 +90,49 @@ void RobotHal::enableLineSensorLed(uint32_t ledIndex) {
 
 void RobotHal::disableLineSensorLed() {
     for (auto pin: Pins::lineLed)
-        gpio_set_direction(gpioPin(pin), GPIO_MODE_DISABLE);
+        gpio_set_direction(IdfUtil::gpioPin(pin), GPIO_MODE_DISABLE);
 }
 
 void RobotHal::setBuiltinLed(bool enable) {
-    gpio_set_level(gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
+    gpio_set_level(IdfUtil::gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
 
 int RobotHal::readRange() {
     return 0;
 }
 
-std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSensor(LineSensorBufferT& buffer) {
+std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSensor(RobotHal::LineSensorBufferT& buffer) {
     // TODO: Calibration
     // TODO: Make this asynchronous
 
-    return std::make_tuple(0, 0);
-    /*static_assert(std::tuple_size<LineSensorBufferT>::value == 8,
-        "Must have exactly 8 pixels on the line sensor.");
-    static_assert(lineSensorLedCount == 5,
-        "Must have exactly 5 LEDs on the line sensor.");
-    static_assert(lineSensorCount == 4,
-        "Must have exactly 4 phototransistors on the line sensor.");
-
-    for (uint8_t i = 0; i < RobotHal::lineSensorLedCount; ++i)
-    {
-        this->enableLineSensorLed(i);
-        delayMicroseconds(Parameters::Hardware::lineSensorLedDelay); // Wait a bit for the LED to actually turn on.
-
-        if (i == 2)
+    readLineSensor(
+        [&](uint32_t i) {
+            this->enableLineSensorLed(i);
+            this->lineSensorSettle();
+        },
+        [&](uint32_t i, LineSensorT v)
         {
-            // Sensors 1 and 2 can be read in parallel
-            auto result = adc.analogSyncRead(lineSensorFirst - 2, lineSensorFirst - 1);
-            buffer[4] = result.result_adc0;
-            buffer[3] = result.result_adc1;
+            buffer[i] = v;
         }
-        else
-        {
-            if (i > 0)
-                buffer[2 * i - 1] = adc.analogRead(lineSensorFirst - i + 1);
-            if (i < RobotHal::lineSensorCount)
-                buffer[2 * i] = adc.analogRead(lineSensorFirst - i);
-        }
-    }
+    );
 
-    // Ambient light suppression
+    // Ambient light suppression and buffer statistics
     this->disableLineSensorLed();
-    delayMicroseconds(Parameters::Hardware::lineSensorLedDelay); // Wait a bit for the LED to actually turn off.
+    this->lineSensorSettle();
 
-    auto minValue = std::numeric_limits<LineSensorT>::max();
-    auto maxValue = std::numeric_limits<LineSensorT>::min();
+    LineSensorT minValue = std::numeric_limits<LineSensorT>::max();
+    LineSensorT maxValue = 0;
 
-    for (uint8_t i = 0; i < 2; ++i)
-    {
-        auto result = adc.analogSyncRead(lineSensorFirst - 2 - i, lineSensorFirst - i);
-        for (uint8_t j = 0; j < 2; ++j)
+    readLineSensor(
+        [&](uint32_t i, LineSensorT v)
         {
-            buffer[2 * i + j + 4] -= result.result_adc0;
-            minValue = std::min(buffer[2 * i + j + 4], minValue);
-            maxValue = std::max(buffer[2 * i + j + 4], maxValue);
-
-            buffer[2 * i + j] -= result.result_adc1;
-            minValue = std::min(buffer[2 * i + j], minValue);
-            maxValue = std::max(buffer[2 * i + j], maxValue);
+            buffer[i] -= v;
+            minValue = std::min(minValue, buffer[i]);
+            maxValue = std::max(maxValue, buffer[i]);
         }
-    }
+    );
 
-    return std::make_tuple(minValue, maxValue);*/
+    return std::make_pair(minValue, maxValue);
 }
 
 float RobotHal::readBatteryVoltage()
@@ -164,3 +140,69 @@ float RobotHal::readBatteryVoltage()
     return 0.0f;
     //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
 }
+
+std::pair<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readAdcLineSensorPair(int ch1Sensor, int ch2Sensor) {
+    return readAdcLineSensorPair(
+        IdfUtil::adc1Pin(Pins::lineSensor[ch1Sensor]),
+        IdfUtil::adc2Pin(Pins::lineSensor[ch2Sensor])
+    );
+}
+
+RobotHal::LineSensorT RobotHal::readAdc1LineSensor(int ch1Sensor) {
+    return adc1_get_raw(IdfUtil::adc1Pin(Pins::lineSensor[ch1Sensor]));
+}
+
+/// Read ADC on every location of the line sensor.
+template <typename LedFn, typename OutputFn>
+inline void RobotHal::readLineSensor(LedFn ledFn, OutputFn outputFn)
+{
+    static_assert(Pins::lineSensor.size() == Pins::lineLedCount  - 1,
+        "There must be exactly one line sensor between every two charlieplexed line leds.");
+    static_assert(Pins::lineSensor.size() & 1,
+        "Number of line sensors must be odd (so that the last sensor is ADC1 again).");
+
+    // First LED only illuminates a single line sensor
+    ledFn(0);
+    outputFn(0, readAdc1LineSensor(0));
+
+    for (uint32_t i = 1u; i < (Pins::lineLedCount - 1u); ++i)
+    {
+        ledFn(i);
+
+        if (i & 1) {
+            auto [v1, v2] = readAdcLineSensorPair(i - 1, i);
+            outputFn(2 * i - 1, v1);
+            outputFn(2 * i, v2);
+        } else {
+            auto [v2, v1] = readAdcLineSensorPair(i, i - 1);
+            outputFn(2 * i - 1, v1);
+            outputFn(2 * i, v2);
+        }
+    }
+
+    // Last LED only illuminates a single line sensor
+    ledFn(Pins::lineLedCount - 1);
+    outputFn(2 * Pins::lineSensor.size() - 1, readAdc1LineSensor(Pins::lineSensor.size() - 1));
+}
+
+template <typename OutputFn>
+inline void RobotHal::readLineSensor(OutputFn outputFn)
+{
+    static_assert(Pins::lineSensor.size() == Pins::lineLedCount  - 1,
+        "There must be exactly one line sensor between every two charlieplexed line leds.");
+    static_assert(Pins::lineSensor.size() & 1,
+        "Number of line sensors must be odd (so that the last sensor is ADC1 again).");
+
+    for (uint32_t i = 0u; i < (Pins::lineSensor.size() - 1u); i += 2)
+    {
+        auto [v1, v2] = readAdcLineSensorPair(i, i + 1);
+        outputFn(2 * i + 0, v1);
+        outputFn(2 * i + 1, v1);
+        outputFn(2 * i + 2, v2);
+        outputFn(2 * i + 3, v2);
+    }
+    auto v = readAdc1LineSensor(Pins::lineSensor.size() - 1);
+    outputFn(2 * Pins::lineSensor.size() - 2, v);
+    outputFn(2 * Pins::lineSensor.size() - 1, v);
+}
+

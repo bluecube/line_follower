@@ -1,5 +1,9 @@
 #pragma once
 
+#include "idf_util.h"
+
+#include <driver/adc.h>
+
 #include <cstdint>
 #include <limits>
 #include <array>
@@ -7,7 +11,7 @@
 
 class RobotHal {
 protected:
-    using PinT = int; // Int to match some of the ESP-IDF function signatures.
+    using PinT = IdfUtil::PinT;
 
     // Board pins, manually copied from the schematic
     struct Pins {
@@ -29,6 +33,9 @@ protected:
         static constexpr PinT bootBbutton = 0;
         static constexpr PinT batSense = 15;
         static constexpr PinT indicatorLed = 2;
+
+        // How many line leds there are after charlieplexing
+        static constexpr unsigned lineLedCount = lineLed.size() * (lineLed.size() - 1);
     };
 
     RobotHal(); // Hal is only accessible through its singleton instance.
@@ -82,9 +89,36 @@ public:
 
     ButtonEvent pollButton();
 
+protected:
     void setupMotors();
     void setupLineSensor();
     void setupButtons();
     void setupIMU();
     void setupMisc();
+
+    /// Sleep for some time to allow the line sensor to settle after LED change.
+    void lineSensorSettle();
+
+    /// Read from two channels of an ADC at the same time
+    static std::pair<int32_t, int32_t> readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2);
+
+    /// Wrapper around readAdcPair that takes index of a line sensor element instead of ADC channel.
+    /// The sensors must actually belong connected to channel 1 and channel 2 of the ADC!
+    static std::pair<LineSensorT, LineSensorT> readAdcLineSensorPair(int ch1Sensor, int ch2Sensor);
+
+    /// Wrapper around adc1_get_raw that takes index of a line sensor element instead of ADC channel.
+    /// The sensor must actually belong connected to channel 1 of the ADC!
+    static LineSensorT readAdc1LineSensor(int ch1Sensor);
+
+    /// Read line sensor on all positions with LEDs.
+    /// Two readings per sensor, reading pairs of values at a time.
+    template <typename LedFn, typename OutputFn>
+    static inline void readLineSensor(LedFn ledFn, OutputFn outputFn);
+
+    /// Read line sensor on all positions without LEDs.
+    /// Compared to readLineSensor(ledFn, outputFn) this joins the two readings
+    /// per sensor into one, making this function twice as fast.
+    template <typename OutputFn>
+    static inline void readLineSensor( OutputFn outputFn);
 };
+
