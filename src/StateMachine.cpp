@@ -8,7 +8,7 @@ StateMachine::~StateMachine() {
     this->destroyState();
 }
 
-void StateMachine::update(Hal::MillisecondsT elapsed) {
+void StateMachine::update(int elapsed) {
     switch (this->variant) {
     #define X(StateName) \
     case Variant::StateName: \

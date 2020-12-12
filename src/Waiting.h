@@ -4,6 +4,6 @@
 class StateMachine;
 
 struct Waiting {
-    void update(StateMachine& stateMachine, Hal::MillisecondsT elapsed);
+    void update(StateMachine& stateMachine, int elapsed);
 };
 

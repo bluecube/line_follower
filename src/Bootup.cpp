@@ -6,7 +6,7 @@
 #include "ErrorState.h"
 #include "parameters.h"
 
-void Bootup::update(StateMachine& stateMachine, Hal::MillisecondsT elapsed) {
+void Bootup::update(StateMachine& stateMachine, int elapsed) {
     if (Hal::instance().readBatteryVoltage() < Parameters::Hardware::voltageCutoff) {
         stateMachine.changeState(ErrorState(0));
         Hal::instance().setBuiltinLed(false);

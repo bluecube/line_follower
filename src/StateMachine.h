@@ -29,7 +29,7 @@ public:
     StateMachine();
     ~StateMachine();
 
-    void update(Hal::MillisecondsT elapsed);
+    void update(int elapsed);
 
     /** Change the current state to state.
     Beware that this destroys the currently existing state, so calling it from a state is risky */

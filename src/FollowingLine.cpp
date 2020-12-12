@@ -10,7 +10,7 @@
 FollowingLine::FollowingLine()
     : pid(Parameters::FollowingLine::kP, Parameters::FollowingLine::kI, Parameters::FollowingLine::kD) {}
 
-void FollowingLine::update(StateMachine& stateMachine, Hal::MillisecondsT elapsed)
+void FollowingLine::update(StateMachine& stateMachine, int elapsed)
 {
     if (Hal::instance().pollButton() != Hal::ButtonEvent::None)
     {

@@ -5,7 +5,7 @@ class StateMachine;
 
 class Bootup {
 public:
-    void update(StateMachine& stateMachine, Hal::MillisecondsT elapsed);
+    void update(StateMachine& stateMachine, int elapsed);
 
 private:
     bool ledState = false;

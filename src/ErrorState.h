@@ -7,7 +7,7 @@ class StateMachine;
 class ErrorState {
 public:
     ErrorState(uint8_t code);
-    void update(StateMachine& stateMachine, Hal::MillisecondsT elapsed);
+    void update(StateMachine& stateMachine, int elapsed);
 
 private:
     bool ledState = false;

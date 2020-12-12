@@ -21,12 +21,12 @@ namespace FollowingLine {
 }
 
 namespace Hardware {
-    static constexpr float motorPWMFrequency = 20e3; // 20kHz to keep things quiet
-    static constexpr Hal::MicrosecondsT lineSensorLedDelay = 250; // Microseconds to wait after setting line sensor LED to give the sensor time to react
-    static constexpr Hal::MillisecondsT buttonDebounceDelay = 40; // Time in miliseconds after the first switch of the button that is taken as bounce period.
-    static constexpr Hal::MillisecondsT buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
+    static constexpr float motorPWMFrequency = 25e3; // 25kHz to keep things quiet
+    static constexpr int lineSensorLedDelay = 250; // Microseconds to wait after setting line sensor LED to give the sensor time to react
+    static constexpr int buttonDebounceDelay = 40; // Time in miliseconds after the first switch of the button that is taken as bounce period.
+    static constexpr int buttonLongPressDelay = 2000; // Time in miliseconds for the press to be registered as long press
 
-    static constexpr Hal::MillisecondsT period = 10;
+    static constexpr int period = 10;
 
     static constexpr float voltageCutoff = 9.0;
 }

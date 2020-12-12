@@ -47,9 +47,6 @@ public:
         LongPress,
     };
 
-    using MillisecondsT = uint32_t;
-    using MicrosecondsT = uint32_t;
-
     using PwmT = int16_t;
     static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();
     static constexpr PwmT motorMinValue = -motorMaxValue;
