@@ -114,6 +114,8 @@ protected:
     /// The sensor must actually belong connected to channel 1 of the ADC!
     static LineSensorT readAdc1LineSensor(int ch1Sensor);
 
+    void setLineSensorAttenuation(adc_atten_t attenuation);
+
     /// Read line sensor on all positions with LEDs.
     /// Two readings per sensor, reading pairs of values at a time.
     template <typename LedFn, typename OutputFn>

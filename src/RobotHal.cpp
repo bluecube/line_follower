@@ -79,6 +79,21 @@ void RobotHal::setupLineSensor() {
     gpio_config(&config);
     // All pins are set to drive strength 2 by default and that is what we want
     // for the line sensors
+
+    adc1_config_width(adcWidth);
+    setLineSensorAttenuation(ADC_ATTEN_DB_11);
+}
+
+void RobotHal::setLineSensorAttenuation(adc_atten_t attenuation)
+{
+    for (uint32_t i = 0u; i < Pins::lineSensor.size(); i += 2) {
+        auto ch = IdfUtil::adc1Pin(Pins::lineSensor[i]);
+        adc1_config_channel_atten(ch, attenuation);
+    }
+    for (uint32_t i = 1u; i < Pins::lineSensor.size(); i += 2) {
+        auto ch = IdfUtil::adc2Pin(Pins::lineSensor[i]);
+        adc2_config_channel_atten(ch, attenuation);
+    }
 }
 
 void RobotHal::setupButtons() {
