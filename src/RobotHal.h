@@ -67,6 +67,8 @@ public:
     /// (expected actual resolution for 96Mhz CPU and ~20kHz PWM is 11bit).
     void setMotors(PwmT left, PwmT right);
 
+    std::pair<int16_t, int16_t> readMotorEncoders() const;
+
     /// Enable given line sensor LED or disable all (for index out of range).
     /// Makes sure that only one is on at a time.
     void enableLineSensorLed(uint32_t ledIndex);

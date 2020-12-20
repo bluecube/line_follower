@@ -56,6 +56,8 @@ extern "C" void app_main(void)
         for (auto value: buffer)
             printf("%d ", value);
         printf("\n");
+        auto encoders = hal.readMotorEncoders();
+        printf("Encoders: %d, %d\n", encoders.first, encoders.second);
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }
