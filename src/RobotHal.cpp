@@ -19,6 +19,7 @@ RobotHal& RobotHal::instance() {
 }
 
 RobotHal::RobotHal() {
+    printf("Initializing RobotHal\n");
     this->setupMotors();
     this->setupLineSensor();
     this->setupButtons();
@@ -66,6 +67,7 @@ void RobotHal::setupMotors() {
 }
 
 void RobotHal::setupLineSensor() {
+    printf("Setting up line sensor\n");
     gpio_config_t config = {
         .pin_bit_mask = std::accumulate(
             Pins::lineLed.begin(), Pins::lineLed.end(), uint64_t(0),
@@ -97,10 +99,11 @@ void RobotHal::setLineSensorAttenuation(adc_atten_t attenuation)
 }
 
 void RobotHal::setupButtons() {
+    //printf("Setting up buttons\n");
 }
 
 void RobotHal::setupIMU() {
-
+    //printf("Setting up IMU\n");
 }
 
 void RobotHal::setupMisc() {
