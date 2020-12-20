@@ -1,7 +1,7 @@
 Line follower v2
 ================
 
-This is a robot I made to tinker with and to compete in [Robotic Day 2019](https://roboticday.org/) (Actually the original goal was Robotic Day 2016, but stuff got delayed :) )
+This is a robot I made to tinker with and to compete in the [Robotic Day](https://roboticday.org/) competition. (Actually the original goal was Robotic Day 2016, but stuff got delayed :) )
 
 The design is an attempt to make a line follower with minimum effort on the hardware side and maximum versatility on the software side.
 
