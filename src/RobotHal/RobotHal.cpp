@@ -38,18 +38,18 @@ void RobotHal::setupMotors() {
         // around.
         // This gives us full 4 ticks per revolution of the encoder.
         // TODO: Isn't this actually too much?
-        pcnt_config_t config;
-
-        config.pulse_gpio_num = pins.first;
-        config.ctrl_gpio_num = pins.second;
-        config.lctrl_mode = PCNT_MODE_REVERSE;
-        config.hctrl_mode = PCNT_MODE_KEEP;
-        config.pos_mode = PCNT_COUNT_INC;
-        config.neg_mode = PCNT_COUNT_DEC;
-        config.counter_h_lim = std::numeric_limits<int16_t>::max();
-        config.counter_l_lim = std::numeric_limits<int16_t>::min();
-        config.unit = static_cast<pcnt_unit_t>(i++);
-        config.channel = PCNT_CHANNEL_0;
+        pcnt_config_t config = {
+            .pulse_gpio_num = pins.first,
+            .ctrl_gpio_num = pins.second,
+            .lctrl_mode = PCNT_MODE_REVERSE,
+            .hctrl_mode = PCNT_MODE_KEEP,
+            .pos_mode = PCNT_COUNT_INC,
+            .neg_mode = PCNT_COUNT_DEC,
+            .counter_h_lim = std::numeric_limits<int16_t>::max(),
+            .counter_l_lim = std::numeric_limits<int16_t>::min(),
+            .unit = static_cast<pcnt_unit_t>(i++),
+            .channel = PCNT_CHANNEL_0
+        };
         pcnt_unit_config(&config);
 
         printf("Second channel\n");
