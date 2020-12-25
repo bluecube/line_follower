@@ -6,10 +6,12 @@
 #include <driver/gpio.h>
 #include <driver/adc.h>
 #include <driver/pcnt.h>
+#include <driver/i2c.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include <cstdio>
 #include <limits>
 #include <numeric>
 
@@ -18,13 +20,19 @@ RobotHal& RobotHal::instance() {
     return instance;
 }
 
-RobotHal::RobotHal() {
+RobotHal::RobotHal()
+: imu(*this) {
+    setup();
+}
+
+void RobotHal::setup() {
     printf("Initializing RobotHal\n");
-    this->setupMotors();
-    this->setupLineSensor();
-    this->setupButtons();
-    this->setupIMU();
-    this->setupMisc();
+    setupMotors();
+    setupLineSensor();
+    setupButtons();
+    setupI2C();
+    imu.setup();
+    setupMisc();
 }
 
 void RobotHal::setupMotors() {
@@ -102,8 +110,26 @@ void RobotHal::setupButtons() {
     //printf("Setting up buttons\n");
 }
 
-void RobotHal::setupIMU() {
-    //printf("Setting up IMU\n");
+void RobotHal::setupI2C() {
+    printf("Setting up I2C\n");
+    i2c_config_t config = {
+        .mode=I2C_MODE_MASTER,
+        .sda_io_num = Pins::sda,
+        .scl_io_num = Pins::scl,
+        .sda_pullup_en = true,
+        .scl_pullup_en = true,
+        .master = {
+            .clk_speed = 400'000, // Maximum supported by MPU6050
+        }
+    };
+    i2c_param_config(I2C_NUM_0, &config);
+    i2c_driver_install(
+        I2C_NUM_0,
+        I2C_MODE_MASTER,
+        0 /* slave RX buffer size */,
+        0 /* slave TX buffer size */,
+        0 /* interrupt alloc flags */
+    );
 }
 
 void RobotHal::setupMisc() {
@@ -193,6 +219,25 @@ std::tuple<RobotHal::LineSensorT, RobotHal::LineSensorT> RobotHal::readLineSenso
     return std::make_pair(minValue, maxValue);
 }
 
+void RobotHal::calibrateLineSensor() {
+    printf("Sensor calibration\n");
+
+    LineSensorBufferT buffer;
+    readLineSensor(
+        [&](uint32_t i) {
+            printf("LED %d on\n", i);
+            this->enableLineSensorLed(i);
+            this->lineSensorSettle();
+        },
+        [&](uint32_t i, LineSensorT v)
+        {
+            printf("buffer[%d] = %d\n", i, v);
+            buffer[i] = v;
+        }
+    );
+
+}
+
 float RobotHal::readBatteryVoltage() {
     return 0.0f;
     //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
@@ -280,4 +325,32 @@ std::pair<int16_t, int16_t> RobotHal::readMotorEncoders() const
     pcnt_get_counter_value(PCNT_UNIT_0, &v1);
     pcnt_get_counter_value(PCNT_UNIT_1, &v2);
     return std::make_pair(v1, v2);
+}
+
+void RobotHal::i2cRead(
+    uint8_t deviceAddress, uint8_t registerAddress,
+    uint8_t* data, size_t count
+) {
+    auto cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (deviceAddress << 1) | I2C_MASTER_READ, true);
+    i2c_master_write_byte(cmd, registerAddress, true);
+    i2c_master_read(cmd, data, count, I2C_MASTER_LAST_NACK);
+    i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+}
+
+void RobotHal::i2cWrite(
+    uint8_t deviceAddress, uint8_t registerAddress,
+    const uint8_t* data, size_t count
+) {
+    auto cmd = i2c_cmd_link_create();
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (deviceAddress << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, registerAddress, true);
+    i2c_master_write(cmd, const_cast<uint8_t*>(data), count, true);
+    i2c_master_stop(cmd);
+    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
 }

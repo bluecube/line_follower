@@ -1,13 +1,16 @@
 #pragma once
 
 #include "idf_util.h"
+#include "RobotHalImu.h"
 
 #include <driver/adc.h>
 
 #include <cstdint>
+#include <cstddef>
 #include <limits>
 #include <array>
 #include <tuple>
+#include <utility>
 
 class RobotHal {
 protected:
@@ -28,7 +31,7 @@ protected:
         static constexpr PinT range = 12;
         static constexpr PinT scl = 22;
         static constexpr PinT sda = 21;
-        static constexpr PinT accel_PinT = 18;
+        static constexpr PinT accelInterrupt = 18;
         static constexpr PinT mainBbutton = 5;
         static constexpr PinT bootBbutton = 0;
         static constexpr PinT batSense = 15;
@@ -89,16 +92,53 @@ public:
     /// The LEDs end up all disabled after the call.
     std::tuple<LineSensorT, LineSensorT> readLineSensor(LineSensorBufferT& buffer);
 
+    void calibrateLineSensor();
+
     ButtonEvent pollButton();
+
+    RobotHalImu imu;
 
 protected:
     static constexpr auto adcWidth = ADC_WIDTH_BIT_12;
+    static constexpr std::array<adc_atten_t, 3> adcAttenuations{
+        ADC_ATTEN_DB_0, ADC_ATTEN_DB_6, ADC_ATTEN_DB_11
+    };
 
+    std::array<uint32_t, Pins::lineSensor.size()> lineSensorOffset;
+    std::array<uint32_t, Pins::lineSensor.size()> lineSensorScale;
+
+    void setup();
     void setupMotors();
     void setupLineSensor();
     void setupButtons();
-    void setupIMU();
+    void setupI2C();
     void setupMisc();
+
+    /// Read count consecutive 8bit registers from I2C device at deviceAddress,
+    /// starting at registerAddress.
+    /// Device address must be only 7 bits long, or the top bit will be ignored.
+    void i2cRead(
+        uint8_t deviceAddress, uint8_t registerAddress,
+        uint8_t* data, size_t count
+    );
+
+    uint8_t i2cRead(uint8_t deviceAddress, uint8_t registerAddress) {
+        uint8_t byte = 0xCF;
+        i2cRead(deviceAddress, registerAddress, &byte, 1);
+        return byte;
+    }
+
+    /// Write count consecutive 8bit registers to I2C device at deviceAddress,
+    /// starting at registerAddress.
+    /// Device address must be only 7 bits long, or the top bit will be ignored.
+    void i2cWrite(
+        uint8_t deviceAddress, uint8_t registerAddress,
+        const uint8_t* data, size_t count
+    );
+
+    void i2cWrite(uint8_t deviceAddress, uint8_t registerAddress, uint8_t byte) {
+        i2cWrite(deviceAddress, registerAddress, &byte, 1);
+    }
 
     /// Sleep for some time to allow the line sensor to settle after LED change.
     void lineSensorSettle();
@@ -126,5 +166,7 @@ protected:
     /// per sensor into one, making this function twice as fast.
     template <typename OutputFn>
     static inline void readLineSensor(OutputFn outputFn);
+
+    friend class RobotHalImu;
 };
 

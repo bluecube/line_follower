@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 template <typename T>
 struct Vector3D {
 public:
@@ -36,7 +38,7 @@ public:
     /// Create a new vector by applying a function to each element.
     template <typename F>
     constexpr auto apply(const F& f) const {
-        return Vector3D<decltype(f(x))>(f(x), f(y), f(z));
+        return Vector3D<decltype(f(x))>{f(x), f(y), f(z)};
     }
 
     /// Combine two vectors by applying a binary function to each pair of elements
@@ -53,6 +55,10 @@ public:
         return f(f(x, y), z);
     }
 
+    std::string str() const {
+        return apply([](auto v) { return std::to_string(v); }).
+            reduce([](auto a, auto b) { return a.append(", ").append(b); });
+    }
 };
 
 template <typename T, typename U>
