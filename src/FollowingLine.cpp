@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <limits>
 
 #include "parameters.h"
 #include "Hal.h"
@@ -15,7 +16,7 @@ void FollowingLine::update(StateMachine& stateMachine, int elapsed)
 {
     if (Hal::instance().pollButton() != Hal::ButtonEvent::None)
     {
-        Hal::instance().setMotors(0, 0);
+        Hal::instance().motors.set(0, 0);
         stateMachine.changeState(Waiting());
         return;
     }
@@ -34,14 +35,14 @@ void FollowingLine::update(StateMachine& stateMachine, int elapsed)
     if (absTurningSpeed != 0)
         speed = std::min<decltype(turningSpeed)>(
             Parameters::FollowingLine::turningSpeedParameter / absTurningSpeed + absTurningSpeed / 2,
-            Hal::motorMaxValue / 2);
+            std::numeric_limits<int16_t>::max() / 2);
     else
-        speed = Hal::motorMaxValue / 2;
+        speed = std::numeric_limits<int16_t>::max() / 2;
 
     if (turningSpeed >= 0)
-        Hal::instance().setMotors(speed, speed - absTurningSpeed);
+        Hal::instance().motors.set(speed, speed - absTurningSpeed);
     else
-        Hal::instance().setMotors(speed - absTurningSpeed, speed);
+        Hal::instance().motors.set(speed - absTurningSpeed, speed);
 }
 
 int32_t FollowingLine::findLine() {

@@ -2,6 +2,7 @@
 
 #include "Pins.h"
 #include "LineSensor.h"
+#include "Motors.h"
 #include "Mpu6050.h"
 
 #include <driver/adc.h>
@@ -31,18 +32,6 @@ public:
         LongPress,
     };
 
-    using PwmT = int16_t;
-    static constexpr PwmT motorMaxValue = std::numeric_limits<PwmT>::max();
-    static constexpr PwmT motorMinValue = -motorMaxValue;
-
-    /// Set PWM signals for motors. Positive driving forward,
-    /// rangege is from motorMinValue to motorMaxValue.
-    /// Note that the actual hardware doesn't use the whole resolution of the inputs
-    /// (expected actual resolution for 96Mhz CPU and ~20kHz PWM is 11bit).
-    void setMotors(PwmT left, PwmT right);
-
-    std::pair<int16_t, int16_t> readMotorEncoders() const;
-
     /// Enable or disable the blue LED on the module.
     void setBuiltinLed(bool enabled);
 
@@ -53,6 +42,7 @@ public:
     ButtonEvent pollButton();
 
     LineSensor lineSensor;
+    Motors motors;
     Mpu6050 imu;
 
 protected:

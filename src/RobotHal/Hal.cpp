@@ -5,14 +5,12 @@
 
 #include <driver/gpio.h>
 #include <driver/adc.h>
-#include <driver/pcnt.h>
 #include <driver/i2c.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 #include <cstdio>
-#include <limits>
 
 namespace RobotHal {
 
@@ -27,52 +25,13 @@ Hal::Hal() {
 
 void Hal::setup() {
     printf("Initializing Hal\n");
-    setupMotors();
     setupButtons();
     setupI2C();
     setupMisc();
 
     lineSensor.setup();
+    motors.setup();
     imu.setup();
-}
-
-void Hal::setupMotors() {
-    printf("Setting up motors\n");
-
-    uint32_t i = 0;
-    for (auto pins: Pins::encoder) {
-        printf("Setting up unit %d at pins %d,%d\n", i, pins.first, pins.second);
-        // Configure both channels of the counter to the same pair of pins,
-        // once with first pin as pulse and second as control, then the other way
-        // around.
-        // This gives us full 4 ticks per revolution of the encoder.
-        // TODO: Isn't this actually too much?
-        pcnt_config_t config = {
-            .pulse_gpio_num = pins.first,
-            .ctrl_gpio_num = pins.second,
-            .lctrl_mode = PCNT_MODE_REVERSE,
-            .hctrl_mode = PCNT_MODE_KEEP,
-            .pos_mode = PCNT_COUNT_INC,
-            .neg_mode = PCNT_COUNT_DEC,
-            .counter_h_lim = std::numeric_limits<int16_t>::max(),
-            .counter_l_lim = std::numeric_limits<int16_t>::min(),
-            .unit = static_cast<pcnt_unit_t>(i++),
-            .channel = PCNT_CHANNEL_0
-        };
-        pcnt_unit_config(&config);
-
-        printf("Second channel\n");
-
-        config.pulse_gpio_num = pins.second;
-        config.ctrl_gpio_num = pins.first;
-        config.lctrl_mode = PCNT_MODE_KEEP;
-        config.hctrl_mode = PCNT_MODE_REVERSE;
-        config.channel = PCNT_CHANNEL_1;
-        pcnt_unit_config(&config);
-
-        // This seems to be necessary for the counter to start working
-        pcnt_counter_clear(config.unit);
-    }
 }
 
 void Hal::setupButtons() {
@@ -112,11 +71,6 @@ void Hal::setupMisc() {
     gpio_config(&config);
 }
 
-void Hal::setMotors(PwmT left, PwmT right) {
-    (void)left;
-    (void)right;
-}
-
 void Hal::setBuiltinLed(bool enable) {
     gpio_set_level(IdfUtil::gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
@@ -135,15 +89,6 @@ std::pair<int32_t, int32_t> Hal::readAdcPair(adc1_channel_t ch1, adc2_channel_t 
     int32_t v2;
     adc2_get_raw(ch2, adcWidth, &v2);
     // TODO: Actually do the reads in parallel
-    return std::make_pair(v1, v2);
-}
-
-std::pair<int16_t, int16_t> Hal::readMotorEncoders() const
-{
-    int16_t v1 = 0xffff;
-    int16_t v2 = 0xffff;
-    pcnt_get_counter_value(PCNT_UNIT_0, &v1);
-    pcnt_get_counter_value(PCNT_UNIT_1, &v2);
     return std::make_pair(v1, v2);
 }
 

@@ -56,7 +56,7 @@ extern "C" void app_main(void)
         for (auto value: buffer)
             printf("%d ", value);
         printf("\n");
-        auto encoders = hal.readMotorEncoders();
+        auto encoders = hal.motors.readEncoders();
         printf("Encoders: %d, %d\n", encoders.first, encoders.second);
         //printf("accelerometer: %s\n", hal.imu.readAccelerometer().str().c_str());
         //printf("temperature: %d\n", hal.imu.readTemperature());

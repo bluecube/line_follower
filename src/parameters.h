@@ -1,8 +1,10 @@
 /** Configuration parameters of the rorobot */
 #pragma once
-#include <stdint.h>
 #include "Hal.h"
 #include "defines.h"
+
+#include <stdint.h>
+#include <limits>
 
 namespace Parameters {
 
@@ -13,11 +15,11 @@ namespace LineDetector {
 
 namespace FollowingLine {
     // TODO: Tune the PID
-    static constexpr int32_t kP = 25 * Hal::motorMaxValue / 100;
-    static constexpr int32_t kI = Hal::motorMaxValue / 2000;
-    static constexpr int32_t kD = 2 * Hal::motorMaxValue / 10;
+    static constexpr int32_t kP = 25 * std::numeric_limits<int16_t>::max() / 100;
+    static constexpr int32_t kI = std::numeric_limits<int16_t>::max() / 2000;
+    static constexpr int32_t kD = 2 * std::numeric_limits<int16_t>::max() / 10;
 
-    static constexpr int32_t turningSpeedParameter = Hal::motorMaxValue * Hal::motorMaxValue;
+    static constexpr int32_t turningSpeedParameter = std::numeric_limits<int16_t>::max() * std::numeric_limits<int16_t>::max();
 }
 
 namespace Hardware {
