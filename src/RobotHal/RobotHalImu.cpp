@@ -6,44 +6,41 @@
 
 #include <cstdio>
 
-RobotHalImu::RobotHalImu(RobotHal& hal)
-: hal(hal) {}
-
 void RobotHalImu::setup() {
     printf("Setting up IMU\n");
 
     // Register 25:
-    hal.i2cWrite(i2cAddress, 25,
+    RobotHal::i2cWrite(i2cAddress, 25,
         1000 / 100 - 1 // Set sample rate to 100Hz
     );
 
     // Register 26:
-    hal.i2cWrite(i2cAddress, 26,
+    RobotHal::i2cWrite(i2cAddress, 26,
         0 << 3 | // Disable external frame synchronization
         2 << 0 // Set digital low pass filter to configuration 2
             // (94Hz bandwith for accelerometer, 98Hz bandwidth of gyro)
     );
 
     // Register 27: Gyro configuration
-    hal.i2cWrite(i2cAddress, 27,
+    RobotHal::i2cWrite(i2cAddress, 27,
         1 << 3 // full scale range +-500°/s
     );
 
     // Register 28: Accelerometer configuration
     //    Not enable accelerometer self test
-    hal.i2cWrite(i2cAddress, 58,
+    RobotHal::i2cWrite(i2cAddress, 58,
         1 << 3 // full scale range +-4g
     );
 
     // Register 56: Interrupt enable
-    hal.i2cWrite(i2cAddress, 56,
+    RobotHal::i2cWrite(i2cAddress, 56,
         1 << 0 // Data ready interrupt
     );
 }
 
 Vector3D<int16_t> RobotHalImu::readI16Vector(uint8_t registerAddress) {
     uint8_t bytes[6];
-    hal.i2cRead(i2cAddress, registerAddress, bytes, sizeof(bytes));
+    RobotHal::i2cRead(i2cAddress, registerAddress, bytes, sizeof(bytes));
     return Vector3D<uint32_t>::indices().apply([&](auto index) -> int16_t {
         return static_cast<int16_t>(bytes[2 * index]) << 8 |
             static_cast<int16_t>(bytes[2 * index + 1]);
@@ -52,7 +49,7 @@ Vector3D<int16_t> RobotHalImu::readI16Vector(uint8_t registerAddress) {
 
 int16_t RobotHalImu::readI16(uint8_t registerAddress) {
     uint8_t bytes[2];
-    hal.i2cRead(i2cAddress, registerAddress, bytes, sizeof(bytes));
+    RobotHal::i2cRead(i2cAddress, registerAddress, bytes, sizeof(bytes));
     return static_cast<int16_t>(bytes[0]) << 8 | static_cast<int16_t>(bytes[1]);
 }
 

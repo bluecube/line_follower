@@ -68,12 +68,12 @@ protected:
     /// Read count consecutive 8bit registers from I2C device at deviceAddress,
     /// starting at registerAddress.
     /// Device address must be only 7 bits long, or the top bit will be ignored.
-    void i2cRead(
+    static void i2cRead(
         uint8_t deviceAddress, uint8_t registerAddress,
         uint8_t* data, size_t count
     );
 
-    uint8_t i2cRead(uint8_t deviceAddress, uint8_t registerAddress) {
+    static uint8_t i2cRead(uint8_t deviceAddress, uint8_t registerAddress) {
         uint8_t byte = 0xCF;
         i2cRead(deviceAddress, registerAddress, &byte, 1);
         return byte;
@@ -82,12 +82,12 @@ protected:
     /// Write count consecutive 8bit registers to I2C device at deviceAddress,
     /// starting at registerAddress.
     /// Device address must be only 7 bits long, or the top bit will be ignored.
-    void i2cWrite(
+    static void i2cWrite(
         uint8_t deviceAddress, uint8_t registerAddress,
         const uint8_t* data, size_t count
     );
 
-    void i2cWrite(uint8_t deviceAddress, uint8_t registerAddress, uint8_t byte) {
+    static void i2cWrite(uint8_t deviceAddress, uint8_t registerAddress, uint8_t byte) {
         i2cWrite(deviceAddress, registerAddress, &byte, 1);
     }
 

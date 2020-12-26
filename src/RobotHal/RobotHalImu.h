@@ -8,6 +8,8 @@ class RobotHal;
 
 /// Wraps functionality of MPU6050 in RobotHal
 class RobotHalImu {
+protected:
+    RobotHalImu() {}
 public:
     RobotHalImu(const RobotHalImu&) = delete;
     RobotHalImu(RobotHalImu&&) = delete;
@@ -21,14 +23,10 @@ public:
 protected:
     static constexpr uint8_t i2cAddress = 0b1101000; // pin AD0 not set
 
-    RobotHalImu(RobotHal& hal);
-
     void setup();
 
-    Vector3D<int16_t> readI16Vector(uint8_t registerAddress);
-    int16_t readI16(uint8_t registerAddress);
-
-    RobotHal& hal;
+    static Vector3D<int16_t> readI16Vector(uint8_t registerAddress);
+    static int16_t readI16(uint8_t registerAddress);
 
     friend class RobotHal;
 };

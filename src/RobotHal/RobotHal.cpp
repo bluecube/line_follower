@@ -19,8 +19,7 @@ RobotHal& RobotHal::instance() {
     return instance;
 }
 
-RobotHal::RobotHal()
-: imu(*this) {
+RobotHal::RobotHal() {
     setup();
 }
 
