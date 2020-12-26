@@ -32,6 +32,7 @@ void Hal::setup() {
     lineSensor.setup();
     motors.setup();
     imu.setup();
+    printf("Hal is ready\n");
 }
 
 void Hal::setupButtons() {

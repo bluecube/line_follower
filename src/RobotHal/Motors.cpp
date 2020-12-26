@@ -15,7 +15,6 @@ void Motors::setup() {
 
     uint32_t i = 0;
     for (auto pins: Pins::encoder) {
-        printf("Setting up unit %d at pins %d,%d\n", i, pins.first, pins.second);
         // Configure both channels of the counter to the same pair of pins,
         // once with first pin as pulse and second as control, then the other way
         // around.
@@ -35,7 +34,6 @@ void Motors::setup() {
         };
         pcnt_unit_config(&config);
 
-        printf("Second channel\n");
 
         config.pulse_gpio_num = pins.second;
         config.ctrl_gpio_num = pins.first;
