@@ -2,10 +2,18 @@
 
 #include <driver/gpio.h>
 #include <driver/adc.h>
+#include <esp_err.h>
 
 #include <cstdint>
 
 namespace IdfUtil {
+
+#define HAL_CHECK(value) \
+    do { \
+        esp_err_t code = (value); \
+        if (code != ESP_OK) \
+            printf("%s:%d: ESP call failed: %s\n", __FILE__, __LINE__, esp_err_to_name(code)); \
+    } while(0)
 
 using PinT = int; // Int to match some of the ESP-IDF function signatures.
 
