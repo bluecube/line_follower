@@ -1,6 +1,7 @@
 #include "FollowingLine.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "parameters.h"
 #include "Hal.h"
@@ -44,11 +45,11 @@ void FollowingLine::update(StateMachine& stateMachine, int elapsed)
 }
 
 int32_t FollowingLine::findLine() {
+    using LineSensorT = decltype(Hal::lineSensor);
     constexpr auto& kernel = Parameters::LineDetector::detectionKernel;
 
-    Hal::LineSensorT minValue, maxValue;
-    Hal::LineSensorBufferT buffer;
-    std::tie(minValue, maxValue) = Hal::instance().readLineSensor(buffer);
+    LineSensorT::BufferT buffer;
+    auto [minValue, maxValue] = Hal::instance().lineSensor.read(buffer);
 
     constexpr auto valueSign = Parameters::LineDetector::lineType == LineType::WhiteOnBlack ? 1 : -1;
     auto valueOffset = Parameters::LineDetector::lineType == LineType::WhiteOnBlack ? minValue : maxValue;
@@ -69,7 +70,7 @@ int32_t FollowingLine::findLine() {
         static_assert((kernel.size() - buffer.size()) % 2 == 0, "Kernel size must be even iff buffer size is even");
         const int32_t position = offsetIndex - (buffer.size() - kernel.size()) / 2;
 
-        Hal::LineSensorT weight = 0;
+        LineSensorT::ValueT weight = 0;
 
         for (size_t i = min; i < max; ++i)
         {

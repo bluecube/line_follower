@@ -4,7 +4,7 @@
 
 ErrorState::ErrorState(uint8_t code)
 {
-    Hal::instance().enableLineSensorLed(code);
+    Hal::instance().lineSensor.enableLed(code);
 }
 
 void ErrorState::update(StateMachine& stateMachine, int elapsed) {

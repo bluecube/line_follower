@@ -51,8 +51,8 @@ extern "C" void app_main(void)
         vTaskDelay(500 / portTICK_PERIOD_MS);
         */
 
-        Hal::LineSensorBufferT buffer;
-        hal.readLineSensor(buffer);
+        decltype(hal.lineSensor)::BufferT buffer;
+        hal.lineSensor.read(buffer);
         for (auto value: buffer)
             printf("%d ", value);
         printf("\n");
