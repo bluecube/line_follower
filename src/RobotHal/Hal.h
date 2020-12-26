@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RobotHalPins.h"
-#include "RobotHalLineSensor.h"
-#include "RobotHalImu.h"
+#include "Pins.h"
+#include "LineSensor.h"
+#include "Mpu6050.h"
 
 #include <driver/adc.h>
 
@@ -11,17 +11,19 @@
 #include <limits>
 #include <array>
 
-class RobotHal {
+namespace RobotHal {
+
+class Hal {
 protected:
-    RobotHal(); // Hal is only accessible through its singleton instance.
+    Hal(); // Hal is only accessible through its singleton instance.
 public:
-    RobotHal(const RobotHal&) = delete;
-    RobotHal(RobotHal&&) = delete;
-    RobotHal& operator=(const RobotHal&) = delete;
-    RobotHal& operator=(RobotHal&&) = delete;
+    Hal(const Hal&) = delete;
+    Hal(Hal&&) = delete;
+    Hal& operator=(const Hal&) = delete;
+    Hal& operator=(Hal&&) = delete;
 
     /// Return reference to the current HAL instance.
-    static RobotHal& instance();
+    static Hal& instance();
 
     enum class ButtonEvent: uint8_t {
         None,
@@ -50,8 +52,8 @@ public:
 
     ButtonEvent pollButton();
 
-    RobotHalLineSensor lineSensor;
-    RobotHalImu imu;
+    LineSensor lineSensor;
+    Mpu6050 imu;
 
 protected:
     static constexpr auto adcWidth = ADC_WIDTH_BIT_12;
@@ -94,7 +96,8 @@ protected:
     /// Read from two channels of an ADC at the same time
     static std::pair<int32_t, int32_t> readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2);
 
-    friend class RobotHalLineSensor;
-    friend class RobotHalImu;
+    friend class LineSensor;
+    friend class Mpu6050;
 };
 
+}

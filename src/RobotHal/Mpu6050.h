@@ -4,17 +4,19 @@
 
 #include <cstdint>
 
-class RobotHal;
+namespace RobotHal {
 
-/// Wraps functionality of MPU6050 in RobotHal
-class RobotHalImu {
+class Hal;
+
+/// Wraps functionality of MPU6050 in Hal
+class Mpu6050 {
 protected:
-    RobotHalImu() {}
+    Mpu6050() {}
 public:
-    RobotHalImu(const RobotHalImu&) = delete;
-    RobotHalImu(RobotHalImu&&) = delete;
-    RobotHalImu& operator=(const RobotHalImu&) = delete;
-    RobotHalImu& operator=(RobotHalImu&&) = delete;
+    Mpu6050(const Mpu6050&) = delete;
+    Mpu6050(Mpu6050&&) = delete;
+    Mpu6050& operator=(const Mpu6050&) = delete;
+    Mpu6050& operator=(Mpu6050&&) = delete;
 
     Vector3D<int16_t> readAccelerometer();
     Vector3D<int16_t> readGyro();
@@ -28,5 +30,7 @@ protected:
     static Vector3D<int16_t> readI16Vector(uint8_t registerAddress);
     static int16_t readI16(uint8_t registerAddress);
 
-    friend class RobotHal;
+    friend class Hal;
 };
+
+}

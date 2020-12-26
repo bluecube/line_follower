@@ -5,8 +5,10 @@
 #include <array>
 #include <utility>
 
+namespace RobotHal {
+
 // Board pins, manually copied from the schematic
-struct RobotHalPins {
+struct Pins {
     using PinT = IdfUtil::PinT;
 
     static constexpr std::array<std::pair<PinT, PinT>, 2> motor = {
@@ -28,3 +30,5 @@ struct RobotHalPins {
     static constexpr PinT batSense = 15;
     static constexpr PinT indicatorLed = 2;
 };
+
+}

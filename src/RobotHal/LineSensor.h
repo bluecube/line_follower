@@ -1,25 +1,27 @@
 #pragma once
 
-#include "RobotHalPins.h"
+#include "Pins.h"
 
 #include <driver/adc.h>
 
 #include <array>
 #include <cstdint>
 
-class RobotHal;
+namespace RobotHal {
 
-class RobotHalLineSensor {
+class Hal;
+
+class LineSensor {
 protected:
-    RobotHalLineSensor() {} // line sensor is only accessible through HAL
+    LineSensor() {} // line sensor is only accessible through HAL
 public:
     using ValueT = int32_t;
     using BufferT = std::array<ValueT, 10>;
 
-    RobotHalLineSensor(const RobotHalLineSensor&) = delete;
-    RobotHalLineSensor(RobotHalLineSensor&&) = delete;
-    RobotHalLineSensor& operator=(const RobotHalLineSensor&) = delete;
-    RobotHalLineSensor& operator=(RobotHalLineSensor&&) = delete;
+    LineSensor(const LineSensor&) = delete;
+    LineSensor(LineSensor&&) = delete;
+    LineSensor& operator=(const LineSensor&) = delete;
+    LineSensor& operator=(LineSensor&&) = delete;
 
     /// Enable given line sensor LED or disable all (for index out of range).
     /// Makes sure that only one is on at a time.
@@ -39,7 +41,7 @@ public:
 protected:
     // How many line leds there are after charlieplexing
     static constexpr unsigned lineLedCount =
-        RobotHalPins::lineLed.size() * (RobotHalPins::lineLed.size() - 1);
+        Pins::lineLed.size() * (Pins::lineLed.size() - 1);
 
     void setup();
 
@@ -67,5 +69,7 @@ protected:
     template <typename OutputFn>
     static inline void read(OutputFn outputFn);
 
-    friend class RobotHal;
+    friend class Hal;
 };
+
+}

@@ -1,4 +1,4 @@
-#include "RobotHal.h"
+#include "Hal.h"
 
 #include "parameters.h"
 #include "idf_util.h"
@@ -14,17 +14,19 @@
 #include <cstdio>
 #include <limits>
 
-RobotHal& RobotHal::instance() {
-    static RobotHal instance;
+namespace RobotHal {
+
+Hal& Hal::instance() {
+    static Hal instance;
     return instance;
 }
 
-RobotHal::RobotHal() {
+Hal::Hal() {
     setup();
 }
 
-void RobotHal::setup() {
-    printf("Initializing RobotHal\n");
+void Hal::setup() {
+    printf("Initializing Hal\n");
     setupMotors();
     setupButtons();
     setupI2C();
@@ -34,11 +36,11 @@ void RobotHal::setup() {
     imu.setup();
 }
 
-void RobotHal::setupMotors() {
+void Hal::setupMotors() {
     printf("Setting up motors\n");
 
     uint32_t i = 0;
-    for (auto pins: RobotHalPins::encoder) {
+    for (auto pins: Pins::encoder) {
         printf("Setting up unit %d at pins %d,%d\n", i, pins.first, pins.second);
         // Configure both channels of the counter to the same pair of pins,
         // once with first pin as pulse and second as control, then the other way
@@ -73,16 +75,16 @@ void RobotHal::setupMotors() {
     }
 }
 
-void RobotHal::setupButtons() {
+void Hal::setupButtons() {
     //printf("Setting up buttons\n");
 }
 
-void RobotHal::setupI2C() {
+void Hal::setupI2C() {
     printf("Setting up I2C\n");
     i2c_config_t config = {
         .mode=I2C_MODE_MASTER,
-        .sda_io_num = RobotHalPins::sda,
-        .scl_io_num = RobotHalPins::scl,
+        .sda_io_num = Pins::sda,
+        .scl_io_num = Pins::scl,
         .sda_pullup_en = true,
         .scl_pullup_en = true,
         .master = {
@@ -99,9 +101,9 @@ void RobotHal::setupI2C() {
     );
 }
 
-void RobotHal::setupMisc() {
+void Hal::setupMisc() {
     gpio_config_t config = {
-        .pin_bit_mask = IdfUtil::bit64(RobotHalPins::indicatorLed),
+        .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -110,25 +112,25 @@ void RobotHal::setupMisc() {
     gpio_config(&config);
 }
 
-void RobotHal::setMotors(PwmT left, PwmT right) {
+void Hal::setMotors(PwmT left, PwmT right) {
     (void)left;
     (void)right;
 }
 
-void RobotHal::setBuiltinLed(bool enable) {
-    gpio_set_level(IdfUtil::gpioPin(RobotHalPins::indicatorLed), static_cast<uint32_t>(enable));
+void Hal::setBuiltinLed(bool enable) {
+    gpio_set_level(IdfUtil::gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
 
-int RobotHal::readRange() {
+int Hal::readRange() {
     return 0;
 }
 
-float RobotHal::readBatteryVoltage() {
+float Hal::readBatteryVoltage() {
     return 0.0f;
     //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
 }
 
-std::pair<int32_t, int32_t> RobotHal::readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2) {
+std::pair<int32_t, int32_t> Hal::readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2) {
     int32_t v1 = adc1_get_raw(ch1);
     int32_t v2;
     adc2_get_raw(ch2, adcWidth, &v2);
@@ -136,7 +138,7 @@ std::pair<int32_t, int32_t> RobotHal::readAdcPair(adc1_channel_t ch1, adc2_chann
     return std::make_pair(v1, v2);
 }
 
-std::pair<int16_t, int16_t> RobotHal::readMotorEncoders() const
+std::pair<int16_t, int16_t> Hal::readMotorEncoders() const
 {
     int16_t v1 = 0xffff;
     int16_t v2 = 0xffff;
@@ -145,7 +147,7 @@ std::pair<int16_t, int16_t> RobotHal::readMotorEncoders() const
     return std::make_pair(v1, v2);
 }
 
-void RobotHal::i2cRead(
+void Hal::i2cRead(
     uint8_t deviceAddress, uint8_t registerAddress,
     uint8_t* data, size_t count
 ) {
@@ -159,7 +161,7 @@ void RobotHal::i2cRead(
     i2c_cmd_link_delete(cmd);
 }
 
-void RobotHal::i2cWrite(
+void Hal::i2cWrite(
     uint8_t deviceAddress, uint8_t registerAddress,
     const uint8_t* data, size_t count
 ) {
@@ -171,4 +173,6 @@ void RobotHal::i2cWrite(
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(cmd);
+}
+
 }

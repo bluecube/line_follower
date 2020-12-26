@@ -5,5 +5,5 @@
 
 // For now we just use the actual hardware, no other options available
 
-#include "RobotHal/RobotHal.h"
-using Hal = RobotHal; // This typedef specialises the code to use RobotHal.
+#include "RobotHal/Hal.h"
+using Hal = RobotHal::Hal; // This typedef specialises the code to use RobotHal.
