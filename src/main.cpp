@@ -34,7 +34,6 @@ extern "C" void app_main(void)
     auto& hal = Hal::instance();
 
     while(1) {
-
         decltype(hal.lineSensor)::BufferT buffer;
         hal.lineSensor.read(buffer);
         for (auto value: buffer)

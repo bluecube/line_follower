@@ -1,5 +1,7 @@
 #pragma once
 
+#include <driver/mcpwm.h>
+
 #include <cstdint>
 #include <utility>
 
@@ -17,13 +19,23 @@ public:
     Motors& operator=(const Motors&) = delete;
     Motors& operator=(Motors&&) = delete;
 
-    /// Set PWM signals for motors. Positive driving forward,
-    void set(int16_t left, int16_t right);
+    // Using float percent is an artefat of ESP-IDF mcpwm module
+    using PwmT = float;
+    static constexpr PwmT motorMaxValue = 100.0f;
+
+    /// Set PWM signals for motors. Positive values mean driving forward,
+    void set(PwmT left, PwmT right) {
+        set(MCPWM_UNIT_0, left);
+        set(MCPWM_UNIT_1, right);
+    }
+
 
     std::pair<int16_t, int16_t> readEncoders() const;
 
 protected:
-    void setup();
+    static void setup();
+
+    static void set(mcpwm_unit_t unit, float duty);
 
     friend class Hal;
 };
