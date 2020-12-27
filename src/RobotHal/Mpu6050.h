@@ -22,6 +22,8 @@ public:
     Vector3D<int16_t> readGyro();
     int32_t readTemperature();
 
+    bool checkConnection();
+
 protected:
     static constexpr uint8_t i2cAddress = 0b1101000; // pin AD0 not set
 

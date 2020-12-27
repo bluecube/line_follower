@@ -18,7 +18,6 @@ void Mpu6050::setup() {
 
     // Register 26:
     Hal::i2cWrite(i2cAddress, 26,
-        0 << 3 | // Disable external frame synchronization
         2 << 0 // Set digital low pass filter to configuration 2
             // (94Hz bandwith for accelerometer, 98Hz bandwidth of gyro)
     );
@@ -38,6 +37,14 @@ void Mpu6050::setup() {
     Hal::i2cWrite(i2cAddress, 56,
         1 << 0 // Data ready interrupt
     );
+
+    // Register 107: Power management 1
+    Hal::i2cWrite(i2cAddress, 108,
+        0 << 5 | // Sleep mode disabled
+        1 << 0 // Using X gyro axis as clock source
+    );
+
+    checkConnection();
 }
 
 Vector3D<int16_t> Mpu6050::readI16Vector(uint8_t registerAddress) {
@@ -68,6 +75,21 @@ int32_t Mpu6050::readTemperature() {
 Vector3D<int16_t> Mpu6050::readGyro() {
     return readI16Vector(67);
     // TODO: Convert to deg/s
+}
+
+bool Mpu6050::checkConnection() {
+    uint8_t answer;
+    Hal::i2cRead(i2cAddress, 117, &answer, 1);
+
+    uint8_t expected = i2cAddress & 0xfe;
+
+    bool ok = (answer == expected);
+
+    if (!ok)
+        printf("MPU6050 WHO_AM_I register has value 0x%02x, expected 0x%02x\n",
+            answer, expected);
+
+    return ok;
 }
 
 }
