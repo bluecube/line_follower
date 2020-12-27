@@ -61,6 +61,7 @@ void Hal::setupI2C() {
 }
 
 void Hal::setupMisc() {
+    printf("Setting up misc board functions\n");
     // Built-in LED
     gpio_config_t config = {
         .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
