@@ -117,12 +117,19 @@ void Hal::i2cRead(
     uint8_t* data, size_t count
 ) {
     auto cmd = i2c_cmd_link_create();
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (deviceAddress << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, registerAddress, true);
+
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (deviceAddress << 1) | I2C_MASTER_READ, true);
-    i2c_master_write_byte(cmd, registerAddress, true);
     i2c_master_read(cmd, data, count, I2C_MASTER_LAST_NACK);
+
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+
+    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS));
+
     i2c_cmd_link_delete(cmd);
 }
 
@@ -131,12 +138,15 @@ void Hal::i2cWrite(
     const uint8_t* data, size_t count
 ) {
     auto cmd = i2c_cmd_link_create();
+
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (deviceAddress << 1) | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(cmd, registerAddress, true);
     i2c_master_write(cmd, const_cast<uint8_t*>(data), count, true);
     i2c_master_stop(cmd);
-    i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS);
+
+    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS));
+
     i2c_cmd_link_delete(cmd);
 }
 
