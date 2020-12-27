@@ -29,7 +29,7 @@ void LineSensor::setup() {
             Pins::lineLed.begin(), Pins::lineLed.end(), uint64_t(0),
             [](auto accumulator, auto pin) { return accumulator | IdfUtil::bit64(pin); }
         ),
-        .mode = GPIO_MODE_OUTPUT,
+        .mode = GPIO_MODE_DISABLE,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
