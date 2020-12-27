@@ -34,22 +34,6 @@ extern "C" void app_main(void)
     auto& hal = Hal::instance();
 
     while(1) {
-        /*
-        for (uint32_t i = 0; i < 6; ++i) {
-            printf("Line led %d\n", i);
-            hal.enableLineSensorLed(i);
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-        }
-        hal.disableLineSensorLed();
-
-        printf("Builtin\n");
-        hal.setBuiltinLed(true);
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-
-        printf("OFF\n");
-        hal.setBuiltinLed(false);
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        */
 
         decltype(hal.lineSensor)::BufferT buffer;
         hal.lineSensor.read(buffer);
