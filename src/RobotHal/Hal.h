@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Pins.h"
 #include "LineSensor.h"
 #include "Motors.h"
 #include "Mpu6050.h"
@@ -49,6 +48,14 @@ protected:
     static constexpr auto adcWidth = ADC_WIDTH_BIT_12;
     static constexpr std::array<adc_atten_t, 3> adcAttenuations{
         ADC_ATTEN_DB_0, ADC_ATTEN_DB_6, ADC_ATTEN_DB_11
+    };
+
+    /// Two battery voltage measurements for battery voltage sensing calibration
+    /// (raw value, correct indicated voltage)
+    /// Uncomment a block inside Hal::readBatteryVoltage() to obtain the raw measurements.
+    static constexpr std::array<std::pair<float, float>, 2> batteryVoltageCalibration = {
+        std::make_pair(1050.0, 6.0f),
+        std::make_pair(3207.3, 17.0f),
     };
 
     void setup();

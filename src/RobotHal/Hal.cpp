@@ -4,7 +4,6 @@
 #include "idf_util.h"
 
 #include <driver/gpio.h>
-#include <driver/adc.h>
 #include <driver/i2c.h>
 
 #include "freertos/FreeRTOS.h"
@@ -62,6 +61,7 @@ void Hal::setupI2C() {
 }
 
 void Hal::setupMisc() {
+    // Built-in LED
     gpio_config_t config = {
         .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
         .mode = GPIO_MODE_OUTPUT,
@@ -70,6 +70,9 @@ void Hal::setupMisc() {
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&config);
+
+    // Battery voltage
+    adc2_config_channel_atten(IdfUtil::adc2Pin(Pins::batSense), ADC_ATTEN_DB_11);
 }
 
 void Hal::setBuiltinLed(bool enable) {
@@ -81,8 +84,24 @@ int Hal::readRange() {
 }
 
 float Hal::readBatteryVoltage() {
-    return 0.0f;
-    //return analogRead(batteryVoltage) * batteryVoltsPerUnit;
+    int32_t raw;
+    adc2_get_raw(IdfUtil::adc2Pin(Pins::batSense), adcWidth, &raw);
+
+    // Uncomment this code and repeatedly call this function to get calibration values
+    /*
+    static float smoothedRaw = 0.0f;
+    static uint32_t valueCount = 0;
+    smoothedRaw = smoothedRaw + (raw - smoothedRaw) / (++valueCount);
+    printf("Raw voltage measurement: %d, smoothed: %.2f\n", raw, smoothedRaw);
+    */
+
+    static constexpr float k =
+        (batteryVoltageCalibration[1].second - batteryVoltageCalibration[0].second) /
+        (batteryVoltageCalibration[1].first - batteryVoltageCalibration[0].first);
+    static constexpr float a =
+        batteryVoltageCalibration[0].second - k * batteryVoltageCalibration[0].first;
+
+    return k * raw + a;
 }
 
 std::pair<int32_t, int32_t> Hal::readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2) {

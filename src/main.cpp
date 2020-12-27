@@ -58,6 +58,7 @@ extern "C" void app_main(void)
         printf("\n");
         auto encoders = hal.motors.readEncoders();
         printf("Encoders: %d, %d\n", encoders.first, encoders.second);
+        printf("Battery voltage: %fV\n", hal.readBatteryVoltage());
         //printf("accelerometer: %s\n", hal.imu.readAccelerometer().str().c_str());
         //printf("temperature: %d\n", hal.imu.readTemperature());
         vTaskDelay(500 / portTICK_PERIOD_MS);
