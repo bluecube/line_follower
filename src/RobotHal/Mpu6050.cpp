@@ -39,7 +39,7 @@ void Mpu6050::setup() {
     );
 
     // Register 107: Power management 1
-    Hal::i2cWrite(i2cAddress, 108,
+    Hal::i2cWrite(i2cAddress, 107,
         0 << 5 | // Sleep mode disabled
         1 << 0 // Using X gyro axis as clock source
     );
