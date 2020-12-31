@@ -1,3 +1,0 @@
-Line sensor phototransitors missing paths (Fixed in 5e4ca6a)
-Line sensors phototransistor resistors way too low (Set to 10k in 4844e24)
-Line sensors should be interleaved between the two available ADCs to simplify (and potentially speed up) the read pattern.
