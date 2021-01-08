@@ -44,7 +44,11 @@ void Motors::setup() {
         pcnt_counter_clear(config.unit);
     }
 
-    i = 0;
+    setupMotors();
+}
+
+void Motors::setupMotors() {
+    uint32_t i = 0;
     for (auto pins: Pins::motor) {
         auto mcpwmUnit = static_cast<mcpwm_unit_t>(i++);
         mcpwm_gpio_init(mcpwmUnit, MCPWM0A, pins.first);
@@ -58,6 +62,29 @@ void Motors::setup() {
         };
         HAL_CHECK(mcpwm_init(mcpwmUnit, MCPWM_TIMER_0, &config));
         HAL_CHECK(mcpwm_start(mcpwmUnit, MCPWM_TIMER_0));
+    }
+}
+
+void Motors::startBeep(uint8_t leftPitch, uint8_t rightPitch) {
+    uint32_t i = 0;
+    std::array<uint8_t, 2> pitches = {leftPitch, rightPitch};
+    for (auto pins: Pins::motor) {
+        auto mcpwmUnit = static_cast<mcpwm_unit_t>(i);
+        mcpwm_gpio_init(mcpwmUnit, MCPWM0A, pins.first);
+        mcpwm_gpio_init(mcpwmUnit, MCPWM0B, pins.second);
+        mcpwm_config_t config = {
+            .frequency = beepPitchToFrequency(pitches[i]),
+            .cmpr_a = 50,
+            .cmpr_b = 50,
+            .duty_mode = MCPWM_DUTY_MODE_0,
+            .counter_mode = MCPWM_UP_COUNTER
+        };
+        HAL_CHECK(mcpwm_init(mcpwmUnit, MCPWM_TIMER_0, &config));
+        mcpwm_set_duty_type(mcpwmUnit, MCPWM_TIMER_0, MCPWM_OPR_A, MCPWM_DUTY_MODE_0);
+        mcpwm_set_duty_type(mcpwmUnit, MCPWM_TIMER_0, MCPWM_OPR_B, MCPWM_DUTY_MODE_1);
+        HAL_CHECK(mcpwm_start(mcpwmUnit, MCPWM_TIMER_0));
+
+        ++i;
     }
 }
 
@@ -84,5 +111,26 @@ void Motors::set(mcpwm_unit_t unit, float duty) {
         mcpwm_set_signal_low(unit, MCPWM_TIMER_0, MCPWM_OPR_B);
 }
 
+void Motors::setBeepTone(uint8_t leftPitch, uint8_t rightPitch) {
+    mcpwm_set_frequency(MCPWM_UNIT_0, MCPWM_TIMER_0, beepPitchToFrequency(leftPitch));
+    mcpwm_set_frequency(MCPWM_UNIT_1, MCPWM_TIMER_0, beepPitchToFrequency(rightPitch));
+}
+
+constexpr uint32_t Motors::beepPitchToFrequency(uint8_t pitch) {
+    constexpr int32_t octaveOffset = 11;
+    constexpr std::array<uint32_t, 12> freqTable = {
+        16744, 17740, 18795, 19912, 21096, 22351,
+        23680, 25088, 26580, 28160, 29834, 31609
+    };
+
+    int32_t octave = pitch / 12;
+    int32_t tablePos = pitch % 12;
+    uint32_t baseFreq = freqTable[tablePos];
+
+    if (octave < octaveOffset)
+        return baseFreq >> (octaveOffset - octave);
+    else
+        return baseFreq << (octave - octaveOffset);
+}
 
 }

@@ -33,6 +33,18 @@ extern "C" void app_main(void)
 {
     auto& hal = Hal::instance();
 
+    constexpr std::array<uint8_t, 5> pentatonic = {0, 2, 4, 7, 9};
+    constexpr uint8_t firstBeepTone = 12*5;
+    hal.motors.startBeep(firstBeepTone, firstBeepTone);
+    for (uint32_t i = 0; i < hal.lineSensor.lineLedCount; ++i) {
+        hal.lineSensor.enableLed(i);
+        uint8_t tone = firstBeepTone + pentatonic[i % pentatonic.size()];
+        hal.motors.setBeepTone(tone, tone);
+        vTaskDelay(150 / portTICK_PERIOD_MS);
+    }
+    hal.lineSensor.disableLed();
+    hal.motors.stopBeep();
+
     while(1) {
         decltype(hal.lineSensor)::BufferT buffer;
         hal.lineSensor.read(buffer);
