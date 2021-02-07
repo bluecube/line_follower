@@ -18,6 +18,10 @@ public:
     using ValueT = int32_t;
     using BufferT = std::array<ValueT, 10>;
 
+    // How many line leds there are after charlieplexing
+    static constexpr unsigned lineLedCount =
+        Pins::lineLed.size() * (Pins::lineLed.size() - 1);
+
     LineSensor(const LineSensor&) = delete;
     LineSensor(LineSensor&&) = delete;
     LineSensor& operator=(const LineSensor&) = delete;
@@ -39,10 +43,6 @@ public:
     void calibrate();
 
 protected:
-    // How many line leds there are after charlieplexing
-    static constexpr unsigned lineLedCount =
-        Pins::lineLed.size() * (Pins::lineLed.size() - 1);
-
     void setup();
 
     /// Sleep for some time to allow the line sensor to settle after LED change.
