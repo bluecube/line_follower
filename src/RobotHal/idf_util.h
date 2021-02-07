@@ -3,6 +3,7 @@
 #include <driver/gpio.h>
 #include <driver/adc.h>
 #include <esp_err.h>
+#include <soc/adc_channel.h>
 
 #include <cstdint>
 
