@@ -1,28 +1,43 @@
 #pragma once
 
-template <typename ValueT, typename TimeT = uint32_t>
+template <typename InputT_, typename OutputT_,  typename TimeT_>
 class Pid {
 public:
+    // Input / output types:
+    using InputT = InputT_;
+    using OutputT = OutputT_;
+    using TimeT = TimeT_;
 
-        Pid(ValueT kP, ValueT kI, ValueT kD)
-            : kP(kP), kI(kI), kD(kD), lastValue(0), integral(0) {}
+    // Internal types for integrals and derivatives
+    using IntegralT = decltype(InputT() * TimeT());
+    using DerivativeT = decltype(InputT() / TimeT());
 
-        ValueT update(ValueT value, ValueT setpoint, TimeT timeSinceLastUpdate = 1U) {
-            auto error = setpoint - value;
+    // Parameter types
+    using KPT = decltype(OutputT() / InputT());
+    using KIT = decltype(OutputT() / IntegralT());
+    using KDT = decltype(OutputT() / DerivativeT());
 
-            auto output = this->kP * error;
+    Pid(KPT kP, KIT kI, KDT kD)
+        : kP(kP), kI(kI), kD(kD), lastValue(InputT()), integral(IntegralT()) {}
 
-            this->integral += error * timeSinceLastUpdate;
-            output += this->kI * this->integral;
+    OutputT update(InputT value, InputT setpoint, TimeT timeSinceLastUpdate) {
+        auto error = setpoint - value;
 
-            output += (this->kD * (value - this->lastValue)) / timeSinceLastUpdate;
-            this->lastValue = value;
+        auto output = this->kP * error;
 
-            return output;
-        }
+        this->integral += error * timeSinceLastUpdate;
+        output += this->kI * this->integral;
 
-        ValueT kP, kI, kD;
+        output += (this->kD * (value - this->lastValue)) / timeSinceLastUpdate;
+        this->lastValue = value;
+
+        return output;
+    }
+
+    KPT kP;
+    KIT kI;
+    KDT kD;
 private:
-        ValueT lastValue;
-        ValueT integral;
+    InputT lastValue;
+    IntegralT integral;
 };

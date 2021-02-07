@@ -16,6 +16,6 @@ public:
     static int32_t findLine();
 
 private:
-    Pid<int32_t, uint32_t> pid;
+    Pid<int32_t, int32_t, uint32_t> pid;
 };
 
