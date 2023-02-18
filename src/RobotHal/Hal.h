@@ -4,7 +4,7 @@
 #include "Motors.h"
 #include "Mpu6050.h"
 
-#include <driver/adc.h>
+#include <esp_adc/adc_oneshot.h>
 
 #include <cstdint>
 #include <cstddef>
@@ -40,15 +40,12 @@ public:
 
     ButtonEvent pollButton();
 
-    LineSensor lineSensor;
+    LineSensor lineSensor{*this};
     Motors motors;
     Mpu6050 imu;
 
 protected:
-    static constexpr auto adcWidth = ADC_WIDTH_BIT_12;
-    static constexpr std::array<adc_atten_t, 3> adcAttenuations{
-        ADC_ATTEN_DB_0, ADC_ATTEN_DB_6, ADC_ATTEN_DB_11
-    };
+    static constexpr adc_bitwidth_t adcWidth = ADC_BITWIDTH_12;
 
     /// Two battery voltage measurements for battery voltage sensing calibration
     /// (raw value, correct indicated voltage)
@@ -59,6 +56,7 @@ protected:
     };
 
     void setup();
+    void setupAdc();
     void setupMotors();
     void setupButtons();
     void setupI2C();
@@ -90,8 +88,7 @@ protected:
         i2cWrite(deviceAddress, registerAddress, &byte, 1);
     }
 
-    /// Read from two channels of an ADC at the same time
-    static std::pair<int32_t, int32_t> readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2);
+    std::array<adc_oneshot_unit_handle_t, 2> adcHandles;
 
     friend class LineSensor;
     friend class Mpu6050;

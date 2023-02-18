@@ -4,7 +4,6 @@
 #include "idf_util.h"
 
 #include <driver/gpio.h>
-#include <driver/adc.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -38,8 +37,14 @@ void LineSensor::setup() {
     // All pins are set to drive strength 2 by default and that is what we want
     // for the line sensors
 
-    adc1_config_width(Hal::adcWidth);
-    setAttenuation(ADC_ATTEN_DB_11);
+    adc_oneshot_chan_cfg_t chanConfig = {
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = Hal::adcWidth,
+    };
+    for (uint32_t i = 0u; i < Pins::lineSensor.size(); i += 1) {
+        auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::batSense);
+        adc_oneshot_config_channel(hal.adcHandles[unit], channel, &chanConfig);
+    }
 }
 
 void LineSensor::enableLed(uint32_t ledIndex) {
@@ -76,7 +81,7 @@ LineSensor::read(LineSensor::BufferT& buffer) {
     // TODO: Calibration
     // TODO: Make this asynchronous
 
-    read(
+    read_leds(
         [&](auto i) {
             this->enableLed(i);
             this->settle();
@@ -94,7 +99,7 @@ LineSensor::read(LineSensor::BufferT& buffer) {
     auto minValue = std::numeric_limits<ValueT>::max();
     auto maxValue = std::numeric_limits<ValueT>::min();
 
-    read(
+    read_no_leds(
         [&](auto i, auto v)
         {
             buffer[i] -= v;
@@ -110,7 +115,7 @@ void LineSensor::calibrate() {
     printf("Line sensor calibration\n");
 
     BufferT buffer;
-    read(
+    read_leds(
         [&](auto i) {
             this->enableLed(i);
             this->settle();
@@ -125,22 +130,25 @@ void LineSensor::calibrate() {
 
 std::pair<LineSensor::ValueT, LineSensor::ValueT>
 LineSensor::readAdcPair(int ch1Sensor, int ch2Sensor) {
-    return Hal::readAdcPair(
-        IdfUtil::adc1Pin(Pins::lineSensor[ch1Sensor]),
-        IdfUtil::adc2Pin(Pins::lineSensor[ch2Sensor])
-    );
+    auto v1 = readAdc(ch1Sensor);
+    auto v2 = readAdc(ch2Sensor);
+    // TODO: Actually do the reads in parallel
+
+    return std::make_pair(v1, v2);
 }
 
-LineSensor::ValueT LineSensor::readAdc1(int ch1Sensor) {
-    return adc1_get_raw(IdfUtil::adc1Pin(Pins::lineSensor[ch1Sensor]));
+LineSensor::ValueT LineSensor::readAdc(int sensor) {
+    auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::lineSensor[sensor]);
+    int value;
+    HAL_CHECK(adc_oneshot_read(hal.adcHandles[unit], channel, &value));
+    return value;
 }
 
-/// Read ADC on every location of the line sensor.
 template <typename LedFn, typename OutputFn>
-inline void LineSensor::read(LedFn ledFn, OutputFn outputFn) {
+inline void LineSensor::read_leds(LedFn ledFn, OutputFn outputFn) {
     // First LED only illuminates a single line sensor
     ledFn(0);
-    outputFn(0, readAdc1(0));
+    outputFn(0, readAdc(0));
 
     for (uint32_t i = 1u; i < (lineLedCount - 1u); ++i)
     {
@@ -159,11 +167,11 @@ inline void LineSensor::read(LedFn ledFn, OutputFn outputFn) {
 
     // Last LED only illuminates a single line sensor
     ledFn(lineLedCount - 1);
-    outputFn(2 * Pins::lineSensor.size() - 1, readAdc1(Pins::lineSensor.size() - 1));
+    outputFn(2 * Pins::lineSensor.size() - 1, readAdc(Pins::lineSensor.size() - 1));
 }
 
 template <typename OutputFn>
-inline void LineSensor::read(OutputFn outputFn) {
+inline void LineSensor::read_no_leds(OutputFn outputFn) {
     for (uint32_t i = 0u; i < (Pins::lineSensor.size() - 1); i += 2)
     {
         auto [v1, v2] = readAdcPair(i, i + 1);
@@ -172,25 +180,13 @@ inline void LineSensor::read(OutputFn outputFn) {
         outputFn(2 * i + 2, v2);
         outputFn(2 * i + 3, v2);
     }
-    auto v = readAdc1(Pins::lineSensor.size() - 1);
+    auto v = readAdc(Pins::lineSensor.size() - 1);
     outputFn(2 * Pins::lineSensor.size() - 2, v);
     outputFn(2 * Pins::lineSensor.size() - 1, v);
 }
 
 void LineSensor::settle() {
     vTaskDelay(1 / portTICK_PERIOD_MS); // TODO: Old version used just 250us
-}
-
-void LineSensor::setAttenuation(adc_atten_t attenuation)
-{
-    for (uint32_t i = 0u; i < Pins::lineSensor.size(); i += 2) {
-        auto ch = IdfUtil::adc1Pin(Pins::lineSensor[i]);
-        adc1_config_channel_atten(ch, attenuation);
-    }
-    for (uint32_t i = 1u; i < Pins::lineSensor.size(); i += 2) {
-        auto ch = IdfUtil::adc2Pin(Pins::lineSensor[i]);
-        adc2_config_channel_atten(ch, attenuation);
-    }
 }
 
 }

@@ -23,6 +23,7 @@ void loop() {
 }*/
 
 #include <stdio.h>
+#include <inttypes.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
@@ -49,16 +50,16 @@ extern "C" void app_main(void)
         decltype(hal.lineSensor)::BufferT buffer;
         hal.lineSensor.read(buffer);
         for (auto value: buffer)
-            printf("%d ", value);
+            printf("%" PRId16 " ", value);
         printf("\n");
         auto encoders = hal.motors.readEncoders();
-        printf("Encoders: %d, %d\n", encoders.first, encoders.second);
+        printf("Encoders: %" PRId16 ", %" PRId16 "\n", encoders.first, encoders.second);
         printf("Battery voltage: %fV\n", hal.readBatteryVoltage());
         printf("accelerometer: %s, gyro: %s\n",
             hal.imu.readAccelerometer().str().c_str(),
             hal.imu.readGyro().str().c_str()
             );
-        printf("temperature: %d\n", hal.imu.readTemperature());
+        printf("temperature: %" PRId32 "\n", hal.imu.readTemperature());
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }

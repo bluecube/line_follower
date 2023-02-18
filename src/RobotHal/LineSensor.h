@@ -2,8 +2,6 @@
 
 #include "Pins.h"
 
-#include <driver/adc.h>
-
 #include <array>
 #include <cstdint>
 
@@ -13,9 +11,9 @@ class Hal;
 
 class LineSensor {
 protected:
-    LineSensor() {} // line sensor is only accessible through HAL
+    LineSensor(Hal& hal): hal(hal) {} // line sensor is only accessible through HAL
 public:
-    using ValueT = int32_t;
+    using ValueT = int16_t;
     using BufferT = std::array<ValueT, 10>;
 
     // How many line leds there are after charlieplexing
@@ -43,6 +41,8 @@ public:
     void calibrate();
 
 protected:
+    Hal& hal;
+
     void setup();
 
     /// Sleep for some time to allow the line sensor to settle after LED change.
@@ -50,24 +50,23 @@ protected:
 
     /// Wrapper around readAdcPair that takes index of a line sensor element instead of ADC channel.
     /// The sensors must actually belong connected to channel 1 and channel 2 of the ADC!
-    static std::pair<ValueT, ValueT> readAdcPair(int ch1Sensor, int ch2Sensor);
+    std::pair<ValueT, ValueT> readAdcPair(int ch1Sensor, int ch2Sensor);
 
-    /// Wrapper around adc1_get_raw that takes index of a line sensor element instead of ADC channel.
-    /// The sensor must actually belong connected to channel 1 of the ADC!
-    static ValueT readAdc1(int ch1Sensor);
+    /// Reads a value from a single ADC.
+    ValueT readAdc(int channel);
 
-    void setAttenuation(adc_atten_t attenuation);
-
-    /// Read line sensor on all positions with LEDs.
-    /// Two readings per sensor, reading pairs of values at a time.
+    /// Read line sensor on all positions, while blinking LED patterns.
+    /// @param ledFn ledFn(i) is called to enable LED i (and disable others).
+    /// @param outputFn outputFn(i, value) is a callback to set the output.
+    ///     Range of i is to BufferT::size().
     template <typename LedFn, typename OutputFn>
-    static inline void read(LedFn ledFn, OutputFn outputFn);
+    inline void read_leds(LedFn ledFn, OutputFn outputFn);
 
-    /// Read line sensor on all positions without LEDs.
-    /// Compared to readLineSensor(ledFn, outputFn) this joins the two readings
-    /// per sensor into one, making this function twice as fast.
+    /// Read line sensor on all positions without changing LEDs.
     template <typename OutputFn>
-    static inline void read(OutputFn outputFn);
+    /// @param outputFn outputFn(i, value) is a callback to set the output.
+    ///     Range of i is to BufferT::size().
+    inline void read_no_leds(OutputFn outputFn);
 
     friend class Hal;
 };

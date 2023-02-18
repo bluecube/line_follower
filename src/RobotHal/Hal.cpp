@@ -26,12 +26,45 @@ void Hal::setup() {
     printf("Initializing Hal\n");
     setupButtons();
     setupI2C();
-    setupMisc();
+    setupAdc();
 
     lineSensor.setup();
     motors.setup();
     imu.setup();
+
+    // Built-in LED
+    gpio_config_t config = {
+        .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&config);
+
     printf("Hal is ready\n");
+}
+
+void Hal::setupAdc() {
+    adc_oneshot_unit_init_cfg_t config = {
+        .unit_id = ADC_UNIT_1,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    adc_oneshot_new_unit(&config, &adcHandles[config.unit_id]);
+
+    config.unit_id = ADC_UNIT_2;
+    adc_oneshot_new_unit(&config, &adcHandles[1]);
+
+
+    // Battery voltage
+    adc_oneshot_chan_cfg_t chanConfig = {
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = adcWidth,
+    };
+    auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::batSense);
+    adc_oneshot_config_channel(adcHandles[unit], channel, &chanConfig);
+
+    // Other ADC channels are configured in the individual modules
 }
 
 void Hal::setupButtons() {
@@ -60,22 +93,6 @@ void Hal::setupI2C() {
     );
 }
 
-void Hal::setupMisc() {
-    printf("Setting up misc board functions\n");
-    // Built-in LED
-    gpio_config_t config = {
-        .pin_bit_mask = IdfUtil::bit64(Pins::indicatorLed),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&config);
-
-    // Battery voltage
-    adc2_config_channel_atten(IdfUtil::adc2Pin(Pins::batSense), ADC_ATTEN_DB_11);
-}
-
 void Hal::setBuiltinLed(bool enable) {
     gpio_set_level(IdfUtil::gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
@@ -85,8 +102,9 @@ int Hal::readRange() {
 }
 
 float Hal::readBatteryVoltage() {
-    int32_t raw;
-    adc2_get_raw(IdfUtil::adc2Pin(Pins::batSense), adcWidth, &raw);
+    auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::batSense);
+    int raw;
+    adc_oneshot_read(adcHandles[unit], channel, &raw);
 
     // Uncomment this code and repeatedly call this function to get calibration values
     /*
@@ -105,14 +123,6 @@ float Hal::readBatteryVoltage() {
     return k * raw + a;
 }
 
-std::pair<int32_t, int32_t> Hal::readAdcPair(adc1_channel_t ch1, adc2_channel_t ch2) {
-    int32_t v1 = adc1_get_raw(ch1);
-    int32_t v2;
-    adc2_get_raw(ch2, adcWidth, &v2);
-    // TODO: Actually do the reads in parallel
-    return std::make_pair(v1, v2);
-}
-
 void Hal::i2cRead(
     uint8_t deviceAddress, uint8_t registerAddress,
     uint8_t* data, size_t count
@@ -129,7 +139,7 @@ void Hal::i2cRead(
 
     i2c_master_stop(cmd);
 
-    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS));
+    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
 
     i2c_cmd_link_delete(cmd);
 }
@@ -146,7 +156,7 @@ void Hal::i2cWrite(
     i2c_master_write(cmd, const_cast<uint8_t*>(data), count, true);
     i2c_master_stop(cmd);
 
-    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_RATE_MS));
+    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
 
     i2c_cmd_link_delete(cmd);
 }
