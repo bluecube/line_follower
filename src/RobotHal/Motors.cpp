@@ -44,29 +44,111 @@ void Motors::setup() {
         pcnt_counter_clear(config.unit);
     }
 
-    setupMotors();
-}
-
-void Motors::setupMotors() {
-    uint32_t i = 0;
-    for (auto pins: Pins::motor) {
-        auto mcpwmUnit = static_cast<mcpwm_unit_t>(i++);
-        mcpwm_gpio_init(mcpwmUnit, MCPWM0A, pins.first);
-        mcpwm_gpio_init(mcpwmUnit, MCPWM0B, pins.second);
-        mcpwm_config_t config = {
-            .frequency = 25000,
-            .cmpr_a = 0,
-            .cmpr_b = 0,
-            .duty_mode = MCPWM_DUTY_MODE_0,
-            .counter_mode = MCPWM_UP_COUNTER
-        };
-        HAL_CHECK(mcpwm_init(mcpwmUnit, MCPWM_TIMER_0, &config));
-        HAL_CHECK(mcpwm_start(mcpwmUnit, MCPWM_TIMER_0));
+    for (int i = 0; i < 2; ++i) {
+        motor[i].setup(Pins::motor[i].first, Pins::motor[i].second);
     }
 }
 
+void Motors::Motor::setup(IdfUtil::PinT pinA, IdfUtil::PinT pinB) {
+    // Adapted from the bdc_motor library
+    // https://github.com/espressif/idf-extra-components/blob/master/bdc_motor/src/bdc_motor_mcpwm_impl.c
+    mcpwm_timer_config_t timerConfig = {
+        .group_id = pwmGroupId,
+        .clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT,
+        .resolution_hz = pwmResolutionHz,
+        .count_mode = MCPWM_TIMER_COUNT_MODE_UP,
+        .period_ticks = pwmPeriodTicks,
+    };
+    HAL_CHECK(mcpwm_new_timer(&timerConfig, &timer));
+    HAL_CHECK(mcpwm_timer_enable(timer));
+
+    mcpwm_operator_config_t operatorConfig = {
+        .group_id = pwmGroupId,
+    };
+    HAL_CHECK(mcpwm_new_operator(&operatorConfig, &oper));
+
+    HAL_CHECK(mcpwm_operator_connect_timer(oper, timer));
+
+    mcpwm_comparator_config_t comparatorConfig = {
+        .flags = { .update_cmp_on_tez = true },
+    };
+    HAL_CHECK(mcpwm_new_comparator(oper, &comparatorConfig, &comparatorA));
+    HAL_CHECK(mcpwm_new_comparator(oper, &comparatorConfig, &comparatorB));
+
+    mcpwm_comparator_set_compare_value(comparatorA, 0);
+    mcpwm_comparator_set_compare_value(comparatorB, 0);
+
+    mcpwm_generator_config_t generatorConfig = {
+        .gen_gpio_num = pinA
+    };
+    HAL_CHECK(mcpwm_new_generator(oper, &generatorConfig, &generatorA));
+    generatorConfig.gen_gpio_num = pinB;
+    HAL_CHECK(mcpwm_new_generator(oper, &generatorConfig, &generatorB));
+
+    HAL_CHECK(mcpwm_generator_set_actions_on_timer_event(generatorA,
+        MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
+        MCPWM_GEN_TIMER_EVENT_ACTION_END()
+    ));
+    HAL_CHECK(mcpwm_generator_set_actions_on_compare_event(generatorA,
+        MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparatorA, MCPWM_GEN_ACTION_LOW),
+        MCPWM_GEN_COMPARE_EVENT_ACTION_END()
+    ));
+    HAL_CHECK(mcpwm_generator_set_actions_on_timer_event(generatorB,
+        MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
+        MCPWM_GEN_TIMER_EVENT_ACTION_END()
+    ));
+    HAL_CHECK(mcpwm_generator_set_actions_on_compare_event(generatorB,
+        MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparatorB, MCPWM_GEN_ACTION_LOW),
+        MCPWM_GEN_COMPARE_EVENT_ACTION_END()
+    ));
+
+    HAL_CHECK(mcpwm_generator_set_force_level(generatorA, 0, true));
+    HAL_CHECK(mcpwm_generator_set_force_level(generatorB, 0, true));
+
+    HAL_CHECK(mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP));
+
+    lastPwm = 0;
+}
+
+void Motors::Motor::set(PwmT pwm) {
+    if (pwm == lastPwm) {
+        printf("Pwm did not change\n");
+        return;
+    }
+    else if (pwm == 0) {
+        printf("Stopping motor\n");
+        HAL_CHECK(mcpwm_generator_set_force_level(generatorA, 0, true));
+        HAL_CHECK(mcpwm_generator_set_force_level(generatorB, 0, true));
+    } else if (pwm > 0) {
+        if (lastPwm <= 0) {
+            printf("Spin forward\n");
+            HAL_CHECK(mcpwm_generator_set_force_level(generatorA, -1, true));
+            HAL_CHECK(mcpwm_generator_set_force_level(generatorB, 0, true));
+        }
+        HAL_CHECK(mcpwm_comparator_set_compare_value(comparatorA, pwm));
+    } else {
+        if (lastPwm >= 0) {
+            printf("Spin backward\n");
+            HAL_CHECK(mcpwm_generator_set_force_level(generatorA, 0, true));
+            HAL_CHECK(mcpwm_generator_set_force_level(generatorB, -1, true));
+        }
+        HAL_CHECK(mcpwm_comparator_set_compare_value(comparatorB, -pwm));
+    }
+    lastPwm = pwm;
+}
+
+std::pair<int16_t, int16_t> Motors::readEncoders() const
+{
+    int16_t v1;
+    int16_t v2;
+    pcnt_get_counter_value(PCNT_UNIT_0, &v1);
+    pcnt_get_counter_value(PCNT_UNIT_1, &v2);
+    return std::make_pair(v1, v2);
+}
+
 void Motors::startBeep(uint8_t leftPitch, uint8_t rightPitch) {
-    uint32_t i = 0;
+    //TODO!
+    /*uint32_t i = 0;
     std::array<uint8_t, 2> pitches = {leftPitch, rightPitch};
     for (auto pins: Pins::motor) {
         auto mcpwmUnit = static_cast<mcpwm_unit_t>(i);
@@ -85,52 +167,40 @@ void Motors::startBeep(uint8_t leftPitch, uint8_t rightPitch) {
         HAL_CHECK(mcpwm_start(mcpwmUnit, MCPWM_TIMER_0));
 
         ++i;
-    }
-}
-
-std::pair<int16_t, int16_t> Motors::readEncoders() const
-{
-    int16_t v1;
-    int16_t v2;
-    pcnt_get_counter_value(PCNT_UNIT_0, &v1);
-    pcnt_get_counter_value(PCNT_UNIT_1, &v2);
-    return std::make_pair(v1, v2);
-}
-
-void Motors::set(mcpwm_unit_t unit, float duty) {
-    if (duty > 0.0f) {
-        mcpwm_set_duty(unit, MCPWM_TIMER_0, MCPWM_OPR_A, duty);
-        mcpwm_set_duty_type(unit, MCPWM_TIMER_0, MCPWM_OPR_A, MCPWM_DUTY_MODE_0);
-    } else
-        mcpwm_set_signal_low(unit, MCPWM_TIMER_0, MCPWM_OPR_A);
-
-    if (duty < 0.0f) {
-        mcpwm_set_duty(unit, MCPWM_TIMER_0, MCPWM_OPR_B, -duty);
-        mcpwm_set_duty_type(unit, MCPWM_TIMER_0, MCPWM_OPR_B, MCPWM_DUTY_MODE_0);
-    } else
-        mcpwm_set_signal_low(unit, MCPWM_TIMER_0, MCPWM_OPR_B);
+    }*/
 }
 
 void Motors::setBeepTone(uint8_t leftPitch, uint8_t rightPitch) {
+    //TODO!
+    /*
     mcpwm_set_frequency(MCPWM_UNIT_0, MCPWM_TIMER_0, beepPitchToFrequency(leftPitch));
     mcpwm_set_frequency(MCPWM_UNIT_1, MCPWM_TIMER_0, beepPitchToFrequency(rightPitch));
+    */
 }
 
-constexpr uint32_t Motors::beepPitchToFrequency(uint8_t pitch) {
-    constexpr int32_t octaveOffset = 11;
-    constexpr std::array<uint32_t, 12> freqTable = {
-        16744, 17740, 18795, 19912, 21096, 22351,
-        23680, 25088, 26580, 28160, 29834, 31609
+constexpr uint32_t Motors::Motor::beepPitchToTicks(uint8_t pitch) {
+    constexpr uint32_t tableScale = pwmResolutionHz / 10000000;
+        // Conversion factor between the table values and PWM clock ticks.
+        // Should evaluate to 1 for maximum accuracy, but will work correctly even
+        // when the pwmResolutionHz changes.
+
+    constexpr std::array<uint32_t, 12> octaveTable = {
+        // Tick count for a single octave, starting at midi note 0.
+        // Generated using the following python script:
+        //
+        // def note_freq(number):
+        //     a_num = 69
+        //     a_freq = 440
+        //     return a_freq * 2**((number - a_num)/12)
+        // [round(10000000 / note_freq(i)) for i in range(12)]
+        1223122, 1154473, 1089678, 1028519, 970793, 916306,
+        864878, 816336, 770519, 727273, 686454, 647926
     };
 
-    int32_t octave = pitch / 12;
-    int32_t tablePos = pitch % 12;
-    uint32_t baseFreq = freqTable[tablePos];
+    const auto octaveIndex = pitch / 12;
+    const auto noteIndex = pitch % 12;
 
-    if (octave < octaveOffset)
-        return baseFreq >> (octaveOffset - octave);
-    else
-        return baseFreq << (octave - octaveOffset);
+    return (octaveTable[noteIndex] * tableScale) >> octaveIndex;
 }
 
 }

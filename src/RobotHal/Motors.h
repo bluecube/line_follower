@@ -1,6 +1,7 @@
 #pragma once
 
-#include <driver/mcpwm.h>
+#include "driver/mcpwm_prelude.h"
+#include "idf_util.h"
 
 #include <cstdint>
 #include <utility>
@@ -20,14 +21,12 @@ public:
     Motors& operator=(const Motors&) = delete;
     Motors& operator=(Motors&&) = delete;
 
-    // Using float percent is an artefat of ESP-IDF mcpwm module
-    using PwmT = float;
-    static constexpr PwmT motorMaxValue = 100.0f;
+    using PwmT = int32_t;
 
     /// Set PWM signals for motors. Positive values mean driving forward,
     void set(PwmT left, PwmT right) {
-        set(MCPWM_UNIT_0, left);
-        set(MCPWM_UNIT_1, right);
+        motor[0].set(left);
+        motor[1].set(right);
     }
 
     /// Reconfigure the motors so that they can't drive and only make noise.
@@ -43,21 +42,42 @@ public:
 
     /// Stop the beeping sound, reset motor to default settings and zero speed.
     void stopBeep() {
-        setupMotors();
+        // TODO:
     }
 
     std::pair<int16_t, int16_t> readEncoders() const;
 
+    static inline constexpr PwmT maxPwm() { return Motor::pwmPeriodTicks; }
+
 protected:
-    /// Convert pitch value to frequency in Hz.
-    /// See setBeepTone() for description of the tuning.
-    static constexpr uint32_t beepPitchToFrequency(uint8_t pitch);
+    struct Motor {
+        void setup(IdfUtil::PinT pinA, IdfUtil::PinT pinB);
+        void set(PwmT duty);
+        void forward();
+        void reverse();
+        void stop();
 
-    static void setup();
-    static void setupMotors();
+        mcpwm_timer_handle_t timer;
+        mcpwm_oper_handle_t oper;
+        mcpwm_cmpr_handle_t comparatorA;
+        mcpwm_cmpr_handle_t comparatorB;
+        mcpwm_gen_handle_t generatorA;
+        mcpwm_gen_handle_t generatorB;
 
-    static void set(mcpwm_unit_t unit, float duty);
+        PwmT lastPwm;
 
+        static constexpr int pwmGroupId = 0;
+        static constexpr uint32_t pwmResolutionHz = 10000000; // 10MHz PWM base timer
+        static constexpr uint32_t pwmPeriodTicks = pwmResolutionHz / 25000; // 25kHz PWM
+
+        /// Convert pitch value to tick count.
+        /// See setBeepTone() for description of the tuning.
+        static constexpr uint32_t beepPitchToTicks(uint8_t pitch);
+    };
+
+    Motor motor[2];
+
+    void setup();
 
     friend class Hal;
 };
