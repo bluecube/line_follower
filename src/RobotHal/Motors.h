@@ -29,22 +29,6 @@ public:
         motor[1].set(right);
     }
 
-    /// Reconfigure the motors so that they can't drive and only make noise.
-    /// See setBeepTone() for description of the pitch parameters.
-    void startBeep(uint8_t leftPitch, uint8_t rightPitch);
-
-    /// Set pitch of the motor beeping.
-    /// Uses MIDI note numbers for pitch values:
-    /// chromatic scale starting at C five octaves below middle C (8.1758 Hz),
-    /// going up a octave / for every 12 units.
-    /// Value 69 corresponds to concert A (440 Hz)
-    void setBeepTone(uint8_t leftPitch, uint8_t rightPitch);
-
-    /// Stop the beeping sound, reset motor to default settings and zero speed.
-    void stopBeep() {
-        // TODO:
-    }
-
     std::pair<int16_t, int16_t> readEncoders() const;
 
     static inline constexpr PwmT maxPwm() { return Motor::pwmPeriodTicks; }
@@ -69,10 +53,6 @@ protected:
         static constexpr int pwmGroupId = 0;
         static constexpr uint32_t pwmResolutionHz = 10000000; // 10MHz PWM base timer
         static constexpr uint32_t pwmPeriodTicks = pwmResolutionHz / 25000; // 25kHz PWM
-
-        /// Convert pitch value to tick count.
-        /// See setBeepTone() for description of the tuning.
-        static constexpr uint32_t beepPitchToTicks(uint8_t pitch);
     };
 
     Motor motor[2];
