@@ -47,7 +47,7 @@ extern "C" void app_main(void)
             printf("%" PRId16 " ", value);
         printf("\n");
         auto encoders = hal.motors.readEncoders();
-        printf("Encoders: %" PRId16 ", %" PRId16 "\n", encoders.first, encoders.second);
+        printf("Encoders: %" PRId32 ", %" PRId32 "\n", encoders.first, encoders.second);
         printf("Battery voltage: %fV\n", hal.readBatteryVoltage());
         printf("accelerometer: %s, gyro: %s\n",
             hal.imu.readAccelerometer().str().c_str(),
