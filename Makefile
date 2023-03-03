@@ -1,7 +1,20 @@
+serial = /dev/ttyUSB1
+platformio = source venv/bin/activate; python -m platformio 
+
+.NOTPARALLEL:
+
 .PHONY: build
 build:
-	source venv/bin/activate; python -m platformio run
+	$(platformio) run
+
+.PHONY: upload
+clean:
+	$(platformio) run --target clean
 
 .PHONY: upload
 upload:
-	source venv/bin/activate; python -m platformio run --target upload
+	$(platformio) run --target upload --upload-port $(serial)
+
+.PHONY: terminal
+terminal:
+	picocom --baud 115200 $(serial)
