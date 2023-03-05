@@ -9,13 +9,6 @@
 
 namespace IdfUtil {
 
-#define HAL_CHECK(value) \
-    do { \
-        esp_err_t code = (value); \
-        if (code != ESP_OK) \
-            printf("%s:%d: ESP call failed: %s\n", __FILE__, __LINE__, esp_err_to_name(code)); \
-    } while(0)
-
 using PinT = int; // Int to match some of the ESP-IDF function signatures.
 
 constexpr gpio_num_t gpioPin(PinT pin) {
@@ -29,7 +22,7 @@ constexpr uint64_t bit64(int pin) {
 static inline std::pair<adc_unit_t, adc_channel_t> gpioToADCChannel(PinT pin) {
     adc_unit_t unit;
     adc_channel_t channel;
-    HAL_CHECK(adc_oneshot_io_to_channel(pin, &unit, &channel));
+    ESP_ERROR_CHECK(adc_oneshot_io_to_channel(pin, &unit, &channel));
     return std::make_pair(unit, channel);
 }
 

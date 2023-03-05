@@ -140,7 +140,7 @@ LineSensor::readAdcPair(int ch1Sensor, int ch2Sensor) {
 LineSensor::ValueT LineSensor::readAdc(int sensor) {
     auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::lineSensor[sensor]);
     int value;
-    HAL_CHECK(adc_oneshot_read(hal.adcHandles[unit], channel, &value));
+    ESP_ERROR_CHECK(adc_oneshot_read(hal.adcHandles[unit], channel, &value));
     return value;
 }
 

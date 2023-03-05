@@ -139,7 +139,7 @@ void Hal::i2cRead(
 
     i2c_master_stop(cmd);
 
-    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
+    ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
 
     i2c_cmd_link_delete(cmd);
 }
@@ -156,7 +156,7 @@ void Hal::i2cWrite(
     i2c_master_write(cmd, const_cast<uint8_t*>(data), count, true);
     i2c_master_stop(cmd);
 
-    HAL_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
+    ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000 / portTICK_PERIOD_MS));
 
     i2c_cmd_link_delete(cmd);
 }
