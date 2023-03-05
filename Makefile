@@ -1,4 +1,4 @@
-serial = /dev/ttyUSB1
+serial ?= /dev/ttyUSB1
 platformio = source venv/bin/activate; python -m platformio 
 
 .NOTPARALLEL:
