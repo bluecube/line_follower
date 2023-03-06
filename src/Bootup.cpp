@@ -7,7 +7,7 @@
 #include "parameters.h"
 
 void Bootup::update(StateMachine& stateMachine, int elapsed) {
-    if (Hal::instance().readBatteryVoltage() < Parameters::Hardware::voltageCutoff) {
+    /*if (Hal::instance().readBatteryVoltage() < Parameters::Hardware::voltageCutoff) {
         stateMachine.changeState(ErrorState(0));
         Hal::instance().setBuiltinLed(false);
         return;
@@ -24,7 +24,7 @@ void Bootup::update(StateMachine& stateMachine, int elapsed) {
         stateMachine.changeState(Waiting());
         Hal::instance().setBuiltinLed(false);
         return;
-    }
+    }*/
 
     this->ledState = !this->ledState;
     Hal::instance().setBuiltinLed(this->ledState);

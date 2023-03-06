@@ -30,6 +30,26 @@ void loop() {
 
 #include "Hal.h"
 
+void print_stuff(auto &hal) {
+    printf("\n");
+
+    typename decltype(hal.lineSensor)::BufferT buffer;
+    hal.lineSensor.read(buffer);
+    for (auto value: buffer)
+        printf("%" PRId16 " ", value);
+    printf("\n");
+    auto encoders = hal.motors.readEncoders();
+    printf("Encoders: %" PRId32 ", %" PRId32 "\n", encoders.first, encoders.second);
+    printf("Battery voltage: %fV\n", hal.readBatteryVoltage());
+    printf("accelerometer: %s, gyro: %s\n",
+        hal.imu.readAccelerometer().str().c_str(),
+        hal.imu.readGyro().str().c_str()
+        );
+    printf("temperature: %" PRId32 "\n", hal.imu.readTemperature());
+    printf("deck state: %spressed\n", hal.deckButton.state() ? "" : "not ");
+    printf("boot button state: %spressed\n", hal.bootButton.state() ? "" : "not ");
+}
+
 extern "C" void app_main(void)
 {
     auto& hal = Hal::instance();
@@ -40,20 +60,21 @@ extern "C" void app_main(void)
     }
     hal.lineSensor.disableLed();
 
+    bool ledState = true;
+    hal.setBuiltinLed(ledState);
+
+    hal.bootButton.setReleaseCallback([&](auto) {
+        ledState = !ledState;
+        hal.setBuiltinLed(ledState);
+    });
+
+    int count = 0;
+    hal.deckButton.setReleaseCallback([&](auto) {
+        printf("\n%d:", count++);
+        print_stuff(hal);
+    });
+
     while(1) {
-        decltype(hal.lineSensor)::BufferT buffer;
-        hal.lineSensor.read(buffer);
-        for (auto value: buffer)
-            printf("%" PRId16 " ", value);
-        printf("\n");
-        auto encoders = hal.motors.readEncoders();
-        printf("Encoders: %" PRId32 ", %" PRId32 "\n", encoders.first, encoders.second);
-        printf("Battery voltage: %fV\n", hal.readBatteryVoltage());
-        printf("accelerometer: %s, gyro: %s\n",
-            hal.imu.readAccelerometer().str().c_str(),
-            hal.imu.readGyro().str().c_str()
-            );
-        printf("temperature: %" PRId32 "\n", hal.imu.readTemperature());
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }

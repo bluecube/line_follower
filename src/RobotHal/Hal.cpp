@@ -24,13 +24,17 @@ Hal::Hal() {
 
 void Hal::setup() {
     printf("Initializing Hal\n");
-    setupButtons();
     setupI2C();
     setupAdc();
 
     lineSensor.setup();
     motors.setup();
     imu.setup();
+
+    /// Prepare GPIO ISR for buttons
+    ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1));
+    bootButton.setup(Pins::bootButton);
+    deckButton.setup(Pins::deckButton);
 
     // Built-in LED
     gpio_config_t config = {
@@ -65,10 +69,6 @@ void Hal::setupAdc() {
     adc_oneshot_config_channel(adcHandles[unit], channel, &chanConfig);
 
     // Other ADC channels are configured in the individual modules
-}
-
-void Hal::setupButtons() {
-    //printf("Setting up buttons\n");
 }
 
 void Hal::setupI2C() {

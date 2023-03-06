@@ -25,8 +25,8 @@ struct Pins {
     static constexpr PinT scl = 22;
     static constexpr PinT sda = 21;
     static constexpr PinT accelInterrupt = 18;
-    static constexpr PinT mainBbutton = 5;
-    static constexpr PinT bootBbutton = 0;
+    static constexpr PinT deckButton = 5;
+    static constexpr PinT bootButton = 0;
     static constexpr PinT batSense = 15;
     static constexpr PinT indicatorLed = 2;
 };

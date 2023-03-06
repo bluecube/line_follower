@@ -14,12 +14,12 @@ FollowingLine::FollowingLine()
 
 void FollowingLine::update(StateMachine& stateMachine, int elapsed)
 {
-    if (Hal::instance().pollButton() != Hal::ButtonEvent::None)
+    /*if (Hal::instance().pollButton() != Hal::ButtonEvent::None)
     {
         Hal::instance().motors.set(0, 0);
         stateMachine.changeState(Waiting());
         return;
-    }
+    }*/
 
     auto linePosition = findLine();
     //Serial.print("LP: "); Serial.print(linePosition);

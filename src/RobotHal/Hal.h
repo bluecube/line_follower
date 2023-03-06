@@ -3,6 +3,7 @@
 #include "LineSensor.h"
 #include "Motors.h"
 #include "Mpu6050.h"
+#include "Button.h"
 
 #include <esp_adc/adc_oneshot.h>
 
@@ -38,11 +39,11 @@ public:
 
     float readBatteryVoltage();
 
-    ButtonEvent pollButton();
-
     LineSensor lineSensor{*this};
     Motors motors;
     Mpu6050 imu;
+    Button bootButton;
+    Button deckButton;
 
 protected:
     static constexpr adc_bitwidth_t adcWidth = ADC_BITWIDTH_12;
@@ -58,7 +59,6 @@ protected:
     void setup();
     void setupAdc();
     void setupMotors();
-    void setupButtons();
     void setupI2C();
     void setupMisc();
 

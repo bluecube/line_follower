@@ -3,6 +3,7 @@
 #include "StateMachine.h"
 
 void Waiting::update(StateMachine& stateMachine, int elapsed) {
-    if (Hal::instance().pollButton() == Hal::ButtonEvent::LongPress)
+    /*if (Hal::instance().pollButton() == Hal::ButtonEvent::LongPress)
         stateMachine.changeState(FollowingLine());
+    */
 }
