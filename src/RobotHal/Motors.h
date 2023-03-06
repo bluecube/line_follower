@@ -1,8 +1,9 @@
 #pragma once
 
-#include "driver/mcpwm_prelude.h"
-#include "driver/pulse_cnt.h"
 #include "idf_util.h"
+
+#include <driver/mcpwm_prelude.h>
+#include <driver/pulse_cnt.h>
 
 #include <cstdint>
 #include <utility>
