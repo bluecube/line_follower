@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EspTimer.h"
 #include "LineSensor.h"
 #include "Motors.h"
 #include "Mpu6050.h"
@@ -18,6 +19,10 @@ class Hal {
 protected:
     Hal(); // Hal is only accessible through its singleton instance.
 public:
+
+    /// High resolution steady clock
+    using Clock = EspTimer;
+
     Hal(const Hal&) = delete;
     Hal(Hal&&) = delete;
     Hal& operator=(const Hal&) = delete;

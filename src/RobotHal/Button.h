@@ -1,6 +1,6 @@
 #pragma once
 #include "idf_util.h"
-#include "esp_timer.h"
+#include "EspTimer.h"
 
 #include <driver/pulse_cnt.h>
 #include <freertos/FreeRTOS.h>
