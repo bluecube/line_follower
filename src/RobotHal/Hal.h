@@ -31,12 +31,6 @@ public:
     /// Return reference to the current HAL instance.
     static Hal& instance();
 
-    enum class ButtonEvent: uint8_t {
-        None,
-        ShortPress,
-        LongPress,
-    };
-
     /// Enable or disable the blue LED on the module.
     void setBuiltinLed(bool enabled);
 
