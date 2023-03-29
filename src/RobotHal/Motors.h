@@ -5,6 +5,7 @@
 #include <driver/mcpwm_prelude.h>
 #include <driver/pulse_cnt.h>
 
+#include <cmath>
 #include <cstdint>
 #include <utility>
 #include <array>
@@ -35,7 +36,12 @@ public:
         return std::make_pair(motor[0].readEncoder(), motor[1].readEncoder());
     }
 
+    /// Maximum value for PWM input. Minimum is -maxPwm().
     static inline constexpr PwmT maxPwm() { return Motor::pwmPeriodTicks; }
+
+    /// Approximate conversion between ticks and meters, with zero wheel slip.
+    /// TODO: Calibrate
+    static inline constexpr double metersPerTick() { return 40e-3 * M_PI / 280; }
 
 protected:
     struct Motor {

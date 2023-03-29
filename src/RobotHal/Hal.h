@@ -23,6 +23,10 @@ public:
     /// High resolution steady clock
     using Clock = EspTimer;
 
+    using LineSensorT = LineSensor;
+    using MotorsT = Motors;
+    using ImuT = Mpu6050;
+
     Hal(const Hal&) = delete;
     Hal(Hal&&) = delete;
     Hal& operator=(const Hal&) = delete;
