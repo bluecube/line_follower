@@ -1,4 +1,4 @@
-/** Configuration parameters of the rorobot */
+/** Configuration parameters of the robot */
 #pragma once
 #include "Hal.h"
 #include "defines.h"
