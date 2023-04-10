@@ -1,6 +1,6 @@
-#include "Motors.h"
+#include "RobotHal/Motors.h"
 
-#include "Pins.h"
+#include "RobotHal/Pins.h"
 
 #include <cstdio>
 
