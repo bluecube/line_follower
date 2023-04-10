@@ -1,27 +1,3 @@
-/*#include <Arduino.h>
-#include "StateMachine.h"
-#include "Hal.h"
-#include "parameters.h"
-
-StateMachine stateMachine;
-uint32_t lastUpdate;
-
-void setup() {
-    lastUpdate = millis();
-}
-
-void loop() {
-    uint32_t now = millis();
-    auto elapsed = now - lastUpdate;
-    lastUpdate = now;
-
-    stateMachine.update(elapsed);
-
-    auto taken = millis() - now;
-    if (taken < Parameters::Hardware::period)
-        delay(Parameters::Hardware::period - taken);
-}*/
-
 #include <stdio.h>
 #include <inttypes.h>
 #include "freertos/FreeRTOS.h"
@@ -60,12 +36,13 @@ extern "C" void app_main(void)
     }
     hal.lineSensor.disableLed();
 
-    bool ledState = true;
-    hal.setBuiltinLed(ledState);
+    bool motorState = false;
 
     hal.bootButton.setReleaseCallback([&](auto) {
-        ledState = !ledState;
-        hal.setBuiltinLed(ledState);
+        motorState = !motorState;
+        hal.setBuiltinLed(motorState);
+        auto motorSpeed = motorState ? hal.motors.maxPwm() : 0;
+        hal.motors.set(motorSpeed, motorSpeed);
     });
 
     int count = 0;
