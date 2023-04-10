@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cstdint>
+
 template <typename ValueT, typename TimeT = uint32_t>
-class Pid {
+class PidControler {
 public:
 
-        Pid(ValueT kP, ValueT kI, ValueT kD)
+        PidControler(ValueT kP, ValueT kI, ValueT kD)
             : kP(kP), kI(kI), kD(kD), lastValue(0), integral(0) {}
 
         ValueT update(ValueT value, ValueT setpoint, TimeT timeSinceLastUpdate = 1U) {
