@@ -3,7 +3,10 @@
  * be done by using preprocessor directives. */
 #pragma once
 
-// For now we just use the actual hardware, no other options available
-
-#include "RobotHal/Hal.h"
-using Hal = RobotHal::Hal; // This typedef specialises the code to use RobotHal.
+#ifdef PIO_UNIT_TESTING
+    #include "MockHal/Hal.h"
+    using Hal = MockHal::Hal;
+#else
+    #include "RobotHal/Hal.h"
+    using Hal = RobotHal::Hal;
+#endif

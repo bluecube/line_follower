@@ -1,5 +1,5 @@
 serial ?= /dev/ttyUSB1
-platformio = source venv/bin/activate; python -m platformio 
+platformio = source venv/bin/activate; python -m platformio
 
 .NOTPARALLEL:
 
@@ -14,6 +14,10 @@ clean:
 .PHONY: upload
 upload:
 	$(platformio) run --target upload --upload-port $(serial)
+
+.PHONY: test
+test:
+	$(platformio) test -e native
 
 .PHONY: terminal
 terminal:
