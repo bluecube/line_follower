@@ -1,94 +1,84 @@
 #pragma once
 
-#include "Hal.h"
-
 #include <cstdint>
+#include "util/circular_buffer.hpp"
 
-#include "util/fp_util.h"
-
-
-/// Estimates speed and accurate position from low resolution encoders.
+/// Estimates speed and acceleration from low resolution encoders.
+/// Works by fitting a linear function to the finite differences velocity.
 ///
-/// Uses a Kalman filter, where state contains position and speed,
-/// observations yield a low resolution (and possibly noisy) position.
-///
-/// To fit the calculation into int32_t, we're using rather complex system of fixed point
-/// arithmetic / non-standard units:
-///   E ... native encoder tick
-///      ~0.45mm
-///   Es ... scaled encoder tick
-///      E / positionScale
-///      ~0.028mm
-///   C ... clock tick
-///      1us
-///   Cs ... scaled clock tick
-///      C * clockScale
-///      ~1s
-///   V ... native velocity unit
-///      E / C
-///   Vs ... velocity unit
-///      Es / Cs = V / velocityScale
-///      ~0.027mm/s
-///
-/// See file jupyter/Encoder_smoothing_kalman_filter.ipynb
+/// Tuned for update rate of 100Hz, encoder tick size  of 0.28mm,
+/// max velocity 2m/s and max acceleration 2m/s**2.
 class EncoderObserver {
 public:
-    static_assert(
-        Hal::Clock::duration::period::num == 1 &&
-        Hal::Clock::duration::period::den == 1000000,
-        "Value ranges don't work out if clocks rate is different than 1Mhz"
-    );
+    static constexpr int32_t velocityScale = 1<<7;
+    static constexpr int32_t accelerationScale = 1<<14;
 
-    EncoderObserver() {}
+    EncoderObserver() { reset(); }
 
-    void init(int32_t initialObservedPosition);
+    /// Reset to the default state, zero initial velocity, as short smoothing window
+    /// as possible.
+    void reset(int32_t initialVelocity = 0);
 
-    /// Step the state estimation forward and correct it using the observed position.
-    /// observeddPosition is in E units.
-    void update(int32_t observedPosition, Hal::Clock::duration dt);
+    /// Update the internal state based on observed finite differences velocity.
+    /// Must be called at regular intervals.
+    /// Input is in encoder ticks
+    void update(int32_t velocity);
 
-    static constexpr uint32_t positionScale = 16;
-    static constexpr uint32_t clockScale = 1<<17;
+    /// Calculate velocity is in encoder ticks per (velocity scale * timer interval)
+    /// based on the current state.
+    int32_t get_velocity() const;
 
-    /// Contains conversion factor from a given specialty unit to SI
-    struct Units {
-        /// Native encoder tick [m]
-        static constexpr double E = Hal::MotorsT::metersPerTick(); // ~0.028mm
-        /// Scaled encoder tick [m]
-        static constexpr double Es = E / positionScale; // ~0.056mm
-        /// Clock tick [s]
-        static constexpr double C = periodSeconds<Hal::Clock::duration>; // 1us
-        /// Scaled clock tick [s]
-        static constexpr double Cs = C * clockScale; // ~0.13s
-        /// Scaled velocity unit [m/s]
-        static constexpr double Vs = Es / Cs; // ~0.21mm/s
-    };
-
-    int32_t getPosition() const { return position; }
-    int32_t getVelocity() const { return velocity; }
+    /// Calculate acceleration is in encoder ticks per (acceleration scale * timer itnterval**2)
+    /// based on the current state.
+    int32_t get_acceleration() const;
 
     void print_state() const;
 
+#ifndef NDEBUG
+    /// Check the internal state, assert that everything is ok.
+    /// Runs in O(n)
+    void assert_state() const;
+
+    double get_fit_rmse() const;
+    double get_fit_rmse2() const;
+#endif
+
 private:
-    /// Standard deviation of the line follower accelerations
-    /// This is mostly a guess, real accelerations will likely be way smaller,
-    /// but we also have to account for things like hitting a wall.
-    static constexpr int32_t accelerationStDev = to_unit<int32_t>(1 /* [m/s**2] */, Units::Vs / Units::Cs); // 10bit
+    /// Calculate scale * a / b with proper rounding, asserts that the scaling does not
+    /// overflow and that b is not zero.
+    static int32_t fancy_div(int32_t scale, int32_t a, uint32_t b);
 
-    /// How far from the actual encoder value we are reading.
-    /// This mostly covers rounding errors, but also will help covering up irregular
-    /// encoder tick distribution.
-    static constexpr uint32_t measurementStDev = to_unit<int32_t>(0.75 * Units::E /* [m] */, Units::Es); // 4 bits
+    static int64_t extending_mul(int32_t a, int32_t b);
 
-    void predict(uint32_t dt);
-    void observe(int32_t observedPosition);
 
-    int32_t position; // [Es], full 32bit range
-    int32_t velocity; // [Vs], ~2m/s, 15bit
+    /// Calculate scaled sum of error squares
+    int32_t get_error_square_sum() const;
 
-    uint32_t positionVariance; // [Es**2], 8bit
-    uint32_t velocityVariance; // [Vs**2] 20bit
-        // This should be lower, but since we add the update variance in every step
-        // this gets increased by 20 bit
-    uint32_t positionVelocityCovariance; // [Es * Vs], ~8bit
+    /// Minimum number of samples allowed in the velocities buffer
+    static constexpr uint32_t minSamples = 2;
+
+    /// Maximum allowed residual root mean square error from the least squares fit.
+    /// If the error is larger than this, decrease the window size.
+    /// In encoder tick units
+    static constexpr int32_t fitRmseThresholdNumerator = 3;
+    static constexpr int32_t fitRmseThresholdDenominator = 4;
+
+    /// Previously observed noisy velcocity measurements,
+    /// obtained as finite differences of the input positions.
+    /// Unit is encoder ticks per update interval.
+    /// Absolute value of each element is approximately 14bit
+    tablog::util::CircularBuffer<int32_t, 64, uint32_t> velocities;
+
+    /// Sum of speeds in the window.
+    /// 19bit
+    int32_t sum;
+
+    /// Sum of squared speeds in the window.
+    /// 31bits
+    uint32_t sum2;
+
+    /// Sum of products of speed times an index in the window (index 0 is the most recent value)
+    /// 24bit
+    int32_t indexSum;
+
 };
