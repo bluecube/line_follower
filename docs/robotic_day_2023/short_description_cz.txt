@@ -1,0 +1,18 @@
+LF2 je robot navržený s důrazem na jednoduchou hardwarovou konstrukci a co největší flexibilitu.
+Jeho vývoj probíhá již několik let, přičemž největší pokrok obvykle dosahuje
+noc před (většinou neůspěšnou) registrací na Robotický Den.
+Robotovi LF2 předcházel robot Procrastinator 9000 navržený s podobným přístupem.
+(Nejen) kvůli tomu trpí LF2 silným efektem druhého systému ("nevadí že to bude mohem víc práce, radši to udělám P O Ř Á D N Ě").
+
+Základem konstrukce je deska plošných spojů, na kterou jsou přišroubované díly 3D tištěné z PETG a hliníková radlice (spíš designový než funkční prvek).
+Pohyb robota zajišťují dva motory N20 s převodovkou a kvadraturním enkodérem a 40mm Pololu kolečka.
+Pro sledování čáry robot používá snímač složený ze šesti červených LED a pěti
+fototranzistorů, dohromady tak umožňuje měřit odrazivost podložky na deseti pozicích (mezi dvojicemi LED a fototranzistorů).
+Modul s ESP32 poskytuje naprosto nadbytečné množství výpočetního výkonu a v rezervě je ještě šestiosé IMU MPU6050 a laserový senzorem vzdálenosti.
+
+Software robota je napsaný v jazyce C++17 a pro přístup k periferiím využívá knihovnu ESP-IDF (žádné Arduino!).
+Software definuje vrstvu pro abstrakci hardwaru (HAL), která obaluje všechny přístupy k ESP-IDF, čísla pinů a podobné do jedné třídy pro snazší testování a případnou simulaci.
+Chování robota při soutěži řídí jedoduchý stavový automat.
+Pro správu překladače, závislostí a dalších součástí je použito prostředí Platformio (https://platformio.org).
+
+Veškeré 3D modely, kód a dokumentace k robotu LF2 je k dispozici na GitHubu na adrese https://github.com/bluecube/line_follower.

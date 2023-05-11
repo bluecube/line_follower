@@ -1,0 +1,35 @@
+LF2
+- Design goal: simple hardware, maximum flexibility
+- In development for several years now, first time close to being finished
+- Preceeded by Procrastinator 9000
+  - Qualified, but didn't race in Robotic Day 2019
+  - Second system effect is real!
+
+Mechanical
+- PCB base
+- 3D printed PETG parts
+- Opening top hatch doubles as a stop button
+- Alluminium armor/plow, mostly decorative
+- N20 gear motors with encoders
+- 40mm wheels
+
+Electronics and sensors
+- ESP32
+- Custom line sensor
+  - Alternating red LEDs and phototransistors, 10 measured points
+- A4950 H-bridges
+- MPU6050 six axis IMU
+- Laser distance sensor
+
+Software
+- PlatformIO for toolchain and dependency management
+- C++17
+- Using ESP-IDF, not Arduino
+- Hardware abstraction layer
+  - Hides ESP-IDF access, robot hardware represented as a singleton class
+- Hierarchical state machine for programming behaviors
+
+
+3D and electronics design, code and documentation are available at https://github.com/bluecube/line_follower
+
+Ask me more about the project: blue.cube@seznam.cz

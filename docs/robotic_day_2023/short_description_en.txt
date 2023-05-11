@@ -1,0 +1,17 @@
+LF2 is a robot designed with an emphasis on simple hardware construction and maximum flexibility.
+Its development has been going on for several years, and it usually makes the most progress
+the night before the (usually unsuccessful) registration for Robotic Day.
+The LF2 robot was preceded by the Procrastinator 9000 robot designed with a similar approach.
+(Not only) because of this, LF2 suffers from a strong second system effect ("it doesn't matter that it will be more work for me, I'd rather do it P R O P E R L Y").
+
+The basis of the structure is a printed circuit board, on which parts 3D printed out of PETG and an aluminum armor/plow blade (more of a design element than a functional element) are screwed.
+The movement of the robot is taken care of by two N20 gear motors with quadrature encoders and 40mm Pololu wheels.
+To track the line, the robot uses a sensor composed of six red LEDs and five phototransistors, together this allows measuring the reflectivity of the surface at ten positions (between pairs of LEDs and phototransistors).
+The module with ESP32 provides a completely unnecessary amount of computing power and there is a six axis IMU MPU6050 and a laser distance sensor in reserve.
+
+The robot software is written using C++17 and uses the ESP-IDF library to access peripherals (no Arduino!).
+The software defines a hardware abstraction layer (HAL) that wraps all ESP-IDF accesses, pin numbers, and the like into a single class for easier testing and eventual simulation.
+The behavior of the robot during the competition is controlled by a simple state machine.
+Platformio environment (https://platformio.org) is used to manage the compiler, dependencies and other components.
+
+All 3D models, code and documentation for the LF2 bot is available on GitHub at https://github.com/bluecube/line_follower.

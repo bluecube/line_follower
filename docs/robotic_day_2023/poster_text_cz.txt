@@ -1,0 +1,36 @@
+LF2
+- Cíl: jednoduchý hardware, maximální flexibilita
+- Ve vývoji již několik let, poprvé se blíží dokončení
+- Předchozí robot Procrastinator 9000
+   - Kvalifikoval se, ale nezávodil na Robotickém Dni 2019
+   - Efekt druhého systému je skutečný!
+
+Mechanika
+- Základ je deska plošných spojů
+- 3D tištěné díly z PETG
+- Otevírací horní poklop slouží zároveň jako tlačítko zastavení
+- Hliníkový pluh, spíše jen pro dekoraci
+- Motory N20 s převodovkami a enkodéry
+- 40mm kolečka
+
+Elektronika a senzory
+- ESP32
+- Vlastní čárový senzor
+   - Střídavě červené LED a fototranzistory, 10 měřených bodů
+- A4950 H-můstky
+- MPU6050 šestiosé IMU
+- Laserový snímač vzdálenosti
+
+Software
+- PlatformIO pro správu toolchainu a závislostí
+- C++17
+- Používá ESP-IDF, ne Arduino
+- Vrstva abstrakce hardwaru
+   - Skryje přístup k ESP-IDF, hardware robota reprezentovaný jako singleton třída
+- Hierarchický stavový automat pro programování chování
+
+
+3D modely, elektronika, kód a dokumentace jsou k dispozici na https://github.com/bluecube/line_follower
+
+Zeptejte se mě více o projektu: blue.cube@seznam.cz
+
