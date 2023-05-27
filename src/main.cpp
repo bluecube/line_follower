@@ -4,6 +4,8 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
+#include "MotorVelocityControler.h"
+
 #include "Hal.h"
 
 void print_stuff(auto &hal) {
@@ -24,11 +26,28 @@ void print_stuff(auto &hal) {
     printf("temperature: %" PRId32 "\n", hal.imu.readTemperature());
     printf("deck state: %spressed\n", hal.deckButton.state() ? "" : "not ");
     printf("boot button state: %spressed\n", hal.bootButton.state() ? "" : "not ");
+    printf("\n");
+    printf("Velocity unit: %f\n", MotorVelocityControlerTask::velocityUnit);
 }
 
 extern "C" void app_main(void)
 {
     auto& hal = Hal::instance();
+
+    MotorVelocityControlerTask mvc(hal, 8192, 1024, 0);
+
+    int32_t velocityReq = 0.02 / MotorVelocityControlerTask::velocityUnit;
+    mvc.set_requested_velocity(velocityReq, velocityReq);
+    /*auto task = hal.start_periodic_task(
+        0.02,
+        [&](auto& velocity) {
+            int32_t velocityReq = velocity / MotorVelocityControlerTask::velocityUnit;
+            printf("Setting velocity to %f m/s (%ld units)\n", velocity, velocityReq);
+            mvc.set_requested_velocity(velocityReq, velocityReq);
+            velocity *= -1;
+        },
+        std::chrono::seconds(5)
+    );*/
 
     for (uint32_t i = 0; i < hal.lineSensor.lineLedCount; ++i) {
         hal.lineSensor.enableLed(i);
