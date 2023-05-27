@@ -116,7 +116,7 @@ TEST_CASE("Constant velocity") {
 TEST_CASE("Accelerate and cruise") {
     double velocity;
     SUBCASE("positive") { velocity = 2.0; }
-    SUBCASE("negative") { velocity = 2.0; }
+    SUBCASE("negative") { velocity = -2.0; }
     double acceleration = 2.0;
 
     EncoderObserver eo;
@@ -128,8 +128,8 @@ TEST_CASE("Accelerate and cruise") {
 
     sim.print_mse();
 
-    REQUIRE(sim.velocity_rmse() <= velocity * 0.05 + 1e-3);
-    REQUIRE(sim.acceleration_rmse() <= velocity + 2e-3);
+    REQUIRE(sim.velocity_rmse() <= fabs(velocity) * 0.05 + 1e-3);
+    REQUIRE(sim.acceleration_rmse() <= fabs(velocity) + 2e-3);
 }
 
 /// Similar to constant velocity input, but works on lower level, checks that there

@@ -10,9 +10,6 @@
 #endif
 
 void EncoderObserver::reset(int32_t initialVelocity) {
-    // We need at least two values to estimate the velocity and accelration.
-    // This violates the minSamples condition, but allows full functionality
-    // while still having as fast response to changes as possible.
     velocities.clear();
     velocities.push_back(initialVelocity);
     velocities.push_back(initialVelocity);
