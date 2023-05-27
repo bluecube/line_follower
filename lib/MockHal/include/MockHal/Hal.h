@@ -5,6 +5,8 @@
 #include <chrono>
 #include <utility>
 
+#include "PeriodicTask.h"
+
 namespace MockHal {
 
 class Hal {
@@ -51,6 +53,9 @@ public:
 
     };
 
+    template <typename T>
+    using PeriodicTaskT = PeriodicTask<T>;
+
     Hal(const Hal&) = delete;
     Hal(Hal&&) = delete;
     Hal& operator=(const Hal&) = delete;
@@ -74,6 +79,10 @@ public:
     //Button bootButton;
     //Button deckButton;
 
+    template <typename T, typename F, typename Duration>
+    PeriodicTaskT<T> start_periodic_task(T&& taskData, F function, Duration period) {
+        return PeriodicTask<T>(std::move(taskData), function, period);
+    }
 };
 
 }

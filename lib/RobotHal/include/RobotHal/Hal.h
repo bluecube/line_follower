@@ -5,6 +5,7 @@
 #include "Motors.h"
 #include "Mpu6050.h"
 #include "Button.h"
+#include "PeriodicTask.h"
 
 #include <esp_adc/adc_oneshot.h>
 
@@ -26,6 +27,8 @@ public:
     using LineSensorT = LineSensor;
     using MotorsT = Motors;
     using ImuT = Mpu6050;
+    template <typename T>
+    using PeriodicTaskT = PeriodicTask<T>;
 
     Hal(const Hal&) = delete;
     Hal(Hal&&) = delete;
@@ -47,6 +50,11 @@ public:
     Mpu6050 imu;
     Button bootButton;
     Button deckButton;
+
+    template <typename T, typename F, typename Duration>
+    PeriodicTaskT<T> start_periodic_task(T&& taskData, F function, Duration period) {
+        return PeriodicTask<T>(std::move(taskData), function, period);
+    }
 
 protected:
     static constexpr adc_bitwidth_t adcWidth = ADC_BITWIDTH_12;
