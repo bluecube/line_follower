@@ -55,15 +55,21 @@ void Hal::setupAdc() {
     config.unit_id = ADC_UNIT_2;
     adc_oneshot_new_unit(&config, &adcHandles[1]);
 
-
     // Battery voltage
     adc_oneshot_chan_cfg_t chanConfig = {
         .atten = ADC_ATTEN_DB_11,
         .bitwidth = adcWidth,
     };
-    auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::batSense);
-    adc_oneshot_config_channel(adcHandles[unit], channel, &chanConfig);
+    {
+        auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::batSense);
+        adc_oneshot_config_channel(adcHandles[unit], channel, &chanConfig);
+    }
 
+    // Range measurement
+    {
+        auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::range);
+        adc_oneshot_config_channel(adcHandles[unit], channel, &chanConfig);
+    }
     // Other ADC channels are configured in the individual modules
 }
 
@@ -93,8 +99,12 @@ void Hal::setBuiltinLed(bool enable) {
     gpio_set_level(IdfUtil::gpioPin(Pins::indicatorLed), static_cast<uint32_t>(enable));
 }
 
-int Hal::readRange() {
-    return 0;
+RangeMeasurement Hal::readRange() {
+    auto [unit, channel] = IdfUtil::gpioToADCChannel(Pins::range);
+    int raw;
+    adc_oneshot_read(adcHandles[unit], channel, &raw);
+
+    return RangeMeasurement{raw};
 }
 
 float Hal::readBatteryVoltage() {

@@ -6,6 +6,7 @@
 #include "Mpu6050.h"
 #include "Button.h"
 #include "PeriodicTask.h"
+#include "RangeMeasurement.h"
 
 #include <esp_adc/adc_oneshot.h>
 
@@ -41,7 +42,7 @@ public:
     /// Enable or disable the blue LED on the module.
     void setBuiltinLed(bool enabled);
 
-    int readRange();
+    RangeMeasurement readRange();
 
     float readBatteryVoltage();
 
