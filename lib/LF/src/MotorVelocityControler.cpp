@@ -67,3 +67,7 @@ int32_t MotorVelocityControler::Motor::update(int32_t encoderState, int32_t kP, 
     } else
         return output;
 }
+
+std::pair<int32_t, int32_t> MotorVelocityControler::get_velocity() const {
+    return std::make_pair(motor[0].eo.get_velocity(), motor[1].eo.get_velocity());
+}

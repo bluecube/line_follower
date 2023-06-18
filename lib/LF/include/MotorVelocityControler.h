@@ -12,6 +12,7 @@ public:
 
     void set_requested_velocity(int32_t left, int32_t right);
     void set_coeffs(int32_t kP, int32_t kI, int32_t kD);
+    std::pair<int32_t, int32_t> get_velocity() const;
 
     void update(Hal& hal);
 
@@ -50,6 +51,10 @@ public:
 
     void set_requested_velocity(int32_t left, int32_t right) {
         task.access([&](MotorVelocityControler& mvc) { mvc.set_requested_velocity(left, right); });
+    }
+
+    std::pair<int32_t, int32_t> get_velocity() const {
+        return task.access([&](const MotorVelocityControler& mvc) { return mvc.get_velocity(); });
     }
 
     static constexpr std::chrono::milliseconds updatePeriod{10};
