@@ -16,9 +16,15 @@ public:
     PeriodicTask operator=(PeriodicTask&&) = delete;
 
     template<typename F>
-    void access(F f) {
+    auto access(F f) {
         Lock lock(mutex);
-        f(data);
+        return f(data);
+    }
+
+    template<typename F>
+    auto access(F f) const{
+        Lock lock(mutex);
+        return f(data);
     }
 private:
     class Lock {

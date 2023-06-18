@@ -16,9 +16,15 @@ public:
     PeriodicTask operator=(PeriodicTask&&) = delete;
 
     template<typename F>
-    void access(F f) {
+    auto access(F f) {
         std::unique_lock lock(mutex);
-        f(data);
+        return f(data);
+    }
+
+    template<typename F>
+    auto access(F f) const {
+        std::unique_lock lock(mutex);
+        return f(data);
     }
 private:
 
@@ -48,7 +54,7 @@ private:
     std::chrono::steady_clock::duration period;
 
     std::thread thread;
-    std::mutex mutex;
+    mutable std::mutex mutex;
 
     friend class Hal;
 };
