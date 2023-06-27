@@ -7,11 +7,11 @@
 /// Works by fitting a linear function to the finite differences velocity.
 ///
 /// Tuned for update rate of 100Hz, encoder tick size  of 0.28mm,
-/// max velocity 2m/s and max acceleration 2m/s**2.
+/// max velocity 1.5m/s.
 class EncoderObserver {
 public:
-    static constexpr int32_t velocityScale = 1<<7;
-    static constexpr int32_t accelerationScale = 1<<14;
+    static constexpr int32_t velocityScale = 1<<9;
+    static constexpr int32_t accelerationScale = 1<<10;
 
     EncoderObserver() { reset(); }
 
@@ -60,14 +60,14 @@ private:
     /// Maximum allowed residual root mean square error from the least squares fit.
     /// If the error is larger than this, decrease the window size.
     /// In encoder tick units
-    static constexpr int32_t fitRmseThresholdNumerator = 3;
-    static constexpr int32_t fitRmseThresholdDenominator = 4;
+    static constexpr int32_t fitRmseThresholdNumerator = 1;
+    static constexpr int32_t fitRmseThresholdDenominator = 2;
 
     /// Previously observed noisy velcocity measurements,
     /// obtained as finite differences of the input positions.
     /// Unit is encoder ticks per update interval.
     /// Absolute value of each element is approximately 14bit
-    tablog::util::CircularBuffer<int32_t, 64, uint32_t> velocities;
+    tablog::util::CircularBuffer<int32_t, 16, uint32_t> velocities;
 
     /// Sum of speeds in the window.
     /// 19bit

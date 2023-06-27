@@ -27,7 +27,7 @@ int32_t EncoderObserver::get_velocity() const {
     uint32_t k = velocities.size(); // Name matches the jupyter notebook
     return fancy_div(
         velocityScale,
-        2 * k * sum - sum - 3 * indexSum, // 24bit
+        2 * k * sum - sum - 3 * indexSum,
         k * (k + 1) / 2
     );
 }
@@ -36,7 +36,7 @@ int32_t EncoderObserver::get_acceleration() const {
     uint32_t k = velocities.size(); // Name matches the jupyter notebook
     return fancy_div(
         accelerationScale,
-        k * sum - sum - 2 * indexSum, // 24bit
+        k * sum - sum - 2 * indexSum,
         k * (k * k - 1) / 6
     );
 }
@@ -84,6 +84,8 @@ void EncoderObserver::update(int32_t velocity) {
         else
             break;
     }
+
+    //printf("%ld,%ld,%ld,%ld\n", velocity, get_velocity(), get_acceleration(), velocities.size());
 
 #ifndef NDEBUG
     assert_state();

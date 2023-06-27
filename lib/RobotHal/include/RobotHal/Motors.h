@@ -41,7 +41,7 @@ public:
 
     /// Approximate conversion between ticks and meters, with zero wheel slip.
     /// TODO: Calibrate
-    static inline constexpr double metersPerTick() { return 40e-3 * M_PI / 280; }
+    static inline constexpr double metersPerTick() { return 40e-3 * M_PI / (7 * 2 * 30); }
 
 protected:
     struct Motor {
