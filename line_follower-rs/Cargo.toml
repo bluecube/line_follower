@@ -1,0 +1,75 @@
+[package]
+edition      = "2024"
+name         = "line_follower"
+rust-version = "1.88"
+version      = "0.1.0"
+
+[[bin]]
+name = "line_follower"
+path = "./src/bin/main.rs"
+
+[[bin]]
+name = "motor_test"
+
+[dependencies]
+esp-hal = { version = "~1.0", features = ["esp32", "log-04", "unstable"] }
+esp-rtos = { version = "0.2.0", features = [
+  "esp-alloc",
+  "esp-radio",
+  "esp32",
+  "log-04",
+] }
+esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32", "log-04"] }
+log                    = "0.4.27"
+bleps = { git = "https://github.com/bjoernQ/bleps", package = "bleps", rev = "a5148d8ae679e021b78f53fd33afb8bb35d0b62e", features = [
+  "async",
+  "macros",
+] }
+critical-section = "1.2.0"
+embedded-io = "0.7.1"
+esp-alloc = "0.9.0"
+esp-backtrace = { version = "0.18.1", features = [
+  "esp32",
+  "panic-handler",
+  "println",
+] }
+esp-println = { version = "0.16.1", features = ["esp32", "log-04"] }
+esp-radio = { version = "0.17.0", features = [
+  "ble",
+  "coex",
+  "esp-alloc",
+  "esp32",
+  "log-04",
+  "smoltcp",
+  "unstable",
+  "wifi",
+] }
+smoltcp = { version = "0.12.0", default-features = false, features = [
+  "log",
+  "medium-ethernet",
+  "multicast",
+  "proto-dhcpv4",
+  "proto-dns",
+  "proto-ipv4",
+  "socket-dns",
+  "socket-icmp",
+  "socket-raw",
+  "socket-tcp",
+  "socket-udp",
+] }
+deranged = "0.5.8"
+
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+
+[profile.release]
+codegen-units    = 1
+debug            = 2
+debug-assertions = false
+incremental      = false
+lto              = 'fat'
+opt-level        = 's'
+overflow-checks  = false
