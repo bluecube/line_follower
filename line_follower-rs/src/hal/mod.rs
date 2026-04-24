@@ -1,10 +1,14 @@
+pub mod button;
 pub mod motors;
 
+use button::Button;
 use esp_hal::{gpio::Pin, peripherals::Peripherals};
 use motors::{MotorChannelPins, Motors};
 
 pub struct Hal<'d> {
     pub motors: Motors<'d>,
+    pub deck_button: Button<'d>,
+    pub boot_button: Button<'d>,
 }
 
 impl<'d> Hal<'d> {
@@ -19,11 +23,12 @@ impl<'d> Hal<'d> {
         // Range sensor:            GPIO12
         // I2C:                     SCL=GPIO22  SDA=GPIO21
         // Accel interrupt:         GPIO18
-        // Deck button:             GPIO5   Boot button: GPIO0
         // Battery sense:           GPIO15
         // Indicator LED:           GPIO2
 
         Self {
+            deck_button: Button::new(p.GPIO5),
+            boot_button: Button::new(p.GPIO0),
             motors: Motors::new(
                 p.MCPWM0,
                 p.PCNT,
