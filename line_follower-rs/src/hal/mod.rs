@@ -1,14 +1,17 @@
 pub mod button;
+pub mod line_sensor;
 pub mod motors;
 
 use button::Button;
 use esp_hal::{gpio::Pin, peripherals::Peripherals};
+use line_sensor::LineSensor;
 use motors::{MotorChannelPins, Motors};
 
 pub struct Hal<'d> {
     pub motors: Motors<'d>,
     pub deck_button: Button<'d>,
     pub boot_button: Button<'d>,
+    pub line_sensor: LineSensor<'d>,
 }
 
 impl<'d> Hal<'d> {
@@ -19,7 +22,6 @@ impl<'d> Hal<'d> {
 
         // ── Remaining pin assignments (not yet implemented) ──────────
         // Line sensor ADC:         GPIO33, GPIO14, GPIO35, GPIO25, GPIO34
-        // Line LEDs (charlieplex): GPIO27, GPIO32, GPIO26
         // Range sensor:            GPIO12
         // I2C:                     SCL=GPIO22  SDA=GPIO21
         // Accel interrupt:         GPIO18
@@ -29,6 +31,11 @@ impl<'d> Hal<'d> {
         Self {
             deck_button: Button::new(p.GPIO5),
             boot_button: Button::new(p.GPIO0),
+            line_sensor: LineSensor::new([
+                p.GPIO27.degrade(),
+                p.GPIO32.degrade(),
+                p.GPIO26.degrade(),
+            ]),
             motors: Motors::new(
                 p.MCPWM0,
                 p.PCNT,
