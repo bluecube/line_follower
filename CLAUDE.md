@@ -120,7 +120,8 @@ Tests cover pure control-logic — anything that doesn't touch hardware directly
 
 ## General guidelines
 
-Keep this file up to date in case of relevant changes.
+- Keep this file up to date in case of relevant changes.
+- Don't use unicode characters in the code needlessly (eg. `—`).
 
 ## Rust Rewrite (`line_follower-rs/`)
 
@@ -141,6 +142,10 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 - `src/bin/motor_test.rs` — motor validation binary
 - `src/hal/motors.rs` — MCPWM + PCNT motor/encoder HAL (mirrors C++ `Motors.h` pin assignments exactly); `encoders()` intentionally returns raw `i16` hardware counts (no accumulation) — callers use `wrapping_sub` for velocity deltas
 
+
+### Environment
+- Source `~/export-esp.sh` for running rust and gcc for the ESP, or even better ask the user to run claude with this in environment.
+
 ### General
 
 After finishing a change run the tests (`cargo test`) and format the code (`cargo fmt`).
@@ -148,3 +153,4 @@ After finishing a change run the tests (`cargo test`) and format the code (`carg
 
 Don't mention the C++ version in the rust code, it is intended to be completely standalone.
 
+Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.
