@@ -92,19 +92,17 @@ impl<'d> Button<'d> {
                     Some(ButtonEvent::Release(now - press_start))
                 }
             }
+        } else if raw {
+            // Just pressed
+            self.debounce_until = Some(now + DEBOUNCE_TIME);
+            self.state = PressState::Pressed {
+                start: now,
+                emitted_long_press: false,
+            };
+            Some(ButtonEvent::Press)
         } else {
-            if raw {
-                // Just pressed
-                self.debounce_until = Some(now + DEBOUNCE_TIME);
-                self.state = PressState::Pressed {
-                    start: now,
-                    emitted_long_press: false,
-                };
-                Some(ButtonEvent::Press)
-            } else {
-                // Not pressed, no change
-                None
-            }
+            // Not pressed, no change
+            None
         }
     }
 }
