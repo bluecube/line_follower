@@ -4,7 +4,7 @@
 use esp_backtrace as _;
 use esp_hal::{delay::Delay, main, time::Duration};
 use esp_println::{print, println};
-use line_follower::hal::{Hal, button::ButtonEvent};
+use line_follower::hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
 
 const STEP_TIME: Duration = Duration::from_millis(100);
 const READ_INTERVAL: Duration = Duration::from_millis(100);
@@ -54,7 +54,8 @@ fn main() -> ! {
 
         match mode {
             Mode::LedScan => {
-                hal.line_sensor.enable_led(sequence[seq_idx]);
+                hal.line_sensor
+                    .enable_led(LedIndex::new(sequence[seq_idx]).unwrap());
                 seq_idx = (seq_idx + 1) % sequence.len();
                 delay.delay(STEP_TIME);
             }

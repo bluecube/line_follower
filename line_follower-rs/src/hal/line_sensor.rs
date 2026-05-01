@@ -1,3 +1,4 @@
+use deranged::RangedUsize;
 use esp_hal::analog::adc::{Adc, AdcChannel, AdcConfig, Attenuation, RegisterAccess};
 use esp_hal::delay::Delay;
 use esp_hal::gpio::{AnalogPin, AnyPin, Flex};
@@ -8,13 +9,23 @@ const SETTLE_TIME: Duration = Duration::from_micros(1000); // TODO: Maybe we can
 
 const SENSOR_COUNT: usize = 5;
 const LED_COUNT: usize = 6;
-pub const MEASUREMENT_COUNT: usize = 2 * SENSOR_COUNT;
+const MEASUREMENT_COUNT: usize = 2 * SENSOR_COUNT;
+
+/// Attenuation used in the ADC.
 const ATTENUATION: Attenuation = Attenuation::_0dB;
 
+type SensorIndex = RangedUsize<0, { SENSOR_COUNT - 1 }>;
+
+/// Index of LED to enable/disable.
+/// Index 0 is on the left side of the robot.
+pub type LedIndex = RangedUsize<0, { LED_COUNT - 1 }>;
+
+/// Buffer with measured sensor values.
+/// Index 0 is on the left side fo the robot.
 pub type SensorBuffer = [i16; MEASUREMENT_COUNT];
 
-// Maps LED index to (low_pin, high_pin, hiz_pin) indices into self.led_pins.
-// Pins order: [0=GPIO27, 1=GPIO32, 2=GPIO26]
+/// Maps LED index to (low_pin, high_pin, hiz_pin) indices into self.led_pins.
+/// Pins order: [0=GPIO27, 1=GPIO32, 2=GPIO26]
 const LED_PATTERNS: [(usize, usize, usize); LED_COUNT] = [
     (0, 1, 2),
     (1, 0, 2),
@@ -103,9 +114,9 @@ impl<'d> LineSensor<'d> {
         }
     }
 
-    /// Enable the LED at `index` (0-5) by setting the charlieplex pattern.
-    pub fn enable_led(&mut self, index: usize) {
-        let (low, high, hiz) = LED_PATTERNS[index];
+    /// Enable the LED at `index` by setting the charlieplex pattern.
+    pub fn enable_led(&mut self, index: LedIndex) {
+        let (low, high, hiz) = LED_PATTERNS[index.get()];
         self.led_pins[hiz].set_output_enable(false);
         self.led_pins[low].set_low();
         self.led_pins[low].set_output_enable(true);
@@ -144,33 +155,37 @@ impl<'d> LineSensor<'d> {
         let mut buffer = [0i16; MEASUREMENT_COUNT];
 
         // LED 0: only reads sensor 0
-        self.enable_led(0);
+        self.enable_led(LedIndex::MIN);
         delay.delay(SETTLE_TIME);
-        buffer[0] = self.read_single(0);
+        buffer[0] = self.read_single(SensorIndex::MIN);
 
         // LEDs in the middle: each illuminates between sensors (i-1) and i
         // Separating odd first, then even, to have the ADC1 and ADC2 ordering fixed
-        for i in (1..(LED_COUNT - 2)).step_by(2) {
-            self.enable_led(i);
+        for i in (1..(LedIndex::MAX.get() - 1)).step_by(2) {
+            self.enable_led(LedIndex::new(i).unwrap());
             delay.delay(SETTLE_TIME);
-
-            let [va, vb] = self.read_pair(i - 1, i);
+            let [va, vb] = self.read_pair(
+                SensorIndex::new(i - 1).unwrap(),
+                SensorIndex::new(i).unwrap(),
+            );
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
         }
-        for i in (2..(LED_COUNT - 1)).step_by(2) {
-            self.enable_led(i);
+        for i in (2..LedIndex::MAX.get()).step_by(2) {
+            self.enable_led(LedIndex::new(i).unwrap());
             delay.delay(SETTLE_TIME);
-
-            let [vb, va] = self.read_pair(i, i - 1);
+            let [vb, va] = self.read_pair(
+                SensorIndex::new(i).unwrap(),
+                SensorIndex::new(i - 1).unwrap(),
+            );
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
         }
 
         // last LED: only reads last sensor
-        self.enable_led(LED_COUNT - 1);
+        self.enable_led(LedIndex::MAX);
         delay.delay(SETTLE_TIME);
-        buffer[MEASUREMENT_COUNT - 1] = self.read_single(SENSOR_COUNT - 1);
+        buffer[MEASUREMENT_COUNT - 1] = self.read_single(SensorIndex::MAX);
 
         buffer
     }
@@ -187,15 +202,20 @@ impl<'d> LineSensor<'d> {
     }
 
     fn read_ambient_iter(&self) -> impl Iterator<Item = i16> {
-        (0..SENSOR_COUNT - 1)
+        (0..SensorIndex::MAX.get())
             .step_by(2)
-            .flat_map(|i| self.read_pair(i, i + 1))
-            .chain(core::iter::once_with(|| self.read_single(SENSOR_COUNT - 1)))
+            .flat_map(|i| {
+                self.read_pair(
+                    SensorIndex::new(i).unwrap(),
+                    SensorIndex::new(i + 1).unwrap(),
+                )
+            })
+            .chain(core::iter::once_with(|| self.read_single(SensorIndex::MAX)))
     }
 
     /// Read a single sensor (blocking).
-    fn read_single(&self, index: usize) -> i16 {
-        let s = self.sensors[index];
+    fn read_single(&self, index: SensorIndex) -> i16 {
+        let s = self.sensors[index.get()];
         match s.unit {
             AdcUnit::Adc1 => {
                 Self::start_adc::<ADC1>(s.channel);
@@ -213,14 +233,14 @@ impl<'d> LineSensor<'d> {
     /// Read sensors at `index` and `index + 1` in parallel.
     /// Adjacent sensors must be on different ADC units (PCB layout guarantee),
     /// so both conversions overlap in hardware.
-    fn read_pair(&self, index_a: usize, index_b: usize) -> [i16; 2] {
-        let a = self.sensors[index_a];
-        let b = self.sensors[index_b];
+    fn read_pair(&self, index_a: SensorIndex, index_b: SensorIndex) -> [i16; 2] {
+        let a = self.sensors[index_a.get()];
+        let b = self.sensors[index_b.get()];
         assert!(
             matches!((a.unit, b.unit), (AdcUnit::Adc1, AdcUnit::Adc2)),
             "read_pair: sensors {} and {} must be on ADC units 1 and 2 respectively (currently {:?} and {:?})",
-            index_a,
-            index_b,
+            index_a.get(),
+            index_b.get(),
             a.unit,
             b.unit
         );
