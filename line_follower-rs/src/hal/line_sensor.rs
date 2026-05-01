@@ -120,18 +120,16 @@ impl<'d> LineSensor<'d> {
         }
     }
 
-    /// Full line sensor read with ambient light subtraction.
-    /// Returns the 10-element buffer and (min, max) of the values.
-    pub fn read(&mut self, delay: &Delay) -> (SensorBuffer, i16, i16) {
-        // Phase 1: read with LEDs on
+    /// Performs a full line sensor read with ambient light subtraction.
+    /// Index 0 is on the left side of the robot.
+    pub fn read(&mut self, delay: &Delay) -> SensorBuffer {
         let mut buffer = self.read_with_leds(delay);
-
-        // Phase 2: ambient (all LEDs off), subtract from illuminated values
-        let (min, max) = self.subtract_ambient(delay, &mut buffer);
-
-        (buffer, min, max)
+        self.subtract_ambient(delay, &mut buffer);
+        buffer
     }
 
+    /// Performs a raw sensor read.
+    /// Index 0 is on the left side of the robot.
     pub fn read_raw(&mut self) -> [i16; SENSOR_COUNT] {
         let mut buffer = [0i16; SENSOR_COUNT];
         for (i, v) in self.read_ambient_iter().enumerate() {
@@ -177,32 +175,15 @@ impl<'d> LineSensor<'d> {
         buffer
     }
 
-    /// Reads the ambient light with LEDs disabled, subtracts the values from
-    /// `buffer` and returns the minimum and maximum value in the buffer after the subtraction.
-    fn subtract_ambient(&mut self, delay: &Delay, buffer: &mut SensorBuffer) -> (i16, i16) {
-        let mut min = i16::MAX;
-        let mut max = i16::MIN;
-
+    /// Reads the ambient light with LEDs disabled and  subtracts the values from `buffer`.
+    fn subtract_ambient(&mut self, delay: &Delay, buffer: &mut SensorBuffer) {
         self.disable_leds();
         delay.delay(SETTLE_TIME);
 
         for (i, ambient) in self.read_ambient_iter().enumerate() {
-            let mut apply = |idx: usize| {
-                let value = buffer[idx] - ambient;
-                if value < min {
-                    min = value;
-                }
-                if value > max {
-                    max = value;
-                }
-                buffer[idx] = value;
-            };
-
-            apply(2 * i);
-            apply(2 * i + 1);
+            buffer[2 * i] -= ambient;
+            buffer[2 * i + 1] -= ambient;
         }
-
-        (min, max)
     }
 
     fn read_ambient_iter(&self) -> impl Iterator<Item = i16> {
@@ -243,12 +224,6 @@ impl<'d> LineSensor<'d> {
             a.unit,
             b.unit
         );
-        // Self::start_adc::<ADC1>(a.channel);
-        // let v1 = Self::read_adc::<ADC1>();
-        // Self::start_adc::<ADC2>(b.channel);
-        // let v2 = Self::read_adc::<ADC2>();
-
-        // [v1, v2]
         Self::start_adc::<ADC1>(a.channel);
         Self::start_adc::<ADC2>(b.channel);
 

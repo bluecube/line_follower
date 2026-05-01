@@ -59,15 +59,20 @@ fn main() -> ! {
                 delay.delay(STEP_TIME);
             }
             Mode::FullRead => {
-                let (buf, _min, _max) = hal.line_sensor.read(&delay);
-                buf.iter().for_each(|v| print!(" {:4}", v));
-                println!("");
+                let buf = hal.line_sensor.read(&delay);
+                for v in buf {
+                    print!(" {:4}", v);
+                }
+                println!();
+
                 delay.delay(READ_INTERVAL);
             }
             Mode::RawRead => {
                 let buf = hal.line_sensor.read_raw();
-                buf.iter().for_each(|v| print!(" {:4}", v));
-                println!("");
+                for v in buf {
+                    print!(" {:4}", v);
+                }
+                println!();
                 delay.delay(READ_INTERVAL);
             }
         }
