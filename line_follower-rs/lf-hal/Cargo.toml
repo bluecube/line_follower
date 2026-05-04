@@ -1,0 +1,10 @@
+[package]
+edition      = "2024"
+name         = "lf-hal"
+version      = "0.1.0"
+rust-version = "1.88"
+
+[dependencies]
+esp-hal                = { version = "~1.0", features = ["esp32", "log-04", "unstable"] }
+lf-hal-types           = { path = "../lf-hal-types" }
+log                    = "0.4.27"

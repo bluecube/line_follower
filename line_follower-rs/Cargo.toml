@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "lf-hal", "lf-hal-types"]
+
 [package]
 edition      = "2024"
 name         = "line_follower"
@@ -15,8 +18,14 @@ name = "motor_test"
 name = "line_sensor_test"
 
 [dependencies]
-esp-hal = { version = "~1.0", features = ["esp32", "log-04", "unstable"] }
-esp-rtos = { version = "0.2.0", features = [
+arrayvec     = { version = "0.7.6", default-features = false }
+deranged     = { version = "0.5.8", default-features = false }
+lf-hal-types = { path = "./lf-hal-types" }
+
+[target.'cfg(target_arch = "xtensa")'.dependencies]
+lf-hal                 = { path = "./lf-hal" }
+esp-hal                = { version = "~1.0", features = ["esp32", "log-04", "unstable"] }
+esp-rtos               = { version = "0.2.0", features = [
   "esp-alloc",
   "esp-radio",
   "esp32",
@@ -60,7 +69,6 @@ smoltcp = { version = "0.12.0", default-features = false, features = [
   "socket-tcp",
   "socket-udp",
 ] }
-deranged = "0.5.8"
 
 
 [profile.dev]

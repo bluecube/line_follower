@@ -16,7 +16,7 @@ use esp_hal::{
     time::Rate,
 };
 
-use deranged::RangedI16;
+pub use lf_hal_types::motors::PwmT;
 
 pub struct MotorChannelPins {
     pub pwm_a: AnyPin<'static>,
@@ -24,8 +24,6 @@ pub struct MotorChannelPins {
     pub enc_a: AnyPin<'static>,
     pub enc_b: AnyPin<'static>,
 }
-
-pub type PwmT = RangedI16<-1024, 1024>;
 
 const TARGET_PWM_FREQ: Rate = Rate::from_hz(25_000);
 

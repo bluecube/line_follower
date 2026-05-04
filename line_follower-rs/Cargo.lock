@@ -15,6 +15,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5f0e0fee31ef5ed1ba1316088939cea399010ed7731dba877ed44aeb407a75ea"
 
 [[package]]
+name = "arrayvec"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1068,6 +1074,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lf-hal"
+version = "0.1.0"
+dependencies = [
+ "esp-hal",
+ "lf-hal-types",
+ "log",
+]
+
+[[package]]
+name = "lf-hal-types"
+version = "0.1.0"
+dependencies = [
+ "deranged",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.182"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1077,6 +1099,7 @@ checksum = "6800badb6cb2082ffd7b6a67e6125bb39f18782f793520caee8cb8846be06112"
 name = "line_follower"
 version = "0.1.0"
 dependencies = [
+ "arrayvec",
  "bleps",
  "critical-section",
  "deranged",
@@ -1088,6 +1111,8 @@ dependencies = [
  "esp-println",
  "esp-radio",
  "esp-rtos",
+ "lf-hal",
+ "lf-hal-types",
  "log",
  "smoltcp",
 ]

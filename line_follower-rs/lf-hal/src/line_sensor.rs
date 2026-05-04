@@ -1,32 +1,32 @@
-use deranged::RangedUsize;
 use esp_hal::analog::adc::{Adc, AdcChannel, AdcConfig, Attenuation, RegisterAccess};
 use esp_hal::delay::Delay;
 use esp_hal::gpio::{AnalogPin, AnyPin, Flex};
 use esp_hal::peripherals::{ADC1, ADC2};
 use esp_hal::time::Duration;
+use lf_hal_types::line_sensor::SENSOR_COUNT;
+pub use lf_hal_types::line_sensor::{LedIndex, SensorReadings};
 
 const SETTLE_TIME: Duration = Duration::from_micros(1000); // TODO: Maybe we can have less time here?
 
-const SENSOR_COUNT: usize = 5;
-const LED_COUNT: usize = 6;
-const MEASUREMENT_COUNT: usize = 2 * SENSOR_COUNT;
-
 /// Attenuation used in the ADC.
 const ATTENUATION: Attenuation = Attenuation::_0dB;
+const PHOTOTRANSISTOR_COUNT: usize = 5;
+const LED_COUNT: usize = LedIndex::MAX.get() + 1;
 
-type SensorIndex = RangedUsize<0, { SENSOR_COUNT - 1 }>;
+const _: () = assert!(
+    LED_COUNT == PHOTOTRANSISTOR_COUNT + 1,
+    "There's one LED on each side of every sensor."
+);
+const _: () = assert!(
+    SENSOR_COUNT == 2 * PHOTOTRANSISTOR_COUNT,
+    "Two logical sensors for every phototransistor."
+);
 
-/// Index of LED to enable/disable.
-/// Index 0 is on the left side of the robot.
-pub type LedIndex = RangedUsize<0, { LED_COUNT - 1 }>;
-
-/// Buffer with measured sensor values.
-/// Index 0 is on the left side fo the robot.
-pub type SensorBuffer = [i16; MEASUREMENT_COUNT];
+type SensorBuffer = [i16; SENSOR_COUNT];
 
 /// Maps LED index to (low_pin, high_pin, hiz_pin) indices into self.led_pins.
 /// Pins order: [0=GPIO27, 1=GPIO32, 2=GPIO26]
-const LED_PATTERNS: [(usize, usize, usize); LED_COUNT] = [
+const LED_PATTERNS: [(usize, usize, usize); LedIndex::MAX.get() + 1] = [
     (0, 1, 2),
     (1, 0, 2),
     (0, 2, 1),
@@ -43,12 +43,12 @@ enum AdcUnit {
 
 // ADC low-level access via RegisterAccess
 #[derive(Clone, Copy)]
-struct SensorChannel {
+struct PhototransistorAdcChannel {
     unit: AdcUnit,
     channel: u8,
 }
 
-impl SensorChannel {
+impl PhototransistorAdcChannel {
     fn new<ADCI, P>(config: &mut AdcConfig<ADCI>, unit: AdcUnit, pin: P) -> Self
     where
         P: AdcChannel + AnalogPin,
@@ -61,7 +61,7 @@ impl SensorChannel {
 
 pub struct LineSensor<'d> {
     led_pins: [Flex<'d>; 3],
-    sensors: [SensorChannel; SENSOR_COUNT],
+    adc_channels: [PhototransistorAdcChannel; PHOTOTRANSISTOR_COUNT],
 }
 
 impl<'d> LineSensor<'d> {
@@ -88,11 +88,11 @@ impl<'d> LineSensor<'d> {
         let mut adc2_config = AdcConfig::new();
 
         let sensors = [
-            SensorChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.0),
-            SensorChannel::new(&mut adc2_config, AdcUnit::Adc2, sensor_pins.1),
-            SensorChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.2),
-            SensorChannel::new(&mut adc2_config, AdcUnit::Adc2, sensor_pins.3),
-            SensorChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.4),
+            PhototransistorAdcChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.0),
+            PhototransistorAdcChannel::new(&mut adc2_config, AdcUnit::Adc2, sensor_pins.1),
+            PhototransistorAdcChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.2),
+            PhototransistorAdcChannel::new(&mut adc2_config, AdcUnit::Adc2, sensor_pins.3),
+            PhototransistorAdcChannel::new(&mut adc1_config, AdcUnit::Adc1, sensor_pins.4),
         ];
 
         let _ = Adc::new(adc1, adc1_config);
@@ -110,7 +110,7 @@ impl<'d> LineSensor<'d> {
         let [p0, p1, p2] = led_pins;
         Self {
             led_pins: [Flex::new(p0), Flex::new(p1), Flex::new(p2)],
-            sensors,
+            adc_channels: sensors,
         }
     }
 
@@ -133,16 +133,16 @@ impl<'d> LineSensor<'d> {
 
     /// Performs a full line sensor read with ambient light subtraction.
     /// Index 0 is on the left side of the robot.
-    pub fn read(&mut self, delay: &Delay) -> SensorBuffer {
+    pub fn read(&mut self, delay: &Delay) -> SensorReadings {
         let mut buffer = self.read_with_leds(delay);
         self.subtract_ambient(delay, &mut buffer);
-        buffer
+        SensorReadings { values: buffer }
     }
 
     /// Performs a raw sensor read.
     /// Index 0 is on the left side of the robot.
-    pub fn read_raw(&mut self) -> [i16; SENSOR_COUNT] {
-        let mut buffer = [0i16; SENSOR_COUNT];
+    pub fn read_raw(&mut self) -> [i16; PHOTOTRANSISTOR_COUNT] {
+        let mut buffer = [0i16; PHOTOTRANSISTOR_COUNT];
         for (i, v) in self.read_ambient_iter().enumerate() {
             buffer[i] = v;
         }
@@ -152,32 +152,26 @@ impl<'d> LineSensor<'d> {
 
     /// Illuminate each LED in sequence and read the adjacent sensor(s).
     fn read_with_leds(&mut self, delay: &Delay) -> SensorBuffer {
-        let mut buffer = [0i16; MEASUREMENT_COUNT];
+        let mut buffer = [0i16; SENSOR_COUNT];
 
         // LED 0: only reads sensor 0
         self.enable_led(LedIndex::MIN);
         delay.delay(SETTLE_TIME);
-        buffer[0] = self.read_single(SensorIndex::MIN);
+        buffer[0] = self.read_single(0);
 
         // LEDs in the middle: each illuminates between sensors (i-1) and i
         // Separating odd first, then even, to have the ADC1 and ADC2 ordering fixed
-        for i in (1..(LedIndex::MAX.get() - 1)).step_by(2) {
+        for i in (1..(LED_COUNT - 2)).step_by(2) {
             self.enable_led(LedIndex::new(i).unwrap());
             delay.delay(SETTLE_TIME);
-            let [va, vb] = self.read_pair(
-                SensorIndex::new(i - 1).unwrap(),
-                SensorIndex::new(i).unwrap(),
-            );
+            let [va, vb] = self.read_pair(i - 1, i);
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
         }
-        for i in (2..LedIndex::MAX.get()).step_by(2) {
+        for i in (2..(LED_COUNT - 1)).step_by(2) {
             self.enable_led(LedIndex::new(i).unwrap());
             delay.delay(SETTLE_TIME);
-            let [vb, va] = self.read_pair(
-                SensorIndex::new(i).unwrap(),
-                SensorIndex::new(i - 1).unwrap(),
-            );
+            let [vb, va] = self.read_pair(i, i - 1);
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
         }
@@ -185,7 +179,7 @@ impl<'d> LineSensor<'d> {
         // last LED: only reads last sensor
         self.enable_led(LedIndex::MAX);
         delay.delay(SETTLE_TIME);
-        buffer[MEASUREMENT_COUNT - 1] = self.read_single(SensorIndex::MAX);
+        buffer[SENSOR_COUNT - 1] = self.read_single(PHOTOTRANSISTOR_COUNT - 1);
 
         buffer
     }
@@ -202,20 +196,17 @@ impl<'d> LineSensor<'d> {
     }
 
     fn read_ambient_iter(&self) -> impl Iterator<Item = i16> {
-        (0..SensorIndex::MAX.get())
+        (0..PHOTOTRANSISTOR_COUNT - 1)
             .step_by(2)
-            .flat_map(|i| {
-                self.read_pair(
-                    SensorIndex::new(i).unwrap(),
-                    SensorIndex::new(i + 1).unwrap(),
-                )
-            })
-            .chain(core::iter::once_with(|| self.read_single(SensorIndex::MAX)))
+            .flat_map(|i| self.read_pair(i, i + 1))
+            .chain(core::iter::once_with(|| {
+                self.read_single(PHOTOTRANSISTOR_COUNT - 1)
+            }))
     }
 
     /// Read a single sensor (blocking).
-    fn read_single(&self, index: SensorIndex) -> i16 {
-        let s = self.sensors[index.get()];
+    fn read_single(&self, index: usize) -> i16 {
+        let s = self.adc_channels[index];
         match s.unit {
             AdcUnit::Adc1 => {
                 Self::start_adc::<ADC1>(s.channel);
@@ -233,14 +224,14 @@ impl<'d> LineSensor<'d> {
     /// Read sensors at `index` and `index + 1` in parallel.
     /// Adjacent sensors must be on different ADC units (PCB layout guarantee),
     /// so both conversions overlap in hardware.
-    fn read_pair(&self, index_a: SensorIndex, index_b: SensorIndex) -> [i16; 2] {
-        let a = self.sensors[index_a.get()];
-        let b = self.sensors[index_b.get()];
+    fn read_pair(&self, index_a: usize, index_b: usize) -> [i16; 2] {
+        let a = self.adc_channels[index_a];
+        let b = self.adc_channels[index_b];
         assert!(
             matches!((a.unit, b.unit), (AdcUnit::Adc1, AdcUnit::Adc2)),
             "read_pair: sensors {} and {} must be on ADC units 1 and 2 respectively (currently {:?} and {:?})",
-            index_a.get(),
-            index_b.get(),
+            index_a,
+            index_b,
             a.unit,
             b.unit
         );

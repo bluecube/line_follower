@@ -138,19 +138,20 @@ cargo run --release --bin line_follower
 Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`esp` channel). CI runs `cargo build --release`, `cargo fmt`, and `cargo clippy -- -D warnings`.
 
 ### Structure
-- `src/bin/main.rs` — main binary (skeleton: init, Wi-Fi/BLE stubs)
-- `src/bin/motor_test.rs` — motor validation binary
-- `src/hal/motors.rs` — MCPWM + PCNT motor/encoder HAL (mirrors C++ `Motors.h` pin assignments exactly); `encoders()` intentionally returns raw `i16` hardware counts (no accumulation) — callers use `wrapping_sub` for velocity deltas
+- `src/` — "Behavior" part of the robot firmware. Does not touch hardware directly.
+- `src/bin/` — Main binary and various testing binaries
+- `lf-hal/` — HAL library (`Hal` struct, coordinates all hardware access)
+- `lf-hal-types/` — Public types used in the interface of lf-hal, to allow us to isolate the behavior API from HAL for testing.
 
 
 ### Environment
-- Source `~/export-esp.sh` for running rust and gcc for the ESP, or even better ask the user to run claude with this in environment.
+- The environment should already be set up for the compiler to work, if there are PATH problems, ask the user to source `~/export-esp.sh`.
 
 ### General
 
-After finishing a change run the tests (`cargo test`) and format the code (`cargo fmt`).
-`cargo clippy -W pedantic` is a good source of ideas to consider, but should not be considered authoritative.
-
-Don't mention the C++ version in the rust code, it is intended to be completely standalone.
-
-Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.
+- After finishing a change run the tests and format the code (`cargo fmt`).
+- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu`.
+- Verify that binaries build correctly with `cargo check --bins`.
+- `cargo clippy -W pedantic` is a good source of ideas to consider, but should not be considered authoritative.
+- Don't mention the C++ version in the rust code, it is intended to be completely standalone.
+- Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.

@@ -1,3 +1,5 @@
+#![no_std]
+
 pub mod button;
 pub mod line_sensor;
 pub mod motors;

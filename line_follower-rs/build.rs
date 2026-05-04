@@ -1,4 +1,8 @@
 fn main() {
+    // Skip ESP32 linker args when building for host (e.g. `cargo test --target x86_64-unknown-linux-gnu`).
+    if std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default() != "xtensa" {
+        return;
+    }
     linker_be_nice();
     // make sure linkall.x is the last linker script (otherwise might cause problems with flip-link)
     println!("cargo:rustc-link-arg=-Tlinkall.x");

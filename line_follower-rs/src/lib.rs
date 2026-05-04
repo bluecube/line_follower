@@ -1,3 +1,1 @@
-#![no_std]
-
-pub mod hal;
+#![cfg_attr(not(test), no_std)]

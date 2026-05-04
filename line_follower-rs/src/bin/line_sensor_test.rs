@@ -4,17 +4,9 @@
 use esp_backtrace as _;
 use esp_hal::{delay::Delay, main, time::Duration};
 use esp_println::{print, println};
-use line_follower::hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
+use lf_hal::{Hal, line_sensor::LedIndex};
 
-const STEP_TIME: Duration = Duration::from_millis(100);
-const READ_INTERVAL: Duration = Duration::from_millis(100);
-
-#[derive(Clone, Copy)]
-enum Mode {
-    LedScan,
-    FullRead,
-    RawRead,
-}
+const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -25,57 +17,28 @@ fn main() -> ! {
     let mut hal = Hal::new(p);
     let delay = Delay::new();
 
-    let mut mode = Mode::LedScan;
-    println!("Line sensor test - press button to switch mode");
-    println!("Mode: LED scan");
-
-    let sequence = [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1];
-    let mut seq_idx = 0;
+    let led_scan_sequence = [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1];
 
     loop {
-        if let Some(ButtonEvent::Press) = hal.deck_button.poll() {
-            mode = match mode {
-                Mode::LedScan => {
-                    hal.line_sensor.disable_leds();
-                    println!("Mode: full read");
-                    Mode::FullRead
-                }
-                Mode::FullRead => {
-                    hal.line_sensor.disable_leds();
-                    println!("Mode: raw read");
-                    Mode::RawRead
-                }
-                Mode::RawRead => {
-                    println!("Mode: LED scan");
-                    Mode::LedScan
-                }
-            };
+        let buf = hal.line_sensor.read(&delay);
+        print!("Raw:");
+        for v in buf.values {
+            print!(" {:4}", v);
         }
+        println!();
 
-        match mode {
-            Mode::LedScan => {
-                hal.line_sensor
-                    .enable_led(LedIndex::new(sequence[seq_idx]).unwrap());
-                seq_idx = (seq_idx + 1) % sequence.len();
-                delay.delay(STEP_TIME);
-            }
-            Mode::FullRead => {
-                let buf = hal.line_sensor.read(&delay);
-                for v in buf {
-                    print!(" {:4}", v);
-                }
-                println!();
+        let buf = hal.line_sensor.read_raw();
+        print!("Ambient:");
+        for v in buf {
+            print!(" {:4}", v);
+        }
+        println!();
 
-                delay.delay(READ_INTERVAL);
-            }
-            Mode::RawRead => {
-                let buf = hal.line_sensor.read_raw();
-                for v in buf {
-                    print!(" {:4}", v);
-                }
-                println!();
-                delay.delay(READ_INTERVAL);
-            }
+        // Using the LED scan animation as a delay.
+        for led_index in led_scan_sequence {
+            hal.line_sensor
+                .enable_led(LedIndex::new(led_index).unwrap());
+            delay.delay(LED_SCAN_INTERVAL);
         }
     }
 }

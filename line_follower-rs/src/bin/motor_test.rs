@@ -8,7 +8,7 @@ use esp_hal::{
     time::{Duration, Instant},
 };
 use esp_println::println;
-use line_follower::hal::{Hal, button::ButtonEvent, motors::PwmT};
+use lf_hal::{Hal, button::ButtonEvent, motors::PwmT};
 
 const TEST_PWM: i16 = PwmT::MAX.get() * 3 / 4;
 const SAMPLE_TIME: Duration = Duration::from_millis(500);
@@ -43,7 +43,7 @@ fn main() -> ! {
     let mut hal = Hal::new(p);
     let delay = Delay::new();
 
-    println!("Motor test — short press: next phase  long press: stop");
+    println!("Motor test -- short press: next phase  long press: stop");
 
     let mut phase = Phase::Stopped;
 
