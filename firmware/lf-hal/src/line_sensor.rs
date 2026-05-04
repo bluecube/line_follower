@@ -210,8 +210,7 @@ impl<'d> LineSensor<'d> {
         match s.unit {
             AdcUnit::Adc1 => {
                 Self::start_adc::<ADC1>(s.channel);
-                // ADC2 reads inverted (high voltage -> 0),
-                // but we have a pull-up on the sensors so we need to actually invert ADC1
+                // ADC1 reads inverted (high voltage -> low value); invert to correct.
                 4095 - Self::read_adc::<ADC1>()
             }
             AdcUnit::Adc2 => {
@@ -238,8 +237,7 @@ impl<'d> LineSensor<'d> {
         Self::start_adc::<ADC1>(a.channel);
         Self::start_adc::<ADC2>(b.channel);
 
-        // ADC2 reads inverted (high voltage -> 0),
-        // but we have a pull-up on the sensors so we need to actually invert ADC1
+        // ADC1 reads inverted (high voltage -> low value); invert to correct.
         [4095 - Self::read_adc::<ADC1>(), Self::read_adc::<ADC2>()]
     }
 
