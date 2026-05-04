@@ -1,6 +1,1 @@
-/.pio/
-/venv/
-/eagle/*.s#[0-9]
-/eagle/*.b#[0-9]
-/eagle/*.l#[0-9]
 /references/

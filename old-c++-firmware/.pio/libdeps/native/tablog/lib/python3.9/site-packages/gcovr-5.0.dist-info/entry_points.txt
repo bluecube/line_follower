@@ -1,0 +1,3 @@
+[console_scripts]
+gcovr = gcovr.__main__:main
+

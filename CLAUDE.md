@@ -7,10 +7,58 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Line follower v2 robot firmware for ESP32. The robot uses N20 geared motors (1:30 ratio), a 10-sensor IR line array, MPU6050 IMU, and an IR range sensor on an 8×10cm custom PCB.
 
 There are two parallel implementations:
-- **C++ (root)** — PlatformIO + ESP-IDF, ~80% complete; has control algorithms and line-following state machine
-- **Rust (`line_follower-rs/`)** — in-progress rewrite using `esp-hal` directly (no ESP-IDF); currently only motor HAL is implemented
+- **Rust (`firmware/`)** — current in-progress rewrite using `esp-hal` directly (no ESP-IDF); currently only motor HAL is implemented
+- **C++ (`old-c++-firmware`)** — PlatformIO + ESP-IDF, ~80% complete; has control algorithms and line-following state machine
 
-## Build & Flash Commands
+
+## Firmware
+
+Uses `esp-hal` v1.0 directly (no ESP-IDF/FreeRTOS abstraction) with the Xtensa ESP toolchain.
+
+- After finishing a change run the tests and format the code (`cargo fmt`).
+- Verify that binaries build correctly with `cargo check --bins`.
+- `cargo clippy -W pedantic` is a good source of ideas to consider, but should not be considered authoritative.
+- Don't mention the C++ version in the rust code, it is intended to be completely standalone.
+- Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.
+
+### Build & flash
+```bash
+cd line_follower-rs
+cargo build --release
+# Flash (configured as cargo runner via .cargo/config.toml):
+cargo run --release --bin motor_test
+cargo run --release --bin line_follower
+```
+Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`esp` channel). CI runs `cargo build --release`, `cargo fmt`, and `cargo clippy -- -D warnings`.
+
+### Structure
+- `src/` — "Behavior" part of the robot firmware. Does not touch hardware directly.
+- `src/bin/` — Main binary and various testing binaries
+- `lf-hal/` — HAL library (`Hal` struct, coordinates all hardware access)
+- `lf-hal-types/` — Public types used in the interface of lf-hal, to allow us to isolate the behavior API from HAL for testing.
+
+
+### Environment
+- The environment should already be set up for the compiler to work, if there are PATH problems, ask the user to source `~/export-esp.sh`.
+
+## Unit testing guidelines
+
+- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu`.
+- Tests cover pure control-logic — anything that doesn't touch hardware directly. Hardware-dependent code is excluded and tested manually using test binaries.
+- Include edge cases that probe numerical limits: overflow, zero input, sudden stops, sign changes.
+- Make sure the tested behavior is actually intended and not just an implementation detail.
+- Use `proptest` crate to test different value inputs where it makes sense.
+
+
+## General guidelines
+
+- Keep this file up to date in case of relevant changes.
+- Don't use unicode characters in the code needlessly (eg. `—`).
+
+
+## Old C++ Firmware:
+
+### Build & Flash Commands
 
 ```bash
 # Setup (one-time)
@@ -37,7 +85,7 @@ make clean
 
 All `make` targets activate the virtualenv automatically. `platformio test -e native` runs tests on the host via the native environment.
 
-## Architecture
+### Architecture
 
 The codebase uses a layered HAL abstraction:
 
@@ -50,7 +98,7 @@ src/main.cpp
 
 HAL selection is done via preprocessor in `lib/LF/include/Hal.h` — it includes `RobotHal/Hal.h` for target builds and `MockHal/Hal.h` for native/test builds.
 
-### Key Libraries
+#### Key Libraries
 
 **`lib/RobotHal/`** — ESP32 hardware drivers:
 - `Hal.h` — singleton coordinating all hardware; initialize first in `main.cpp`
@@ -71,7 +119,7 @@ HAL selection is done via preprocessor in `lib/LF/include/Hal.h` — it includes
 
 **`lib/Behavior/`** — generic state machine base classes (`Behavior.h`, `StateTransition`)
 
-### Pin Assignments (from `Pins.h`)
+#### Pin Assignments (from `Pins.h`)
 
 | Function | Pins |
 |---|---|
@@ -87,7 +135,7 @@ HAL selection is done via preprocessor in `lib/LF/include/Hal.h` — it includes
 
 > **GPIO 12 conflict:** Pin 12 (MTDI strapping pin) is used by the distance sensor. This requires permanently setting VDD_SDIO to 3.3V via `espfuse.py` (see `docs/instructions.md`). This is irreversible.
 
-## Testing
+### Testing
 
 Tests live in `test/` and use the **doctest** framework. They run on the native platform with UBSan enabled (`-fsanitize=undefined`). The main test file is `test/EncoderObserver.cpp`, which uses a `Simulator` class to drive velocity profiles and validate observer accuracy.
 
@@ -95,18 +143,17 @@ Tests live in `test/` and use the **doctest** framework. They run on the native 
 make test   # equivalent to: platformio test -e native
 ```
 
-## Notable Design Patterns
+### Notable Design Patterns
 
 - **Singleton HAL:** `Hal::get()` returns the hardware singleton; MockHal provides the same interface for tests.
 - **Periodic tasks:** Template `PeriodicTask<Data>` wraps a callback + mutex; FreeRTOS on target, `std::thread` on native.
 - **C++17 throughout:** Both `esp32` and `native` environments enforce `-std=c++17 -Wall -Wextra -Werror` (Werror only for `src/`).
 
-## Coding style
-- Self-documenting code: clear naming, minimal comments (only where logic
-  isn't self-evident).
+### Coding style
+- Self-documenting code: clear naming, minimal comments (only where logic isn't self-evident).
 - Focus on testability, HAL layer will later solve for plugging into a simulator.
 
-## Unit testing guidelines
+### Unit testing guidelines
 
 Tests cover pure control-logic — anything that doesn't touch hardware directly. Hardware-dependent code is excluded; use the mock/stub HAL layer to satisfy interface dependencies when a class under test requires it.
 
@@ -117,41 +164,3 @@ Tests cover pure control-logic — anything that doesn't touch hardware directly
 - Make sure the tested behavior is actually intended and not just an implementation detail.
 
 **Assertions:** Prefer hard-failing assertions (stop on first failure) for invariants that make further checks meaningless; use accumulating/soft assertions when collecting multiple failures in one run is more informative.
-
-## General guidelines
-
-- Keep this file up to date in case of relevant changes.
-- Don't use unicode characters in the code needlessly (eg. `—`).
-
-## Rust Rewrite (`line_follower-rs/`)
-
-Uses `esp-hal` v1.0 directly (no ESP-IDF/FreeRTOS abstraction) with the Xtensa ESP toolchain.
-
-### Build & flash
-```bash
-cd line_follower-rs
-cargo build --release
-# Flash (configured as cargo runner via .cargo/config.toml):
-cargo run --release --bin motor_test
-cargo run --release --bin line_follower
-```
-Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`esp` channel). CI runs `cargo build --release`, `cargo fmt`, and `cargo clippy -- -D warnings`.
-
-### Structure
-- `src/` — "Behavior" part of the robot firmware. Does not touch hardware directly.
-- `src/bin/` — Main binary and various testing binaries
-- `lf-hal/` — HAL library (`Hal` struct, coordinates all hardware access)
-- `lf-hal-types/` — Public types used in the interface of lf-hal, to allow us to isolate the behavior API from HAL for testing.
-
-
-### Environment
-- The environment should already be set up for the compiler to work, if there are PATH problems, ask the user to source `~/export-esp.sh`.
-
-### General
-
-- After finishing a change run the tests and format the code (`cargo fmt`).
-- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu`.
-- Verify that binaries build correctly with `cargo check --bins`.
-- `cargo clippy -W pedantic` is a good source of ideas to consider, but should not be considered authoritative.
-- Don't mention the C++ version in the rust code, it is intended to be completely standalone.
-- Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.
