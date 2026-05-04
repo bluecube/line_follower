@@ -5,6 +5,7 @@ use esp_backtrace as _;
 use esp_hal::{delay::Delay, main, time::Duration};
 use esp_println::{print, println};
 use lf_hal::{Hal, line_sensor::LedIndex};
+use line_follower::line_detection::detect_line;
 
 const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
 
@@ -24,6 +25,16 @@ fn main() -> ! {
         print!("Raw:");
         for v in buf.values {
             print!(" {:4}", v);
+        }
+        println!();
+
+        let detections = detect_line(&buf);
+        println!("Detections:");
+        if detections.is_empty() {
+            println!(" no line");
+        }
+        for d in &detections {
+            print!(" {:+.3}({:.2})", d.position, d.strength);
         }
         println!();
 
