@@ -43,7 +43,7 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 
 ## Unit testing guidelines
 
-- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu`.
+- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu` in directory `firmware/`.
 - Tests cover pure control-logic — anything that doesn't touch hardware directly. Hardware-dependent code is excluded and tested manually using test binaries.
 - Include edge cases that probe numerical limits: overflow, zero input, sudden stops, sign changes.
 - Make sure the tested behavior is actually intended and not just an implementation detail.
