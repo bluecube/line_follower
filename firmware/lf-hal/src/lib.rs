@@ -5,8 +5,10 @@ pub mod line_sensor;
 pub mod motors;
 
 use button::Button;
+use esp_hal::analog::adc::{AdcChannel, Attenuation, RegisterAccess};
 use esp_hal::gpio::Pin;
-use esp_hal::peripherals::Peripherals;
+use esp_hal::peripherals::{ADC2, Peripherals};
+use lf_hal_types::{BatteryMeasurement, RangeMeasurement};
 use line_sensor::LineSensor;
 use motors::{MotorChannelPins, Motors};
 
@@ -15,6 +17,8 @@ pub struct Hal<'d> {
     pub deck_button: Button<'d>,
     pub boot_button: Button<'d>,
     pub line_sensor: LineSensor<'d>,
+    battery_adc_channel: u8,
+    range_adc_channel: u8,
 }
 
 impl<'d> Hal<'d> {
@@ -24,21 +28,33 @@ impl<'d> Hal<'d> {
         // Right: PWM A=GPIO23  PWM B=GPIO19  ENC A=GPIO36  ENC B=GPIO39
 
         // ── Remaining pin assignments (not yet implemented) ──────────
-        // Range sensor:            GPIO12
         // I2C:                     SCL=GPIO22  SDA=GPIO21
         // Accel interrupt:         GPIO18
-        // Battery sense:           GPIO15
         // Indicator LED:           GPIO2
+
+        // Get ADC2 channel numbers before ADC2 is consumed by LineSensor.
+        let battery_adc_channel = p.GPIO15.adc_channel();
+        let range_adc_channel = p.GPIO12.adc_channel();
+        // Drop both pins — the channel numbers are all that's needed.
+        drop(p.GPIO15);
+        drop(p.GPIO12);
+
+        let line_sensor = LineSensor::new(
+            [p.GPIO27.degrade(), p.GPIO32.degrade(), p.GPIO26.degrade()],
+            p.ADC1,
+            p.ADC2,
+            (p.GPIO33, p.GPIO14, p.GPIO35, p.GPIO25, p.GPIO34),
+        );
+
+        // ADC2 is now consumed by LineSensor. Configure battery and range
+        // attenuation directly via registers (same workaround used in line_sensor.rs).
+        ADC2::set_attenuation(battery_adc_channel as usize, Attenuation::_11dB as u8);
+        ADC2::set_attenuation(range_adc_channel as usize, Attenuation::_11dB as u8);
 
         Self {
             deck_button: Button::new(p.GPIO5),
             boot_button: Button::new(p.GPIO0),
-            line_sensor: LineSensor::new(
-                [p.GPIO27.degrade(), p.GPIO32.degrade(), p.GPIO26.degrade()],
-                p.ADC1,
-                p.ADC2,
-                (p.GPIO33, p.GPIO14, p.GPIO35, p.GPIO25, p.GPIO34),
-            ),
+            line_sensor,
             motors: Motors::new(
                 p.MCPWM0,
                 p.PCNT,
@@ -55,6 +71,28 @@ impl<'d> Hal<'d> {
                     enc_b: p.GPIO39.degrade(),
                 },
             ),
+            battery_adc_channel,
+            range_adc_channel,
         }
+    }
+
+    pub fn read_battery(&self) -> BatteryMeasurement {
+        BatteryMeasurement {
+            raw: self.read_adc2(self.battery_adc_channel),
+        }
+    }
+
+    pub fn read_range(&self) -> RangeMeasurement {
+        RangeMeasurement {
+            raw: self.read_adc2(self.range_adc_channel),
+        }
+    }
+
+    fn read_adc2(&self, channel: u8) -> u16 {
+        ADC2::set_en_pad(channel);
+        ADC2::clear_start_sar();
+        ADC2::set_start_sar();
+        while !ADC2::read_done_sar() {}
+        ADC2::read_data_sar() as u16
     }
 }

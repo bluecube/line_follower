@@ -20,6 +20,10 @@ test = false
 name = "line_sensor_test"
 test = false
 
+[[bin]]
+name = "battery_calibrate"
+test = false
+
 [dependencies]
 arrayvec     = { version = "0.7.6", default-features = false }
 deranged     = { version = "0.5.8", default-features = false }

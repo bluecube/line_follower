@@ -7,6 +7,35 @@ pub mod motors {
     pub type PwmT = RangedI16<-1024, 1024>;
 }
 
+pub struct BatteryMeasurement {
+    pub raw: u16,
+}
+
+impl BatteryMeasurement {
+    pub fn voltage(&self) -> f32 {
+        const K: f32 = 0.007278;
+        const A: f32 = -8.963262;
+
+        K * self.raw as f32 + A
+    }
+}
+
+pub struct RangeMeasurement {
+    pub raw: u16,
+}
+
+impl RangeMeasurement {
+    pub fn distance_long(&self) -> f32 {
+        // TODO: fit curve to measured data
+        0.0
+    }
+
+    pub fn distance_short(&self) -> Option<f32> {
+        // TODO: implement short-range option
+        None
+    }
+}
+
 pub mod line_sensor {
     use deranged::RangedUsize;
 
