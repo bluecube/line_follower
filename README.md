@@ -13,15 +13,5 @@ Let me know if you decide to build it!
 
 ![Render of the robot](fusion360/output-exports/lf.png)
 
-Currently in the middle of a rework. See [v1](https://github.com/bluecube/line_follower/tree/v1/) for the most useable version so far.
-
-Changes for version 2:
-
-- Motors with encoders
-  - Previous version had problems with unpredictable acceleration, since the motors are fast and relatively under-torqued for the robot.
-- Bluetooth support with ESP32
-- Removable front armor, allowing the robot to take place in sumo competitions as well
-- Visible light line sensor, hopefully simplifying debugging
-- Whole deck is a (stop) button now
-  - improvement over the hard to press wobbly button from v1.
-- Enough space on the deck to place race start number sticker.
+This is a v2, you can also check out the [v1](https://github.com/bluecube/line_follower/tree/v1/).
+Currently the firmware is being rewritten into Rust using [esp-hal](https://docs.espressif.com/projects/rust/).
