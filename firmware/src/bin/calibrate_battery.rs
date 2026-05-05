@@ -9,7 +9,7 @@ use lf_hal::{Hal, button::ButtonEvent};
 esp_bootloader_esp_idf::esp_app_desc!();
 
 const VOLTAGES: [f32; 2] = [8.0, 12.0];
-const SAMPLE_COUNT: u32 = 100;
+const SAMPLE_COUNT: u32 = 500;
 
 fn wait_for_release(hal: &mut Hal<'_>) {
     loop {
@@ -30,9 +30,12 @@ fn print_voltages(hal: &mut Hal<'_>, delay: &Delay) {
     }
 }
 
-fn sample_raw_average(hal: &mut Hal<'_>) -> f32 {
+fn sample_raw_average(hal: &mut Hal<'_>, delay: &Delay) -> f32 {
     (0..SAMPLE_COUNT)
-        .map(|_| hal.read_battery().raw as u32)
+        .map(|_| {
+            delay.delay_millis(5);
+            hal.read_battery().raw as u32
+        })
         .sum::<u32>() as f32
         / SAMPLE_COUNT as f32
 }
@@ -53,7 +56,7 @@ fn main() -> ! {
             voltage
         );
         wait_for_release(&mut hal);
-        raws[i] = sample_raw_average(&mut hal);
+        raws[i] = sample_raw_average(&mut hal, &delay);
         println!("  raw avg = {:.1}", raws[i]);
     }
 

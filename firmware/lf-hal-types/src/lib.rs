@@ -26,8 +26,10 @@ pub struct RangeMeasurement {
 
 impl RangeMeasurement {
     pub fn distance_long(&self) -> f32 {
-        // TODO: fit curve to measured data
-        0.0
+        const A: f32 = 318.913544;
+        const B: f32 = -19.318924;
+
+        A / (self.raw as f32 + B)
     }
 
     pub fn distance_short(&self) -> Option<f32> {

@@ -21,7 +21,11 @@ name = "line_sensor_test"
 test = false
 
 [[bin]]
-name = "battery_calibrate"
+name = "calibrate_battery"
+test = false
+
+[[bin]]
+name = "calibrate_distance"
 test = false
 
 [dependencies]
