@@ -4,7 +4,7 @@
 use esp_backtrace as _;
 use esp_hal::{delay::Delay, main, time::Duration};
 use esp_println::{print, println};
-use lf_hal::{Hal, line_sensor::LedIndex};
+use lf_hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
 use line_follower::line_detection::detect_line;
 
 const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
@@ -19,8 +19,14 @@ fn main() -> ! {
     let delay = Delay::new();
 
     let led_scan_sequence = [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1];
+    let mut led_on = false;
 
     loop {
+        if let Some(ButtonEvent::Release(_)) = hal.boot_button.poll() {
+            led_on = !led_on;
+            hal.set_led(led_on);
+        }
+
         let buf = hal.line_sensor.read(&delay);
         print!("Raw:");
         for v in buf.values {

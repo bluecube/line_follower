@@ -6,7 +6,7 @@ pub mod motors;
 
 use button::Button;
 use esp_hal::analog::adc::{AdcChannel, Attenuation, RegisterAccess};
-use esp_hal::gpio::Pin;
+use esp_hal::gpio::{Level, Output, OutputConfig, Pin};
 use esp_hal::peripherals::{ADC2, Peripherals};
 use lf_hal_types::{BatteryMeasurement, RangeMeasurement};
 use line_sensor::LineSensor;
@@ -17,20 +17,16 @@ pub struct Hal<'d> {
     pub deck_button: Button<'d>,
     pub boot_button: Button<'d>,
     pub line_sensor: LineSensor<'d>,
+    led: Output<'d>,
     battery_adc_channel: u8,
     range_adc_channel: u8,
 }
 
 impl<'d> Hal<'d> {
     pub fn new(p: Peripherals) -> Self {
-        // ── Motor pins ───────────────────────────────────────────────
-        // Left:  PWM A=GPIO13  PWM B=GPIO4   ENC A=GPIO16  ENC B=GPIO17
-        // Right: PWM A=GPIO23  PWM B=GPIO19  ENC A=GPIO36  ENC B=GPIO39
-
         // ── Remaining pin assignments (not yet implemented) ──────────
         // I2C:                     SCL=GPIO22  SDA=GPIO21
         // Accel interrupt:         GPIO18
-        // Indicator LED:           GPIO2
 
         // Get ADC2 channel numbers before ADC2 is consumed by LineSensor.
         let battery_adc_channel = p.GPIO15.adc_channel();
@@ -54,6 +50,7 @@ impl<'d> Hal<'d> {
         Self {
             deck_button: Button::new(p.GPIO5),
             boot_button: Button::new(p.GPIO0),
+            led: Output::new(p.GPIO2, Level::Low, OutputConfig::default()),
             line_sensor,
             motors: Motors::new(
                 p.MCPWM0,
@@ -73,6 +70,14 @@ impl<'d> Hal<'d> {
             ),
             battery_adc_channel,
             range_adc_channel,
+        }
+    }
+
+    pub fn set_led(&mut self, on: bool) {
+        if on {
+            self.led.set_high();
+        } else {
+            self.led.set_low();
         }
     }
 
