@@ -58,6 +58,9 @@ impl<'d> Motors<'d> {
     /// TODO: calibrate
     pub const METERS_PER_TICK: f64 = 40e-3 * PI / (7.0 * 2.0 * 30.0);
 
+    /// Approximate maximum speed of unloaded motors.
+    pub const MAX_TICKS_PER_SECOND: u32 = 15000;
+
     pub fn new(
         mcpwm: MCPWM0<'d>,
         pcnt: PCNT<'d>,
