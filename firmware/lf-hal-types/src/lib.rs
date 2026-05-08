@@ -26,8 +26,8 @@ pub struct RangeMeasurement {
 
 impl RangeMeasurement {
     pub fn distance_long(&self) -> f32 {
-        const A: f32 = 318.913544;
-        const B: f32 = -19.318924;
+        const A: f32 = 318.913_54;
+        const B: f32 = -19.318_924;
 
         A / (self.raw as f32 + B)
     }
