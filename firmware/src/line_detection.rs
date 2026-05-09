@@ -22,10 +22,12 @@ fn push_detection(detections: &mut ArrayVec<LineDetection, 2>, new: LineDetectio
     }
     if let Err(err) = detections.try_push(new) {
         let new = err.element();
-        if let Some(weakest) = detections.iter_mut().min_by_key(|d| d.strength) {
-            if new.strength > weakest.strength {
-                *weakest = new;
-            }
+        if let Some(weakest) = detections
+            .iter_mut()
+            .min_by_key(|d| d.strength)
+            .filter(|w| new.strength > w.strength)
+        {
+            *weakest = new;
         }
     }
 }
