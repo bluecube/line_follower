@@ -1,5 +1,3 @@
-use core::f64::consts::PI;
-
 use esp_hal::{
     gpio::{AnyPin, Input, InputConfig, InputPin, Pull, interconnect::PeripheralOutput},
     mcpwm::{
@@ -53,14 +51,6 @@ pub struct Motors<'d> {
 }
 
 impl<'d> Motors<'d> {
-    /// Approximate wheel travel per encoder tick, assuming zero slip.
-    /// Wheel diameter 40 mm, encoder 7 CPR, gear ratio 1:30, 2-channel counting.
-    /// TODO: calibrate
-    pub const METERS_PER_TICK: f64 = 40e-3 * PI / (7.0 * 2.0 * 30.0);
-
-    /// Approximate maximum speed of unloaded motors.
-    pub const MAX_TICKS_PER_SECOND: u32 = 15000;
-
     pub fn new(
         mcpwm: MCPWM0<'d>,
         pcnt: PCNT<'d>,

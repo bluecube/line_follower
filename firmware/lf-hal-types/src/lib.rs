@@ -1,10 +1,21 @@
 #![no_std]
 
 pub mod motors {
+    use core::f64::consts::PI;
+
     use deranged::RangedI16;
 
     /// PWM command range for a single motor. Positive = forward, negative = backward, 0 = brake.
     pub type PwmT = RangedI16<-1024, 1024>;
+
+    /// Approximate wheel travel per encoder tick, assuming zero slip.
+    /// Wheel diameter 40 mm, encoder 7 CPR, gear ratio 1:30, 2-channel counting.
+    /// TODO: calibrate
+    pub const METERS_PER_TICK: f64 = 40e-3 * PI / (7.0 * 2.0 * 30.0);
+
+    /// Approximate maximum speed of unloaded motors in ticks per second.
+    /// Don't ask the robot to go this fast!
+    pub const MAX_SPEED: u32 = 15000;
 }
 
 pub struct BatteryMeasurement {

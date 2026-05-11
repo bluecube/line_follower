@@ -28,6 +28,10 @@ test = false
 name = "calibrate_distance"
 test = false
 
+[[bin]]
+name = "velocity_control_test"
+test = false
+
 [dependencies]
 arrayvec     = { version = "0.7.6", default-features = false }
 deranged     = { version = "0.5.8", default-features = false }
@@ -81,6 +85,10 @@ smoltcp = { version = "0.12.0", default-features = false, features = [
   "socket-udp",
 ] }
 
+
+[dev-dependencies]
+proptest = "1"
+test-strategy = "0.4.5"
 
 [profile.dev]
 # Rust debug is too slow.
