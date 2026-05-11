@@ -20,6 +20,7 @@ Uses `esp-hal` v1.0 directly (no ESP-IDF/FreeRTOS abstraction) with the Xtensa E
 - `cargo clippy -W pedantic` is a good source of ideas to consider, but should not be considered authoritative.
 - Don't mention the C++ version in the rust code, it is intended to be completely standalone.
 - Don't run `cargo doc` with `--open`. It will not help you at all and it keeps popping up in my browser windows.
+- Use `cargo add` for adding packages, your version information is out of date.
 
 ### Build & flash
 ```bash
