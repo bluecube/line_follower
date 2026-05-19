@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Line follower v2 robot firmware for ESP32. The robot uses N20 geared motors (1:30 ratio), a 10-sensor IR line array, MPU6050 IMU, and an IR range sensor on an 8×10cm custom PCB.
 
 There are two parallel implementations:
-- **Rust (`firmware/`)** — current in-progress rewrite using `esp-hal` directly (no ESP-IDF); currently only motor HAL is implemented
-- **C++ (`old-c++-firmware`)** — PlatformIO + ESP-IDF, ~80% complete; has control algorithms and line-following state machine
+- **Rust (`firmware/`)** — current in-progress rewrite using `esp-hal`.
+- **C++ (`old-c++-firmware`)** — PlatformIO + ESP-IDF, ~80% complete.
 
 
 ## Firmware
@@ -24,7 +24,7 @@ Uses `esp-hal` v1.0 directly (no ESP-IDF/FreeRTOS abstraction) with the Xtensa E
 
 ### Build & flash
 ```bash
-cd line_follower-rs
+cd firmware
 cargo build --release
 # Flash (configured as cargo runner via .cargo/config.toml):
 cargo run --release --bin motor_test
@@ -44,7 +44,10 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 
 ## Unit testing guidelines
 
-- Pure logic unit tests live in under `src/` in the main crate. Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test -p line_follower --target x86_64-unknown-linux-gnu` in directory `firmware/`.
+- Pure logic unit tests live under `src/` in the main crate.
+- Run with stable toolchain (ESP toolchain can't compile for x86): `cargo +stable test --workspace --exclude lf-hal --target x86_64-unknown-linux-gnu` in directory `firmware/`.
+    - `lf-hal` is excluded because it pulls in ESP-specific dependencies.
+    - The `unit_test.sh` script runs this command.
 - Tests cover pure control-logic — anything that doesn't touch hardware directly. Hardware-dependent code is excluded and tested manually using test binaries.
 - Include edge cases that probe numerical limits: overflow, zero input, sudden stops, sign changes.
 - Make sure the tested behavior is actually intended and not just an implementation detail.
@@ -55,6 +58,8 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 
 - Keep this file up to date in case of relevant changes.
 - Don't use unicode characters in the code needlessly (eg. `—`).
+- Self-documenting code: clear naming, minimal inline comments (only where logic isn't self-evident). Docstrings on public items are welcome and should be kept.
+- TODOs mark real outstanding work — don't remove them unless the issue is actually resolved.
 
 
 ## Old C++ Firmware:
@@ -149,19 +154,3 @@ make test   # equivalent to: platformio test -e native
 - **Singleton HAL:** `Hal::get()` returns the hardware singleton; MockHal provides the same interface for tests.
 - **Periodic tasks:** Template `PeriodicTask<Data>` wraps a callback + mutex; FreeRTOS on target, `std::thread` on native.
 - **C++17 throughout:** Both `esp32` and `native` environments enforce `-std=c++17 -Wall -Wextra -Werror` (Werror only for `src/`).
-
-### Coding style
-- Self-documenting code: clear naming, minimal comments (only where logic isn't self-evident).
-- Focus on testability, HAL layer will later solve for plugging into a simulator.
-
-### Unit testing guidelines
-
-Tests cover pure control-logic — anything that doesn't touch hardware directly. Hardware-dependent code is excluded; use the mock/stub HAL layer to satisfy interface dependencies when a class under test requires it.
-
-**What to test:** Algorithms, estimators, PID controllers, state machines, and any numerical logic in the control libraries.
-
-- One test case per logical scenario; use sub-cases/parameterized variants to vary a single parameter (e.g., different velocity values) rather than duplicating test bodies.
-- Include edge cases that probe numerical limits: overflow, zero input, sudden stops, sign changes.
-- Make sure the tested behavior is actually intended and not just an implementation detail.
-
-**Assertions:** Prefer hard-failing assertions (stop on first failure) for invariants that make further checks meaningless; use accumulating/soft assertions when collecting multiple failures in one run is more informative.
