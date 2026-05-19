@@ -28,10 +28,10 @@ impl<'d> Hal<'d> {
         // I2C:                     SCL=GPIO22  SDA=GPIO21
         // Accel interrupt:         GPIO18
 
-        // Get ADC2 channel numbers before ADC2 is consumed by LineSensor.
+        // ADC2 is consumed by LineSensor, extract battery and range ADC pins before that
+        // and then set attenuation using direct register access
         let battery_adc_channel = p.GPIO15.adc_channel();
         let range_adc_channel = p.GPIO12.adc_channel();
-        // Drop both pins — the channel numbers are all that's needed.
         drop(p.GPIO15);
         drop(p.GPIO12);
 
@@ -42,8 +42,6 @@ impl<'d> Hal<'d> {
             (p.GPIO33, p.GPIO14, p.GPIO35, p.GPIO25, p.GPIO34),
         );
 
-        // ADC2 is now consumed by LineSensor. Configure battery and range
-        // attenuation directly via registers (same workaround used in line_sensor.rs).
         ADC2::set_attenuation(battery_adc_channel as usize, Attenuation::_11dB as u8);
         ADC2::set_attenuation(range_adc_channel as usize, Attenuation::_11dB as u8);
 
