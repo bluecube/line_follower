@@ -1,14 +1,13 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use embassy_executor::Spawner;
+use embassy_time::{Duration, Instant, Timer};
 use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    main,
-    time::{Duration, Instant},
-};
 use esp_println::println;
-use lf_hal::{Hal, button::ButtonEvent};
+use lf_hal::button::ButtonEvent;
 use lf_hal_types::motors::PwmT;
 use line_follower::velocity_controller::{Gains, VelocityController};
 
@@ -26,13 +25,9 @@ const SETPOINTS: &[i16] = &[
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-#[main]
-fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
-    let p = esp_hal::init(esp_hal::Config::default());
-
-    let mut hal = Hal::new(p);
-    let delay = Delay::new();
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) {
+    let mut hal = line_follower::init!();
 
     let enc = hal.motors.encoders();
     let gains = Gains::from_standard(KP, TI, TD)
@@ -51,7 +46,7 @@ fn main() -> ! {
 
     let mut i = 0;
     loop {
-        delay.delay(PERIOD);
+        Timer::after(PERIOD).await;
 
         match hal.deck_button.poll_with_threshold(LONG_PRESS) {
             Some(ButtonEvent::LongPress) => {

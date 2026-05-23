@@ -1,8 +1,11 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
-use esp_hal::{delay::Delay, main};
 use esp_println::println;
 use lf_hal::{Hal, button::ButtonEvent};
 
@@ -10,44 +13,43 @@ esp_bootloader_esp_idf::esp_app_desc!();
 
 const DISTANCES_CM: [f32; 2] = [10.0, 50.0];
 const SAMPLE_COUNT: u32 = 500;
+const PRINT_INTERVAL: Duration = Duration::from_millis(500);
+const SAMPLE_INTERVAL: Duration = Duration::from_millis(5);
 
-fn wait_for_release(hal: &mut Hal<'_>) {
+async fn wait_for_release(hal: &mut Hal<'_>) {
     loop {
         if let Some(ButtonEvent::Release(_)) = hal.deck_button.poll() {
             return;
         }
+        Timer::after_millis(10).await;
     }
 }
 
-fn print_readings(hal: &mut Hal<'_>, delay: &Delay) {
+async fn print_readings(hal: &mut Hal<'_>) {
     loop {
         if let Some(ButtonEvent::Release(_)) = hal.deck_button.poll() {
             break;
         }
         let r = hal.read_range();
         println!("long = {} (raw = {})", r.distance_long(), r.raw);
-        delay.delay_millis(500);
+        Timer::after(PRINT_INTERVAL).await;
     }
 }
 
-fn sample_raw_average(hal: &mut Hal<'_>, delay: &Delay) -> f32 {
-    (0..SAMPLE_COUNT)
-        .map(|_| {
-            delay.delay_millis(5);
-            hal.read_range().raw as u32
-        })
-        .sum::<u32>() as f32
-        / SAMPLE_COUNT as f32
+async fn sample_raw_average(hal: &mut Hal<'_>) -> f32 {
+    let mut sum = 0u32;
+    for _ in 0..SAMPLE_COUNT {
+        Timer::after(SAMPLE_INTERVAL).await;
+        sum += hal.read_range().raw as u32;
+    }
+    sum as f32 / SAMPLE_COUNT as f32
 }
 
-#[main]
-fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
-    let p = esp_hal::init(esp_hal::Config::default());
-    let mut hal = Hal::new(p);
-    let delay = Delay::new();
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) {
+    let mut hal = line_follower::init!();
 
-    print_readings(&mut hal, &delay);
+    print_readings(&mut hal).await;
 
     let mut raws = [0f32; 2];
     for (i, &distance_cm) in DISTANCES_CM.iter().enumerate() {
@@ -55,8 +57,8 @@ fn main() -> ! {
             "Place object at {:.0} cm, then press the deck button.",
             distance_cm
         );
-        wait_for_release(&mut hal);
-        raws[i] = sample_raw_average(&mut hal, &delay);
+        wait_for_release(&mut hal).await;
+        raws[i] = sample_raw_average(&mut hal).await;
         println!("  raw avg = {:.1}", raws[i]);
     }
 

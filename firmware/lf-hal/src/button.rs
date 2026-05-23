@@ -1,7 +1,5 @@
-use esp_hal::{
-    gpio::{Input, InputConfig, InputPin, Pull},
-    time::{Duration, Instant},
-};
+use embassy_time::{Duration, Instant};
+use esp_hal::gpio::{Input, InputConfig, InputPin, Pull};
 
 const DEBOUNCE_TIME: Duration = Duration::from_millis(50);
 

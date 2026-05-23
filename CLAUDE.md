@@ -34,9 +34,14 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 
 ### Structure
 - `src/` — "Behavior" part of the robot firmware. Does not touch hardware directly.
-- `src/bin/` — Main binary and various testing binaries
+  - `init!()` macro — `esp_hal::init` + `Hal::setup` in one call. Evaluates to the `Hal`. Use in `#[esp_rtos::main]` entry.
+- `src/bin/` — Main binary and various testing binaries. Each calls `line_follower::init!()` at the top of `main`.
 - `lf-hal/` — HAL library (`Hal` struct, coordinates all hardware access)
+  - `Hal::setup(p)` — hardware + RTOS scheduler init.
 - `lf-hal-types/` — Public types used in the interface of lf-hal, to allow us to isolate the behavior API from HAL for testing.
+
+### Main binary entry point
+All binaries (main and test) use `#[esp_rtos::main]` (async Embassy entry) and `line_follower::init!()`.
 
 
 ### Environment

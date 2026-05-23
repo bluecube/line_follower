@@ -1,21 +1,23 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
 use esp_backtrace as _;
-use esp_hal::{delay::Delay, main, time::Duration};
+use esp_hal::delay::Delay;
 use esp_println::{print, println};
-use lf_hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
+use lf_hal::{button::ButtonEvent, line_sensor::LedIndex};
 use line_follower::line_detection::detect_line;
 
 const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-#[main]
-fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
-    let p = esp_hal::init(esp_hal::Config::default());
-    let mut hal = Hal::new(p);
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) {
+    let mut hal = line_follower::init!();
     let delay = Delay::new();
 
     let led_scan_sequence = [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1];
@@ -55,7 +57,7 @@ fn main() -> ! {
         for led_index in led_scan_sequence {
             hal.line_sensor
                 .enable_led(LedIndex::new(led_index).unwrap());
-            delay.delay(LED_SCAN_INTERVAL);
+            Timer::after(LED_SCAN_INTERVAL).await;
         }
     }
 }

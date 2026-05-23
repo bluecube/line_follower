@@ -1,12 +1,11 @@
 #![no_std]
 #![no_main]
 
+extern crate alloc;
+
+use embassy_executor::Spawner;
+use embassy_time::{Duration, Instant, Timer};
 use esp_backtrace as _;
-use esp_hal::{
-    delay::Delay,
-    main,
-    time::{Duration, Instant},
-};
 use esp_println::println;
 use lf_hal::{Hal, button::ButtonEvent, motors::PwmT};
 
@@ -35,13 +34,9 @@ enum PhaseAction {
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-#[main]
-fn main() -> ! {
-    esp_println::logger::init_logger_from_env();
-    let p = esp_hal::init(esp_hal::Config::default());
-
-    let mut hal = Hal::new(p);
-    let delay = Delay::new();
+#[esp_rtos::main]
+async fn main(_spawner: Spawner) {
+    let mut hal = line_follower::init!();
 
     println!("Motor test -- short press: next phase  long press: stop");
 
@@ -51,12 +46,12 @@ fn main() -> ! {
         let action = match phase {
             Phase::Running(i) => {
                 let (label, left, right) = PHASES[i];
-                run_phase(&mut hal, left, right, label)
+                run_phase(&mut hal, left, right, label).await
             }
-            Phase::Stopped => run_phase(&mut hal, 0, 0, "STOPPED"),
+            Phase::Stopped => run_phase(&mut hal, 0, 0, "STOPPED").await,
         };
 
-        brake(&mut hal, &delay);
+        brake(&mut hal).await;
 
         phase = match action {
             PhaseAction::Advance => match phase {
@@ -68,7 +63,7 @@ fn main() -> ! {
     }
 }
 
-fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> PhaseAction {
+async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> PhaseAction {
     println!("\n=== {}, pwm=({}, {}) ===", label, left, right);
     hal.motors
         .set(left.try_into().unwrap(), right.try_into().unwrap());
@@ -95,11 +90,12 @@ fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> PhaseActi
             last_enc = enc;
             last_sample = Instant::now();
         }
+        Timer::after_millis(1).await;
     }
 }
 
-fn brake(hal: &mut Hal<'_>, delay: &Delay) {
+async fn brake(hal: &mut Hal<'_>) {
     hal.motors.set(0.try_into().unwrap(), 0.try_into().unwrap());
     println!("--- braking ---");
-    delay.delay(BRAKE_TIME);
+    Timer::after(BRAKE_TIME).await;
 }

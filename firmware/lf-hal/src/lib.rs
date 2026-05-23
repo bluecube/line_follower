@@ -5,9 +5,12 @@ pub mod line_sensor;
 pub mod motors;
 
 use button::Button;
-use esp_hal::analog::adc::{AdcChannel, Attenuation, RegisterAccess};
-use esp_hal::gpio::{Level, Output, OutputConfig, Pin};
-use esp_hal::peripherals::{ADC2, Peripherals};
+use esp_hal::{
+    analog::adc::{AdcChannel, Attenuation, RegisterAccess},
+    gpio::{Level, Output, OutputConfig, Pin},
+    peripherals::{ADC2, Peripherals},
+    timer::timg::TimerGroup,
+};
 use lf_hal_types::{BatteryMeasurement, RangeMeasurement};
 use line_sensor::LineSensor;
 use motors::{MotorChannelPins, Motors};
@@ -23,10 +26,9 @@ pub struct Hal<'d> {
 }
 
 impl<'d> Hal<'d> {
-    pub fn new(p: Peripherals) -> Self {
-        // ── Remaining pin assignments (not yet implemented) ──────────
-        // I2C:                     SCL=GPIO22  SDA=GPIO21
-        // Accel interrupt:         GPIO18
+    /// Initialize hardware and the RTOS scheduler.
+    pub fn setup(p: Peripherals) -> Self {
+        esp_rtos::start(TimerGroup::new(p.TIMG0).timer0);
 
         // ADC2 is consumed by LineSensor, extract battery and range ADC pins before that
         // and then set attenuation using direct register access
