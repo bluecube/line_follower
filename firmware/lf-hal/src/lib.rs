@@ -74,11 +74,7 @@ impl<'d> Hal<'d> {
     }
 
     pub fn set_led(&mut self, on: bool) {
-        if on {
-            self.led.set_high();
-        } else {
-            self.led.set_low();
-        }
+        self.led.set_level(on.into());
     }
 
     pub fn read_battery(&self) -> BatteryMeasurement {
