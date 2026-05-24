@@ -34,14 +34,19 @@ Target: `xtensa-esp32-none-elf`. Toolchain is pinned in `rust-toolchain.toml` (`
 
 ### Structure
 - `src/` — "Behavior" part of the robot firmware. Does not touch hardware directly.
-  - `init!()` macro — `esp_hal::init` + `Hal::setup` in one call. Evaluates to the `Hal`. Use in `#[esp_rtos::main]` entry.
-- `src/bin/` — Main binary and various testing binaries. Each calls `line_follower::init!()` at the top of `main`.
+  - `ble` module — behavior-specific GATT services (NUS) and the concrete-typed `ble_task` Embassy task. `init_ble(spawner, &mut hal)` spawns the task.
+  - `ble_logger` module — custom `log::Log` that writes to serial and a 1 KB ring buffer.
+  - `init!(spawner)` macro — heap alloc + `esp_hal::init` + `Hal::setup` + BLE spawn + logger init in one call. Evaluates to the `Hal`. Use in `#[esp_rtos::main]` entry.
+- `src/bin/` — Main binary and various testing binaries. Each calls `line_follower::init!(spawner)` at the top of `main`.
 - `lf-hal/` — HAL library (`Hal` struct, coordinates all hardware access)
-  - `Hal::setup(p)` — hardware + RTOS scheduler init.
+  - `Hal::setup(p)` — hardware + RTOS scheduler init (no heap required).
+  - `Hal::init_bt_controller::<N>()` — returns `BleController<N>` (alias for `ExternalController<BleConnector<'static>, N>`). Requires a heap.
 - `lf-hal-types/` — Public types used in the interface of lf-hal, to allow us to isolate the behavior API from HAL for testing.
 
 ### Main binary entry point
-All binaries (main and test) use `#[esp_rtos::main]` (async Embassy entry) and `line_follower::init!()`.
+All binaries (main and test) use `#[esp_rtos::main]` (async Embassy entry) and `line_follower::init!(spawner)`.
+Log output goes to both UART and BLE NUS TX (Nordic UART Service, UUID `6E400003-...`).
+Connect with nRF Connect (Android) or `bleak` (Python/Linux) and subscribe to the TX characteristic.
 
 
 ### Environment

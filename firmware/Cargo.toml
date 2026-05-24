@@ -37,15 +37,19 @@ arrayvec = { version = "0.7.6", default-features = false }
 deranged = { version = "0.5.8", default-features = false }
 lf-hal-types = { path = "./lf-hal-types" }
 embassy-time = { version = "0.5", features = ["tick-hz-1_000_000"] }
+heapless = { version = "0.9" }
 
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 lf-hal = { path = "./lf-hal" }
+trouble-host = { version = "0.6", features = ["derive"] }
+static_cell = { version = "2.1" }
 embassy-futures = { version = "0.1" }
-embassy-sync = { version = "0.8" }
+embassy-sync = { version = "0.7" }
 esp-hal = { version = "~1.1", features = ["esp32", "log-04", "unstable"] }
 esp-rtos = { version = "0.3.0", features = [
   "embassy",
   "esp-alloc",
+  "esp-radio",
   "esp32",
   "log-04",
 ] }

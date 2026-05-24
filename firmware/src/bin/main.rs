@@ -7,6 +7,7 @@
 )]
 
 use embassy_executor::Spawner;
+use embassy_futures::yield_now;
 use esp_backtrace as _;
 
 extern crate alloc;
@@ -14,8 +15,10 @@ extern crate alloc;
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_rtos::main]
-async fn main(_spawner: Spawner) {
-    let _hal = line_follower::init!();
+async fn main(spawner: Spawner) {
+    let _hal = line_follower::init!(spawner);
 
-    loop {}
+    loop {
+        yield_now().await
+    }
 }

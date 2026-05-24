@@ -9,12 +9,17 @@ use esp_hal::{
     analog::adc::{AdcChannel, Attenuation, RegisterAccess},
     gpio::{Level, Output, OutputConfig, Pin},
     interrupt::software::SoftwareInterruptControl,
-    peripherals::{ADC2, Peripherals},
+    peripherals::{ADC2, BT, Peripherals},
     timer::timg::TimerGroup,
 };
+use esp_radio::ble::controller::BleConnector;
 use lf_hal_types::{BatteryMeasurement, RangeMeasurement};
 use line_sensor::LineSensor;
 use motors::{MotorChannelPins, Motors};
+use trouble_host::prelude::ExternalController;
+
+/// BLE controller type produced by [`Hal::init_bt_controller`].
+pub type BleController<const N: usize> = ExternalController<BleConnector<'static>, N>;
 
 pub struct Hal<'d> {
     pub motors: Motors<'d>,
@@ -24,6 +29,7 @@ pub struct Hal<'d> {
     led: Output<'d>,
     battery_adc_channel: u8,
     range_adc_channel: u8,
+    bt: Option<BT<'d>>,
 }
 
 impl<'d> Hal<'d> {
@@ -72,7 +78,25 @@ impl<'d> Hal<'d> {
             ),
             battery_adc_channel,
             range_adc_channel,
+            bt: Some(p.BT),
         }
+    }
+
+    /// Initialize the radio and return a BLE controller. Requires a heap.
+    /// Panics if called more than once.
+    pub fn init_bt_controller<const N: usize>(&mut self) -> BleController<N>
+    where
+        'd: 'static,
+    {
+        ExternalController::<_, N>::new(
+            BleConnector::new(
+                self.bt
+                    .take()
+                    .expect("init_bt_controller called more than once"),
+                esp_radio::ble::Config::default(),
+            )
+            .expect("BLE connector init failed"),
+        )
     }
 
     pub fn set_led(&mut self, on: bool) {
@@ -92,10 +116,11 @@ impl<'d> Hal<'d> {
     }
 
     fn read_adc2(&self, channel: u8) -> u16 {
-        ADC2::set_en_pad(channel);
-        ADC2::clear_start_sar();
-        ADC2::set_start_sar();
-        while !ADC2::read_done_sar() {}
-        ADC2::read_data_sar() as u16
+        // Critical section prevents the BLE PHY ISR from running a concurrent
+        // ADC2 conversion (for TX power detection) and corrupting the result.
+        critical_section::with(|_| {
+            line_sensor::LineSensor::start_adc2(channel);
+            line_sensor::LineSensor::read_adc::<ADC2>() as u16
+        })
     }
 }

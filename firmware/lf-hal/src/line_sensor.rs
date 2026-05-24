@@ -1,7 +1,7 @@
 use embassy_time::{Duration, Timer};
 use esp_hal::analog::adc::{Adc, AdcChannel, AdcConfig, Attenuation, RegisterAccess};
 use esp_hal::gpio::{AnalogPin, AnyPin, Flex};
-use esp_hal::peripherals::{ADC1, ADC2};
+use esp_hal::peripherals::{ADC1, ADC2, SENS};
 use lf_hal_types::line_sensor::SENSOR_COUNT;
 pub use lf_hal_types::line_sensor::{LedIndex, SensorReadings};
 
@@ -211,10 +211,12 @@ impl<'d> LineSensor<'d> {
                 Self::start_adc::<ADC1>(s.channel);
                 Self::read_adc::<ADC1>()
             }
-            AdcUnit::Adc2 => {
-                Self::start_adc::<ADC2>(s.channel);
+            // Critical section prevents the BLE PHY ISR from running a concurrent
+            // ADC2 conversion (for TX power detection) and corrupting the result.
+            AdcUnit::Adc2 => critical_section::with(|_| {
+                Self::start_adc2(s.channel);
                 Self::read_adc::<ADC2>()
-            }
+            }),
         }
     }
 
@@ -232,10 +234,13 @@ impl<'d> LineSensor<'d> {
             a.unit,
             b.unit
         );
-        Self::start_adc::<ADC1>(a.channel);
-        Self::start_adc::<ADC2>(b.channel);
-
-        [Self::read_adc::<ADC1>(), Self::read_adc::<ADC2>()]
+        // Critical section prevents the BLE PHY ISR from running a concurrent
+        // ADC2 conversion (for TX power detection) and corrupting the result.
+        critical_section::with(|_| {
+            Self::start_adc::<ADC1>(a.channel);
+            Self::start_adc2(b.channel);
+            [Self::read_adc::<ADC1>(), Self::read_adc::<ADC2>()]
+        })
     }
 
     fn start_adc<ADC: RegisterAccess>(channel: u8) {
@@ -244,7 +249,19 @@ impl<'d> LineSensor<'d> {
         ADC::set_start_sar();
     }
 
-    fn read_adc<ADC: RegisterAccess>() -> i16 {
+    pub(super) fn start_adc2(channel: u8) {
+        // BLE leaves SAR2_PWDET_FORCE=1 in SAR_READ_CTRL2 after TX power
+        // detection, routing the ADC2 input to the internal PWDET signal
+        // instead of the external GPIO pin. Clear it before each read.
+        // Must be called inside a critical section so the PHY ISR cannot
+        // observe the transient state.
+        SENS::regs()
+            .sar_read_ctrl2()
+            .modify(|_, w| w.sar2_pwdet_force().clear_bit());
+        Self::start_adc::<ADC2>(channel);
+    }
+
+    pub(super) fn read_adc<ADC: RegisterAccess>() -> i16 {
         while !ADC::read_done_sar() {}
         ADC::read_data_sar() as i16
     }

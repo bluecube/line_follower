@@ -10,6 +10,10 @@ esp-println = { version = "0.17.0", features = ["esp32", "log-04"] }
 critical-section = "1.2.0"
 lf-hal-types = { path = "../lf-hal-types" }
 log = "0.4"
+embassy-executor = { version = "0.10.0", default-features = false }
 embassy-time = "0.5"
 esp-alloc = "0.10.0"
-esp-rtos = { version = "0.3.0", features = ["embassy", "esp-alloc", "esp32", "log-04"] }
+esp-radio = { version = "0.18.0", features = ["ble", "esp-alloc", "esp32", "log-04", "unstable"] }
+esp-rtos = { version = "0.3.0", features = ["embassy", "esp-alloc", "esp-radio", "esp32", "log-04"] }
+static_cell = "2.1"
+trouble-host = { version = "0.6" }

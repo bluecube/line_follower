@@ -1,12 +1,12 @@
 #![no_std]
 #![no_main]
 
-extern crate alloc;
+use core::fmt::Write as _;
 
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Ticker};
 use esp_backtrace as _;
-use esp_println::{print, println};
+use heapless::String;
 use lf_hal::line_sensor::{LedIndex, LineSensor};
 use line_follower::line_detection::detect_line;
 
@@ -15,33 +15,37 @@ const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_rtos::main]
-async fn main(_spawner: Spawner) {
-    let mut hal = line_follower::init!();
+async fn main(spawner: Spawner) {
+    let mut hal = line_follower::init!(spawner);
 
     loop {
         let buf = hal.line_sensor.read().await;
-        print!("Raw:");
+        let mut s: String<64> = String::new();
+        let _ = write!(s, "Raw:");
         for v in buf.values {
-            print!(" {:4}", v);
+            let _ = write!(s, " {:4}", v);
         }
-        println!();
+        log::info!("{}", s);
 
         let detections = detect_line(&buf);
-        println!("Detections:");
         if detections.is_empty() {
-            println!(" no line");
+            log::info!("Detections: no line");
+        } else {
+            let mut s: String<128> = String::new();
+            let _ = write!(s, "Detections:");
+            for d in &detections {
+                let _ = write!(s, " {:+.3}({:.2})", d.position, d.strength);
+            }
+            log::info!("{}", s);
         }
-        for d in &detections {
-            print!(" {:+.3}({:.2})", d.position, d.strength);
-        }
-        println!();
 
         let buf = hal.line_sensor.read_raw();
-        print!("Ambient:");
+        let mut s: String<64> = String::new();
+        let _ = write!(s, "Ambient:");
         for v in buf {
-            print!(" {:4}", v);
+            let _ = write!(s, " {:4}", v);
         }
-        println!();
+        log::info!("{}", s);
 
         led_scan(&mut hal.line_sensor, LED_SCAN_INTERVAL).await;
     }

@@ -7,7 +7,6 @@ use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_time::{Duration, Ticker, Timer};
 use esp_backtrace as _;
-use esp_println::println;
 use lf_hal::{Hal, button::ButtonEvent, motors::PwmT};
 
 const TEST_PWM: i16 = PwmT::MAX.get() * 3 / 4;
@@ -36,10 +35,10 @@ enum PhaseAction {
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_rtos::main]
-async fn main(_spawner: Spawner) {
-    let mut hal = line_follower::init!();
+async fn main(spawner: Spawner) {
+    let mut hal = line_follower::init!(spawner);
 
-    println!("Motor test -- short press: next phase  long press: stop");
+    log::info!("Motor test -- short press: next phase  long press: stop");
 
     let mut phase = Phase::Stopped;
 
@@ -65,7 +64,7 @@ async fn main(_spawner: Spawner) {
 }
 
 async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> PhaseAction {
-    println!("\n=== {}, pwm=({}, {}) ===", label, left, right);
+    log::info!("=== {}, pwm=({}, {}) ===", label, left, right);
     hal.motors
         .set(left.try_into().unwrap(), right.try_into().unwrap());
 
@@ -87,7 +86,7 @@ async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> Pha
                 let enc = hal.motors.encoders();
                 let vel_l = enc.0.wrapping_sub(last_enc.0) as f32 / sample_secs;
                 let vel_r = enc.1.wrapping_sub(last_enc.1) as f32 / sample_secs;
-                println!(
+                log::info!(
                     "enc=({:6},{:6})  vel=({:6.0},{:6.0}) ticks/s",
                     enc.0, enc.1, vel_l, vel_r
                 );
@@ -99,6 +98,6 @@ async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> Pha
 
 async fn brake(hal: &mut Hal<'_>) {
     hal.motors.set(0.try_into().unwrap(), 0.try_into().unwrap());
-    println!("--- braking ---");
+    log::info!("--- braking ---");
     Timer::after(BRAKE_TIME).await;
 }

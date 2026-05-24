@@ -7,7 +7,6 @@ use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_time::{Duration, Instant, Ticker};
 use esp_backtrace as _;
-use esp_println::println;
 use lf_hal::button::ButtonEvent;
 use lf_hal_types::motors::PwmT;
 use line_follower::velocity_controller::{Gains, VelocityController};
@@ -27,21 +26,21 @@ const SETPOINTS: &[i16] = &[
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_rtos::main]
-async fn main(_spawner: Spawner) {
-    let mut hal = line_follower::init!();
+async fn main(spawner: Spawner) {
+    let mut hal = line_follower::init!(spawner);
 
     let enc = hal.motors.encoders();
     let gains = Gains::from_standard(KP, TI, TD)
         .unwrap()
         .with_stiction(STICTION_PWM);
-    println!("gains: {:?}", &gains);
+    log::info!("gains: {:?}", &gains);
 
     let mut controller = VelocityController::new(gains, enc);
 
     let mut sp_index: usize = 0;
     let mut current_setpoint = SETPOINTS[sp_index];
 
-    println!("# deck short: cycle setpoints  deck long: stop  boot short: reverse");
+    log::info!("# deck short: cycle setpoints  deck long: stop  boot short: reverse");
 
     let mut ticker = Ticker::every(PERIOD);
     let mut last_t = Instant::now();
@@ -54,7 +53,7 @@ async fn main(_spawner: Spawner) {
                     sp_index = 0;
                     current_setpoint = 0;
                     controller.reset(hal.motors.encoders());
-                    println!("reset");
+                    log::info!("reset");
                 }
                 Either::First(ButtonEvent::Release) => {
                     sp_index = (sp_index + 1) % SETPOINTS.len();
@@ -73,7 +72,7 @@ async fn main(_spawner: Spawner) {
         hal.motors.set(l.motor_pwm, r.motor_pwm);
 
         if i == 10 {
-            println!(
+            log::info!(
                 "setpoints: {}, velocity: ({},{}), pwm: ({},{}), dt: {} ms",
                 current_setpoint,
                 l.velocity,
