@@ -8,6 +8,7 @@ use button::Button;
 use esp_hal::{
     analog::adc::{AdcChannel, Attenuation, RegisterAccess},
     gpio::{Level, Output, OutputConfig, Pin},
+    interrupt::software::SoftwareInterruptControl,
     peripherals::{ADC2, Peripherals},
     timer::timg::TimerGroup,
 };
@@ -28,7 +29,8 @@ pub struct Hal<'d> {
 impl<'d> Hal<'d> {
     /// Initialize hardware and the RTOS scheduler.
     pub fn setup(p: Peripherals) -> Self {
-        esp_rtos::start(TimerGroup::new(p.TIMG0).timer0);
+        let sw_ints = SoftwareInterruptControl::new(p.SW_INTERRUPT);
+        esp_rtos::start(TimerGroup::new(p.TIMG0).timer0, sw_ints.software_interrupt0);
 
         // ADC2 is consumed by LineSensor, extract battery and range ADC pins before that
         // and then set attenuation using direct register access
