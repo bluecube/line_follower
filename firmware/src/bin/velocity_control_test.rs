@@ -64,9 +64,9 @@ async fn main(_spawner: Spawner) {
 
         let enc = hal.motors.encoders();
         let now = Instant::now();
-        let dt_us = (now - last_t).as_micros() as u32;
+        let dt = now - last_t;
         last_t = now;
-        let (l, r) = controller.update(enc, (current_setpoint, current_setpoint), dt_us);
+        let (l, r) = controller.update(enc, (current_setpoint, current_setpoint), dt);
         hal.motors.set(l.motor_pwm, r.motor_pwm);
 
         if i == 10 {
@@ -77,7 +77,7 @@ async fn main(_spawner: Spawner) {
                 r.velocity,
                 l.motor_pwm.get(),
                 r.motor_pwm.get(),
-                dt_us / 1000
+                dt.as_millis()
             );
             i = 0;
         } else {

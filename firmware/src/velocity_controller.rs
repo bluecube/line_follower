@@ -1,7 +1,7 @@
+use embassy_time::{Duration, TICK_HZ};
 use lf_hal_types::motors::{MAX_SPEED, PwmT};
 
 const GAIN_SCALE: i32 = 4096;
-const MICROS_PER_SECOND: i32 = 1_000_000;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Gains {
@@ -83,7 +83,7 @@ impl WheelController {
     }
 
     /// Updates the wheel velocity controller and returns the new PWM command
-    /// - `dt_us` must be in the range (0, 120_000] (120ms)
+    /// - `dt` must be in the range (0ms, 120ms]
     /// - Velocity is limited by the measured motor maximum of +-15_000 ticks/s (= ~4.5m/s)
     /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2, a value that is more of an
     /// educated guess)
@@ -92,18 +92,16 @@ impl WheelController {
         gains: &Gains,
         current_ticks: i16,
         setpoint: i16,
-        dt_us: u32,
+        dt: Duration,
     ) -> WheelUpdateResult {
-        // Input range requirements
-        debug_assert!(dt_us > 0 && dt_us <= 120_000, "Input range requirement");
-
-        let dt_us = dt_us as i32;
+        debug_assert!(dt > Duration::from_ticks(0) && dt <= Duration::from_millis(120));
+        let dt_ticks = dt.as_ticks() as i32;
 
         let tick_delta = current_ticks.wrapping_sub(self.last_ticks) as i32;
         self.last_ticks = current_ticks;
         debug_assert!(tick_delta.abs() <= 1800);
 
-        let velocity = tick_delta * MICROS_PER_SECOND / dt_us;
+        let velocity = tick_delta * TICK_HZ as i32 / dt_ticks;
         debug_assert!(
             velocity.abs() <= MAX_SPEED as i32,
             "Input range requirement"
@@ -113,13 +111,12 @@ impl WheelController {
         debug_assert!(error.abs() < 48_000);
 
         let integral_update =
-            (gains.ki as i64 * error as i64 * dt_us as i64 / MICROS_PER_SECOND as i64) as i32;
+            (gains.ki as i64 * error as i64 * dt_ticks as i64 / TICK_HZ as i64) as i32;
         self.integral += integral_update;
 
         let velocity_change = velocity - self.last_velocity;
         self.last_velocity = velocity;
-        let acceleration =
-            (velocity_change as i64 * MICROS_PER_SECOND as i64 / dt_us as i64) as i32;
+        let acceleration = (velocity_change as i64 * TICK_HZ as i64 / dt_ticks as i64) as i32;
         debug_assert!(acceleration.abs() < 60_000, "Input range requirement");
 
         let stiction_ff = if setpoint > 0 {
@@ -185,7 +182,7 @@ impl VelocityController {
     }
 
     /// Updates the velocity controller and returns the new PWM commands and stats
-    /// - `dt_us` must be in the range (0, 120_000] (120ms).
+    /// - `dt` must be in the range (0ms, 120ms].
     /// - Velocity is limited by the measured motor maximum of +-15_000 ticks/s (= ~4.5m/s)
     /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2, a value that is more of an
     /// educated guess).
@@ -193,13 +190,13 @@ impl VelocityController {
         &mut self,
         encoder_ticks: (i16, i16),
         velocity_setpoints: (i16, i16),
-        dt_us: u32,
+        dt: Duration,
     ) -> (WheelUpdateResult, WheelUpdateResult) {
         (
             self.left
-                .update(&self.gains, encoder_ticks.0, velocity_setpoints.0, dt_us),
+                .update(&self.gains, encoder_ticks.0, velocity_setpoints.0, dt),
             self.right
-                .update(&self.gains, encoder_ticks.1, velocity_setpoints.1, dt_us),
+                .update(&self.gains, encoder_ticks.1, velocity_setpoints.1, dt),
         )
     }
 
@@ -213,9 +210,10 @@ impl VelocityController {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use embassy_time::TICK_HZ;
     use test_strategy::proptest;
 
-    const DT_10MS: u32 = 10_000;
+    const DT_10MS: Duration = Duration::from_millis(10);
 
     #[test]
     fn test_wrapping_tick_delta() {
@@ -244,14 +242,17 @@ mod tests {
 
     #[proptest]
     fn pwm_output_clamps(
-        #[strategy(10_000u32..=120_000)] dt_us: u32,
+        #[strategy(10_000u64..=120_000)] dt_ticks: u64,
         #[strategy(-(MAX_SPEED as f32)..=MAX_SPEED as f32)] velocity: f32,
         #[strategy(-15000i16..=15000)] setpoint: i16,
         #[strategy(0i32..=2048)] kp: i32, // stored value, corresponds to kp_float up to 0.5
     ) {
-        // Skip cases where going from rest to this velocity would exceed the acceleration limit
-        proptest::prop_assume!(velocity.abs() < 60_000.0 * dt_us as f32 / 1_000_000.0);
-        let ticks = (velocity * dt_us as f32 / 1_000_000.0) as i16;
+        let dt = Duration::from_ticks(dt_ticks);
+        let dt_secs = dt_ticks as f32 / TICK_HZ as f32;
+        // The controller starts with last_velocity=0, so on the first call acceleration =
+        // velocity / dt_secs. Skip cases where that would exceed the 60_000 ticks/s^2 limit.
+        proptest::prop_assume!(velocity.abs() < 60_000.0 * dt_secs);
+        let ticks = (velocity * dt_secs) as i16;
         let gains = Gains {
             kp,
             ki: 100,
@@ -259,7 +260,7 @@ mod tests {
             stiction_pwm: 0,
         };
         let mut ctrl = WheelController::new(0);
-        let out = ctrl.update(&gains, ticks, setpoint, dt_us);
+        let out = ctrl.update(&gains, ticks, setpoint, dt);
         assert!(out.motor_pwm.get() >= -1024 && out.motor_pwm.get() <= 1024);
     }
 
@@ -329,10 +330,10 @@ mod tests {
         let gains = Gains::new(0.05, 0.0, 0.0).unwrap();
 
         let mut ctrl_a = WheelController::new(0);
-        let out_a = ctrl_a.update(&gains, 5, 0, 10_000); // 5 ticks/10ms = 500/s
+        let out_a = ctrl_a.update(&gains, 5, 0, Duration::from_millis(10)); // 5 ticks/10ms = 500/s
 
         let mut ctrl_b = WheelController::new(0);
-        let out_b = ctrl_b.update(&gains, 10, 0, 20_000); // 10 ticks/20ms = 500/s
+        let out_b = ctrl_b.update(&gains, 10, 0, Duration::from_millis(20)); // 10 ticks/20ms = 500/s
 
         assert_eq!(
             out_a.motor_pwm, out_b.motor_pwm,
@@ -346,11 +347,11 @@ mod tests {
         let gains = Gains::new(0.0, 1.0, 0.0).unwrap();
 
         let mut ctrl_a = WheelController::new(0);
-        ctrl_a.update(&gains, 5, 0, 10_000);
-        let out_a = ctrl_a.update(&gains, 10, 0, 10_000);
+        ctrl_a.update(&gains, 5, 0, Duration::from_millis(10));
+        let out_a = ctrl_a.update(&gains, 10, 0, Duration::from_millis(10));
 
         let mut ctrl_b = WheelController::new(0);
-        let out_b = ctrl_b.update(&gains, 10, 0, 20_000);
+        let out_b = ctrl_b.update(&gains, 10, 0, Duration::from_millis(20));
 
         assert_eq!(
             out_a.motor_pwm, out_b.motor_pwm,
@@ -395,8 +396,8 @@ mod tests {
 
         // ctrl_b: 0→600 ticks/s in 20ms, then 600→1200 ticks/s in 20ms (accel = 30_000 ticks/s²)
         let mut ctrl_b = WheelController::new(0);
-        ctrl_b.update(&gains, 12, 0, 20_000);
-        let out_b = ctrl_b.update(&gains, 36, 0, 20_000);
+        ctrl_b.update(&gains, 12, 0, Duration::from_millis(20));
+        let out_b = ctrl_b.update(&gains, 36, 0, Duration::from_millis(20));
 
         assert_eq!(
             out_a.motor_pwm, out_b.motor_pwm,
