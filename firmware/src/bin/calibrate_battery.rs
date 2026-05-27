@@ -4,10 +4,11 @@
 extern crate alloc;
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
+use embassy_futures::select::select;
+use embassy_time::{Duration, Ticker, Timer};
 use esp_backtrace as _;
 use esp_println::println;
-use lf_hal::{Hal, button::ButtonEvent};
+use lf_hal::Hal;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -16,23 +17,17 @@ const SAMPLE_COUNT: u32 = 500;
 const PRINT_INTERVAL: Duration = Duration::from_millis(500);
 const SAMPLE_INTERVAL: Duration = Duration::from_millis(5);
 
-async fn wait_for_release(hal: &mut Hal<'_>) {
-    loop {
-        if let Some(ButtonEvent::Release(_)) = hal.deck_button.poll() {
-            return;
-        }
-        Timer::after_millis(10).await;
-    }
-}
-
 async fn print_voltages(hal: &mut Hal<'_>) {
+    let mut ticker = Ticker::every(PRINT_INTERVAL);
     loop {
-        if let Some(ButtonEvent::Release(_)) = hal.deck_button.poll() {
-            break;
-        }
         let v = hal.read_battery();
         println!("voltage = {:.2} V (raw = {})", v.voltage(), v.raw);
-        Timer::after(PRINT_INTERVAL).await;
+        if select(ticker.next(), hal.deck_button.released())
+            .await
+            .is_second()
+        {
+            return;
+        }
     }
 }
 
@@ -57,7 +52,8 @@ async fn main(_spawner: Spawner) {
             "Set battery to {:.0} V, then press the deck button.",
             voltage
         );
-        wait_for_release(&mut hal).await;
+        hal.deck_button.released().await;
+        println!("averaging...");
         raws[i] = sample_raw_average(&mut hal).await;
         println!("  raw avg = {:.1}", raws[i]);
     }

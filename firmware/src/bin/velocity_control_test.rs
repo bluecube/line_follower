@@ -4,7 +4,8 @@
 extern crate alloc;
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Instant, Timer};
+use embassy_futures::select::{Either, select};
+use embassy_time::{Duration, Instant, Ticker};
 use esp_backtrace as _;
 use esp_println::println;
 use lf_hal::button::ButtonEvent;
@@ -42,24 +43,26 @@ async fn main(_spawner: Spawner) {
 
     println!("# deck short: cycle setpoints  deck long: stop  boot short: reverse");
 
+    let mut ticker = Ticker::every(PERIOD);
     let mut last_t = Instant::now();
 
     let mut i = 0;
     loop {
-        Timer::after(PERIOD).await;
-
-        match hal.deck_button.poll_with_threshold(LONG_PRESS) {
-            Some(ButtonEvent::LongPress) => {
-                sp_index = 0;
-                current_setpoint = 0;
-                controller.reset(hal.motors.encoders());
-                println!("reset");
+        loop {
+            match select(hal.deck_button.next_event(Some(LONG_PRESS)), ticker.next()).await {
+                Either::First(ButtonEvent::LongPress) => {
+                    sp_index = 0;
+                    current_setpoint = 0;
+                    controller.reset(hal.motors.encoders());
+                    println!("reset");
+                }
+                Either::First(ButtonEvent::Release) => {
+                    sp_index = (sp_index + 1) % SETPOINTS.len();
+                    current_setpoint = SETPOINTS[sp_index];
+                }
+                Either::First(_) => {}
+                Either::Second(_) => break,
             }
-            Some(ButtonEvent::Release(_)) => {
-                sp_index = (sp_index + 1) % SETPOINTS.len();
-                current_setpoint = SETPOINTS[sp_index];
-            }
-            _ => {}
         }
 
         let enc = hal.motors.encoders();

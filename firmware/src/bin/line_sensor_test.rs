@@ -4,11 +4,11 @@
 extern crate alloc;
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
+use embassy_time::{Duration, Ticker};
 use esp_backtrace as _;
 use esp_hal::delay::Delay;
 use esp_println::{print, println};
-use lf_hal::{button::ButtonEvent, line_sensor::LedIndex};
+use lf_hal::line_sensor::{LedIndex, LineSensor};
 use line_follower::line_detection::detect_line;
 
 const LED_SCAN_INTERVAL: Duration = Duration::from_millis(50);
@@ -20,15 +20,7 @@ async fn main(_spawner: Spawner) {
     let mut hal = line_follower::init!();
     let delay = Delay::new();
 
-    let led_scan_sequence = [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1];
-    let mut led_on = false;
-
     loop {
-        if let Some(ButtonEvent::Release(_)) = hal.boot_button.poll() {
-            led_on = !led_on;
-            hal.set_led(led_on);
-        }
-
         let buf = hal.line_sensor.read(&delay);
         print!("Raw:");
         for v in buf.values {
@@ -53,11 +45,14 @@ async fn main(_spawner: Spawner) {
         }
         println!();
 
-        // Using the LED scan animation as a delay.
-        for led_index in led_scan_sequence {
-            hal.line_sensor
-                .enable_led(LedIndex::new(led_index).unwrap());
-            Timer::after(LED_SCAN_INTERVAL).await;
-        }
+        led_scan(&mut hal.line_sensor, LED_SCAN_INTERVAL).await;
+    }
+}
+
+async fn led_scan(line_sensor: &mut LineSensor<'_>, interval: Duration) {
+    let mut ticker = Ticker::every(interval);
+    for i in [0usize, 1, 2, 3, 4, 5, 4, 3, 2, 1] {
+        line_sensor.enable_led(LedIndex::new(i).unwrap());
+        ticker.next().await;
     }
 }

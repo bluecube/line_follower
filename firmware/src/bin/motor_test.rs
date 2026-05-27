@@ -4,7 +4,8 @@
 extern crate alloc;
 
 use embassy_executor::Spawner;
-use embassy_time::{Duration, Instant, Timer};
+use embassy_futures::select::{Either, select};
+use embassy_time::{Duration, Ticker, Timer};
 use esp_backtrace as _;
 use esp_println::println;
 use lf_hal::{Hal, button::ButtonEvent, motors::PwmT};
@@ -69,28 +70,30 @@ async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> Pha
         .set(left.try_into().unwrap(), right.try_into().unwrap());
 
     let mut last_enc = hal.motors.encoders();
-    let mut last_sample = Instant::now();
+    let mut ticker = Ticker::every(SAMPLE_TIME);
+    let sample_secs = SAMPLE_TIME.as_micros() as f32 / 1e6;
 
     loop {
-        match hal.deck_button.poll_with_threshold(LONG_PRESS_TIME) {
-            Some(ButtonEvent::LongPress) => return PhaseAction::Stop,
-            Some(ButtonEvent::Release(_)) => return PhaseAction::Advance,
-            _ => {}
+        match select(
+            hal.deck_button.next_event(Some(LONG_PRESS_TIME)),
+            ticker.next(),
+        )
+        .await
+        {
+            Either::First(ButtonEvent::LongPress) => return PhaseAction::Stop,
+            Either::First(ButtonEvent::Release) => return PhaseAction::Advance,
+            Either::First(_) => {}
+            Either::Second(_) => {
+                let enc = hal.motors.encoders();
+                let vel_l = enc.0.wrapping_sub(last_enc.0) as f32 / sample_secs;
+                let vel_r = enc.1.wrapping_sub(last_enc.1) as f32 / sample_secs;
+                println!(
+                    "enc=({:6},{:6})  vel=({:6.0},{:6.0}) ticks/s",
+                    enc.0, enc.1, vel_l, vel_r
+                );
+                last_enc = enc;
+            }
         }
-        let elapsed = last_sample.elapsed();
-        if elapsed >= SAMPLE_TIME {
-            let elapsed_secs = elapsed.as_micros() as f32 / 1e6;
-            let enc = hal.motors.encoders();
-            let vel_l = enc.0.wrapping_sub(last_enc.0) as f32 / elapsed_secs;
-            let vel_r = enc.1.wrapping_sub(last_enc.1) as f32 / elapsed_secs;
-            println!(
-                "enc=({:6},{:6})  vel=({:6.0},{:6.0}) ticks/s",
-                enc.0, enc.1, vel_l, vel_r
-            );
-            last_enc = enc;
-            last_sample = Instant::now();
-        }
-        Timer::after_millis(1).await;
     }
 }
 
