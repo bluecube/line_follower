@@ -6,7 +6,6 @@ extern crate alloc;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Ticker};
 use esp_backtrace as _;
-use esp_hal::delay::Delay;
 use esp_println::{print, println};
 use lf_hal::line_sensor::{LedIndex, LineSensor};
 use line_follower::line_detection::detect_line;
@@ -18,10 +17,9 @@ esp_bootloader_esp_idf::esp_app_desc!();
 #[esp_rtos::main]
 async fn main(_spawner: Spawner) {
     let mut hal = line_follower::init!();
-    let delay = Delay::new();
 
     loop {
-        let buf = hal.line_sensor.read(&delay);
+        let buf = hal.line_sensor.read().await;
         print!("Raw:");
         for v in buf.values {
             print!(" {:4}", v);

@@ -1,8 +1,7 @@
+use embassy_time::{Duration, Timer};
 use esp_hal::analog::adc::{Adc, AdcChannel, AdcConfig, Attenuation, RegisterAccess};
-use esp_hal::delay::Delay;
 use esp_hal::gpio::{AnalogPin, AnyPin, Flex};
 use esp_hal::peripherals::{ADC1, ADC2};
-use esp_hal::time::Duration;
 use lf_hal_types::line_sensor::SENSOR_COUNT;
 pub use lf_hal_types::line_sensor::{LedIndex, SensorReadings};
 
@@ -133,9 +132,9 @@ impl<'d> LineSensor<'d> {
 
     /// Performs a full line sensor read with ambient light subtraction.
     /// Index 0 is on the left side of the robot.
-    pub fn read(&mut self, delay: &Delay) -> SensorReadings {
-        let mut buffer = self.read_with_leds(delay);
-        self.subtract_ambient(delay, &mut buffer);
+    pub async fn read(&mut self) -> SensorReadings {
+        let mut buffer = self.read_with_leds().await;
+        self.subtract_ambient(&mut buffer).await;
         SensorReadings { values: buffer }
     }
 
@@ -151,26 +150,26 @@ impl<'d> LineSensor<'d> {
     }
 
     /// Illuminate each LED in sequence and read the adjacent sensor(s).
-    fn read_with_leds(&mut self, delay: &Delay) -> SensorBuffer {
+    async fn read_with_leds(&mut self) -> SensorBuffer {
         let mut buffer = [0i16; SENSOR_COUNT];
 
         // LED 0: only reads sensor 0
         self.enable_led(LedIndex::MIN);
-        delay.delay(SETTLE_TIME);
+        Timer::after(SETTLE_TIME).await;
         buffer[0] = self.read_single(0);
 
         // LEDs in the middle: each illuminates between sensors (i-1) and i
         // Separating odd first, then even, to have the ADC1 and ADC2 ordering fixed
         for i in (1..(LED_COUNT - 2)).step_by(2) {
             self.enable_led(LedIndex::new(i).unwrap());
-            delay.delay(SETTLE_TIME);
+            Timer::after(SETTLE_TIME).await;
             let [va, vb] = self.read_pair(i - 1, i);
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
         }
         for i in (2..(LED_COUNT - 1)).step_by(2) {
             self.enable_led(LedIndex::new(i).unwrap());
-            delay.delay(SETTLE_TIME);
+            Timer::after(SETTLE_TIME).await;
             let [vb, va] = self.read_pair(i, i - 1);
             buffer[2 * i - 1] = va;
             buffer[2 * i] = vb;
@@ -178,16 +177,16 @@ impl<'d> LineSensor<'d> {
 
         // last LED: only reads last sensor
         self.enable_led(LedIndex::MAX);
-        delay.delay(SETTLE_TIME);
+        Timer::after(SETTLE_TIME).await;
         buffer[SENSOR_COUNT - 1] = self.read_single(PHOTOTRANSISTOR_COUNT - 1);
 
         buffer
     }
 
-    /// Reads the ambient light with LEDs disabled and  subtracts the values from `buffer`.
-    fn subtract_ambient(&mut self, delay: &Delay, buffer: &mut SensorBuffer) {
+    /// Reads the ambient light with LEDs disabled and subtracts the values from `buffer`.
+    async fn subtract_ambient(&mut self, buffer: &mut SensorBuffer) {
         self.disable_leds();
-        delay.delay(SETTLE_TIME);
+        Timer::after(SETTLE_TIME).await;
 
         for (i, ambient) in self.read_ambient_iter().enumerate() {
             buffer[2 * i] -= ambient;
