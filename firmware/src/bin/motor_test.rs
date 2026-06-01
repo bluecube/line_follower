@@ -88,7 +88,10 @@ async fn run_phase(hal: &mut Hal<'_>, left: i16, right: i16, label: &str) -> Pha
                 let vel_r = enc.1.wrapping_sub(last_enc.1) as f32 / sample_secs;
                 log::info!(
                     "enc=({:6},{:6})  vel=({:6.0},{:6.0}) ticks/s",
-                    enc.0, enc.1, vel_l, vel_r
+                    enc.0,
+                    enc.1,
+                    vel_l,
+                    vel_r
                 );
                 last_enc = enc;
             }

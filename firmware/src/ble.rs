@@ -105,7 +105,7 @@ async fn advertise<'a, C: Controller>(
 }
 
 async fn nus_task<P: PacketPool>(server: &NusServer<'_>, conn: &GattConnection<'_, '_, P>) {
-    use embassy_futures::select::{select, Either};
+    use embassy_futures::select::{Either, select};
     loop {
         match select(crate::ble_logger::read_log_bytes(), conn.next()).await {
             Either::First(chunk) => {
