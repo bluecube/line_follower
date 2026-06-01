@@ -1,5 +1,5 @@
-use arrayvec::ArrayVec;
 use deranged::RangedI16;
+use heapless::Vec;
 use lf_hal_types::line_sensor::SensorReadings;
 
 const POSITION_RANGE: i16 = 1024;
@@ -16,23 +16,21 @@ pub struct LineDetection {
     pub strength: u16,
 }
 
-fn push_detection(detections: &mut ArrayVec<LineDetection, 2>, new: LineDetection) {
+fn push_detection(detections: &mut Vec<LineDetection, 2>, new: LineDetection) {
     if new.strength < MIN_STRENGTH {
         return;
     }
-    if let Err(err) = detections.try_push(new) {
-        let new = err.element();
-        if let Some(weakest) = detections
+    if let Err(new) = detections.push(new)
+        && let Some(weakest) = detections
             .iter_mut()
             .min_by_key(|d| d.strength)
             .filter(|w| new.strength > w.strength)
-        {
-            *weakest = new;
-        }
+    {
+        *weakest = new;
     }
 }
 
-pub fn detect_line(readings: &SensorReadings) -> ArrayVec<LineDetection, 2> {
+pub fn detect_line(readings: &SensorReadings) -> Vec<LineDetection, 2> {
     let readings = &readings.values;
     let n = readings.len();
 
@@ -41,7 +39,7 @@ pub fn detect_line(readings: &SensorReadings) -> ArrayVec<LineDetection, 2> {
 
     let cluster_threshold = (max - min) * CLUSTER_THRESHOLD_PCT / 100;
 
-    let mut result = ArrayVec::new();
+    let mut result = Vec::new();
 
     // Maps weighted centroid index to output position range.
     let cluster_position = |centroid_sum: i32, sum: i32| -> RangedI16<-1024, 1024> {

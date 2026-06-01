@@ -33,7 +33,6 @@ name = "velocity_control_test"
 test = false
 
 [dependencies]
-arrayvec = { version = "0.7.6", default-features = false }
 deranged = { version = "0.5.8", default-features = false }
 lf-hal-types = { path = "./lf-hal-types" }
 embassy-time = { version = "0.5", features = ["tick-hz-1_000_000"] }
