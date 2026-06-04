@@ -91,6 +91,10 @@ impl<'d> Motors<'d> {
         );
     }
 
+    pub fn stop(&mut self) {
+        self.set(PwmT::new_static::<0>(), PwmT::new_static::<0>());
+    }
+
     pub fn encoders(&self) -> (i16, i16) {
         (self.left_counter.get(), self.right_counter.get())
     }
