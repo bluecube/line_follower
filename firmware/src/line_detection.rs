@@ -8,10 +8,12 @@ const MIN_STRENGTH: u16 = 1000;
 /// Sensors must exceed this fraction of the peak anomaly to join a cluster.
 const CLUSTER_THRESHOLD_PCT: i32 = 30;
 
+pub type PositionT = RangedI16<{ -POSITION_RANGE }, POSITION_RANGE>;
+
 #[derive(Clone, Copy, Debug)]
 pub struct LineDetection {
     /// Center of the detection. Negative left, positive right.
-    pub position: RangedI16<{ -POSITION_RANGE }, POSITION_RANGE>,
+    pub position: PositionT,
     /// Total cluster anomaly. TODO: Figure out and specify range
     pub strength: u16,
 }
