@@ -7,7 +7,7 @@ use core::fmt::Write as _;
 
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
-use embassy_time::{Duration, Timer, with_timeout};
+use embassy_time::{Duration, Instant, Timer, WithTimeout as _};
 use esp_backtrace as _;
 use heapless::String;
 use lf_hal::{
@@ -61,10 +61,11 @@ macro_rules! test_section {
 const LONG_PRESS: Duration = Duration::from_millis(800);
 const BLINK_LED_ON: Duration = Duration::from_millis(200);
 const BLINK_LED_OFF: Duration = Duration::from_millis(200);
-const MOTOR_PWM: i16 = PwmT::MAX.get() * 3 / 4;
-const MOTOR_RUN: Duration = Duration::from_secs(3);
-const MOTOR_BRAKE: Duration = Duration::from_millis(400);
-const ENCODER_THRESHOLD: i32 = 50;
+const MOTOR_LOW_PERCENT: i32 = 75;
+const MOTOR_HIGH_PERCENT: i32 = 100;
+const MOTOR_LOW_TIME: Duration = Duration::from_secs(2);
+const MOTOR_HIGH_TIME: Duration = Duration::from_secs(1);
+const VELOCITY_THRESHOLD: i32 = 1; // Ticks per millisecond
 const ADC_SAMPLES: u32 = 16;
 const LED_SENSOR_THRESHOLD: i16 = 200;
 
@@ -185,73 +186,152 @@ async fn test_line_detection(hal: &mut Hal<'_>) -> Option<()> {
     Some(())
 }
 
+enum PhaseOutcome {
+    Completed { delta: i32 },
+    Skipped,
+}
+
+/// Builds a signed PWM value from a power percentage and a direction (`+1`/`-1`).
+fn motor_pwm(percent: i32, direction: i16) -> PwmT {
+    PwmT::new(direction * (PwmT::MAX.get() as i32 * percent / 100) as i16).unwrap()
+}
+
 async fn test_motors(hal: &mut Hal<'_>) -> Option<()> {
     test_section!("Motors + encoders");
     log::warn!("RAISE ROBOT off the ground");
     wait_for_continue(hal).await?;
 
-    const PHASES: [(&str, i16, i16); 4] = [
-        ("Left forward", MOTOR_PWM, 0),
-        ("Left backward", -MOTOR_PWM, 0),
-        ("Right forward", 0, MOTOR_PWM),
-        ("Right backward", 0, -MOTOR_PWM),
+    let mut skip = false;
+
+    const PHASES: [(&str, bool, i16); 4] = [
+        ("Left forward", true, 1),
+        ("Left backward", true, -1),
+        ("Right forward", false, 1),
+        ("Right backward", false, -1),
     ];
 
-    for (label, left, right) in PHASES {
-        run_motor_phase(hal, label, left, right).await?;
+    for (label, left, direction) in PHASES {
+        if skip {
+            log_skip!("{} {}%", label, MOTOR_LOW_PERCENT);
+            log_skip!("{} {}%", label, MOTOR_HIGH_PERCENT);
+            continue;
+        }
+
+        let outcome_low = run_motor_phase(
+            hal,
+            label,
+            MOTOR_LOW_PERCENT,
+            left,
+            motor_pwm(MOTOR_LOW_PERCENT, direction),
+            MOTOR_LOW_TIME,
+        )
+        .await?;
+
+        let delta_low = match outcome_low {
+            PhaseOutcome::Completed { delta } => {
+                if delta * direction as i32 > VELOCITY_THRESHOLD {
+                    log_ok!("{} {}%", label, MOTOR_LOW_PERCENT);
+                } else {
+                    log_fail!("{} {}%", label, MOTOR_LOW_PERCENT);
+                }
+                delta
+            }
+            PhaseOutcome::Skipped => {
+                skip = true;
+                log_skip!("{} {}%", label, MOTOR_HIGH_PERCENT); // high phase gets skipped too
+                continue;
+            }
+        };
+
+        let outcome_high = run_motor_phase(
+            hal,
+            label,
+            MOTOR_HIGH_PERCENT,
+            left,
+            motor_pwm(MOTOR_HIGH_PERCENT, direction),
+            MOTOR_HIGH_TIME,
+        )
+        .await?;
+
+        log::debug!("Stopping motor");
+        hal.motors.stop();
+
+        match outcome_high {
+            PhaseOutcome::Completed { delta } => {
+                let velocity_low =
+                    (delta_low * direction as i32) / MOTOR_LOW_TIME.as_millis() as i32;
+                let velocity_high = (delta * direction as i32) / MOTOR_HIGH_TIME.as_millis() as i32;
+                if velocity_high > velocity_low {
+                    log_ok!("{} {}%", label, MOTOR_HIGH_PERCENT);
+                } else {
+                    log_fail!("{} {}%", label, MOTOR_HIGH_PERCENT);
+                }
+            }
+            PhaseOutcome::Skipped => {
+                skip = true;
+                continue;
+            }
+        }
     }
 
     Some(())
 }
 
-async fn run_motor_phase(hal: &mut Hal<'_>, label: &str, left: i16, right: i16) -> Option<()> {
-    let enc_before = hal.motors.encoders();
-    hal.motors
-        .set(left.try_into().unwrap(), right.try_into().unwrap());
+async fn run_motor_phase(
+    hal: &mut Hal<'_>,
+    label: &str,
+    percent: i32,
+    left: bool,
+    pwm: PwmT,
+    duration: Duration,
+) -> Option<PhaseOutcome> {
+    let right_pwm = if left { PwmT::new_static::<0>() } else { pwm };
+    let left_pwm = if left { pwm } else { PwmT::new_static::<0>() };
+    log::debug!("Setting motor PWM to {pwm}");
+    hal.motors.set(left_pwm, right_pwm);
 
-    match with_timeout(MOTOR_RUN, wait_button(&mut hal.deck_button)).await {
-        Ok(None) => {
-            hal.motors.stop();
-            return None;
+    // The hardware encoder counters are only 16 bit and can overflow several
+    // times over a full motor phase. Sample them in short intervals so each
+    // i16 subtraction stays within range, then accumulate into a wide i32.
+    let (delta_l, delta_r) = {
+        const SAMPLE_INTERVAL: Duration = Duration::from_millis(100);
+        let mut prev_encoders = hal.motors.encoders();
+        let mut delta_l: i32 = 0;
+        let mut delta_r: i32 = 0;
+        let mut next_sample = Instant::now();
+        let deadline = next_sample + duration;
+
+        while next_sample < deadline {
+            next_sample = deadline.min(next_sample + SAMPLE_INTERVAL);
+            match wait_button(&mut hal.deck_button)
+                .with_deadline(next_sample)
+                .await
+            {
+                Ok(None) => {
+                    hal.motors.stop();
+                    return None;
+                }
+                Ok(Some(())) => {
+                    hal.motors.stop();
+                    log_skip!("{} {}%", label, percent);
+                    return Some(PhaseOutcome::Skipped);
+                }
+                _ => (), // Timed out, sample encoders and continue
+            }
+
+            let current_encoders = hal.motors.encoders();
+            delta_l += i32::from(current_encoders.0.wrapping_sub(prev_encoders.0));
+            delta_r += i32::from(current_encoders.1.wrapping_sub(prev_encoders.1));
+            prev_encoders = current_encoders;
         }
-        Ok(_) => {
-            hal.motors.stop();
-            log_skip!("{}", label);
-            return Some(());
-        }
-        _ => (), // Timed out, continue
-    }
 
-    hal.motors.stop();
-    Timer::after(MOTOR_BRAKE).await;
-
-    let enc_after = hal.motors.encoders();
-    let delta_l = enc_after.0.wrapping_sub(enc_before.0) as i32;
-    let delta_r = enc_after.1.wrapping_sub(enc_before.1) as i32;
-
-    let ok_l = if left > 0 {
-        delta_l > ENCODER_THRESHOLD
-    } else if left < 0 {
-        delta_l < -ENCODER_THRESHOLD
-    } else {
-        true
-    };
-    let ok_r = if right > 0 {
-        delta_r > ENCODER_THRESHOLD
-    } else if right < 0 {
-        delta_r < -ENCODER_THRESHOLD
-    } else {
-        true
+        (delta_l, delta_r)
     };
 
     log::info!("enc_L={:+} enc_R={:+}", delta_l, delta_r);
-    if ok_l && ok_r {
-        log_ok!("{}", label);
-    } else {
-        log_fail!("{}", label);
-    }
 
-    Some(())
+    let delta = if left { delta_l } else { delta_r };
+    Some(PhaseOutcome::Completed { delta })
 }
 
 async fn test_indicator_led(hal: &mut Hal<'_>) -> Option<()> {
