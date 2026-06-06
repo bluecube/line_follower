@@ -11,7 +11,7 @@ pub mod motors {
     /// Approximate wheel travel per encoder tick, assuming zero slip.
     /// Wheel diameter 40 mm, encoder 7 CPR, gear ratio 1:30, 2-channel counting.
     /// TODO: calibrate
-    pub const METERS_PER_TICK: f64 = 40e-3 * PI / (7.0 * 2.0 * 30.0);
+    pub const METERS_PER_TICK: f32 = (40e-3 * PI / (7.0 * 2.0 * 30.0)) as f32;
 
     /// Approximate maximum speed of unloaded motors in ticks per second.
     /// Don't ask the robot to go this fast!
