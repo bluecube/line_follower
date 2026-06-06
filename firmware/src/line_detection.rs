@@ -3,7 +3,7 @@ use heapless::Vec;
 use lf_hal_types::line_sensor::SensorReadings;
 
 const POSITION_RANGE: i16 = 1024;
-const MIN_STRENGTH: u16 = 1000;
+const MIN_STRENGTH: u16 = 2500;
 
 /// Sensors must exceed this fraction of the peak anomaly to join a cluster.
 const CLUSTER_THRESHOLD_PCT: i32 = 30;
@@ -100,7 +100,8 @@ mod tests {
     use lf_hal_types::line_sensor::SENSOR_COUNT;
 
     const BG: i16 = 3000;
-    const DARK: i16 = 1000;
+    // Dark enough that even a single sensor clears MIN_STRENGTH.
+    const DARK: i16 = 0;
 
     fn with_dark(positions: &[usize]) -> SensorReadings {
         let mut values = [BG; SENSOR_COUNT];
@@ -125,6 +126,19 @@ mod tests {
         let mut values = [BG; SENSOR_COUNT];
         values[4] = BG - 100;
         assert!(detect_line(&SensorReadings { values }).is_empty());
+    }
+
+    #[test]
+    fn weak_line_below_min_strength_is_rejected() {
+        // A single sensor whose anomaly is just under MIN_STRENGTH must not
+        // register as a line, while one just over it does.
+        let mut weak = [BG; SENSOR_COUNT];
+        weak[4] = BG - (MIN_STRENGTH as i16 - 1);
+        assert!(detect_line(&SensorReadings { values: weak }).is_empty());
+
+        let mut strong = [BG; SENSOR_COUNT];
+        strong[4] = BG - (MIN_STRENGTH as i16 + 1);
+        assert_eq!(detect_line(&SensorReadings { values: strong }).len(), 1);
     }
 
     #[test]
