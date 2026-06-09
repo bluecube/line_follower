@@ -14,4 +14,3 @@ Let me know if you decide to build it!
 ![Render of the robot](fusion360/output-exports/lf.png)
 
 This is a v2, you can also check out the [v1](https://github.com/bluecube/line_follower/tree/v1/).
-Currently the firmware is being rewritten into Rust using [esp-hal](https://docs.espressif.com/projects/rust/).
