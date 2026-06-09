@@ -32,6 +32,10 @@ test = false
 name = "velocity_control_test"
 test = false
 
+[[bin]]
+name = "mandelbrot_bench"
+test = false
+
 [dependencies]
 deranged = { version = "0.5.8", default-features = false }
 lf-hal-types = { path = "./lf-hal-types" }
