@@ -5,7 +5,9 @@ use esp_hal::peripherals::{ADC1, ADC2, SENS};
 use lf_hal_types::line_sensor::SENSOR_COUNT;
 pub use lf_hal_types::line_sensor::{LedIndex, SensorReadings};
 
-const SETTLE_TIME: Duration = Duration::from_micros(1000); // TODO: Maybe we can have less time here?
+/// How much time we wait after lighting up the LED to have the signal settle.
+/// This is mostly a guess, that seems to work ok.
+const SETTLE_TIME: Duration = Duration::from_micros(500);
 
 /// Attenuation used in the ADC.
 const ATTENUATION: Attenuation = Attenuation::_0dB;
