@@ -109,6 +109,8 @@ impl<'d> Hal<'d> {
         }
     }
 
+    /// Reads the range measurement from the Sharp GP2Y0A21YK0F sensor.
+    /// The part only updates positions roughly every 40ms!
     pub fn read_range(&self) -> RangeMeasurement {
         RangeMeasurement {
             raw: self.read_adc2(self.range_adc_channel),

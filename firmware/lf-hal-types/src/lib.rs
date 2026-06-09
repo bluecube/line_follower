@@ -8,6 +8,9 @@ pub mod motors {
     /// PWM command range for a single motor. Positive = forward, negative = backward, 0 = brake.
     pub type PwmT = RangedI16<-1024, 1024>;
 
+    /// Track width of the robot in meters
+    pub const TRACK_WIDTH_M: f32 = 86e-3;
+
     /// Approximate wheel travel per encoder tick, assuming zero slip.
     /// Wheel diameter 40 mm, encoder 7 CPR, gear ratio 1:30, 2-channel counting.
     /// TODO: calibrate
@@ -44,8 +47,7 @@ impl RangeMeasurement {
     }
 
     pub fn distance_short(&self) -> Option<f32> {
-        // TODO: implement short-range option
-        None
+        todo!("implement short-range option");
     }
 }
 
@@ -63,4 +65,10 @@ pub mod line_sensor {
     pub struct SensorReadings {
         pub values: [i16; SENSOR_COUNT],
     }
+
+    /// Radius of the line sensor in meters.
+    /// The line sensor is centered around the steering center.
+    pub const RADIUS_M: f32 = 82e-3;
+    /// Angle in degrees between the leftmost and rightmost measured point
+    pub const ANGLE_DEG: f32 = 31.5;
 }
