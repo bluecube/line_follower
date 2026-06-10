@@ -38,6 +38,7 @@ lf-hal-types = { path = "./lf-hal-types" }
 embassy-time = { version = "0.5", features = ["tick-hz-1_000_000"] }
 heapless = { version = "0.9" }
 itertools = { version = "0.14.0", default-features = false }
+fixed = "1.30.0"
 
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 lf-hal = { path = "./lf-hal" }

@@ -1,4 +1,3 @@
-use deranged::RangedI16;
 use heapless::Vec;
 use lf_hal_types::line_sensor::SensorReadings;
 
@@ -8,7 +7,9 @@ const MIN_STRENGTH: u16 = 2500;
 /// Sensors must exceed this fraction of the peak anomaly to join a cluster.
 const CLUSTER_THRESHOLD_PCT: i32 = 30;
 
-pub type PositionT = RangedI16<{ -POSITION_RANGE }, POSITION_RANGE>;
+/// Detected line position, a fixed-point real in `[-1, 1]`. The 10 fractional
+/// bits put `1.0` at a raw value of `POSITION_RANGE` (1024).
+pub type PositionT = fixed::types::I6F10;
 
 #[derive(Clone, Copy, Debug)]
 pub struct LineDetection {
@@ -44,11 +45,15 @@ pub fn detect_line(readings: &SensorReadings) -> Vec<LineDetection, 2> {
     let mut result = Vec::new();
 
     // Maps weighted centroid index to output position range.
-    let cluster_position = |centroid_sum: i32, sum: i32| -> RangedI16<-1024, 1024> {
+    let cluster_position = |centroid_sum: i32, sum: i32| -> PositionT {
         debug_assert!(centroid_sum.unsigned_abs() < 1 << 19);
         let position = centroid_sum * (POSITION_RANGE as i32 * 2) / (sum * (n - 1) as i32)
             - POSITION_RANGE as i32;
-        (position as i16).try_into().unwrap()
+        debug_assert!(
+            position.unsigned_abs() <= POSITION_RANGE as u32,
+            "position out of [-1, 1]"
+        );
+        PositionT::from_bits(position as i16)
     };
 
     let mut cluster_count = 0usize;
@@ -103,6 +108,11 @@ mod tests {
     // Dark enough that even a single sensor clears MIN_STRENGTH.
     const DARK: i16 = 0;
 
+    /// Position literal in line-width fractions, matching `PositionT`'s [-1, 1] range.
+    fn pos(x: f32) -> PositionT {
+        PositionT::from_num(x)
+    }
+
     fn with_dark(positions: &[usize]) -> SensorReadings {
         let mut values = [BG; SENSOR_COUNT];
         for &p in positions {
@@ -146,9 +156,9 @@ mod tests {
         let result = detect_line(&with_dark(&[4, 5]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get().abs() < 154,
+            result[0].position.abs() < pos(0.15),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
         assert!(result[0].strength > 0);
     }
@@ -158,9 +168,9 @@ mod tests {
         let result = detect_line(&with_dark(&[1]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get() < -512,
+            result[0].position < pos(-0.5),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
     }
 
@@ -169,9 +179,9 @@ mod tests {
         let result = detect_line(&with_dark(&[8]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get() > 512,
+            result[0].position > pos(0.5),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
     }
 
@@ -180,9 +190,9 @@ mod tests {
         let result = detect_line(&with_dark(&[0]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get() < -819,
+            result[0].position < pos(-0.8),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
     }
 
@@ -191,9 +201,9 @@ mod tests {
         let result = detect_line(&with_dark(&[9]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get() > 819,
+            result[0].position > pos(0.8),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
     }
 
@@ -202,9 +212,9 @@ mod tests {
         let result = detect_line(&with_dark(&[3, 4, 5, 6]));
         assert_eq!(result.len(), 1);
         assert!(
-            result[0].position.get().abs() < 154,
+            result[0].position.abs() < pos(0.15),
             "position {}",
-            result[0].position.get()
+            result[0].position
         );
     }
 
@@ -213,24 +223,24 @@ mod tests {
         let result = detect_line(&with_dark(&[1, 2, 7, 8]));
         assert_eq!(result.len(), 2);
         assert!(
-            result[0].position.get() < 0,
+            result[0].position < PositionT::ZERO,
             "left {}",
-            result[0].position.get()
+            result[0].position
         );
         assert!(
-            result[1].position.get() > 0,
+            result[1].position > PositionT::ZERO,
             "right {}",
-            result[1].position.get()
+            result[1].position
         );
     }
 
     #[test]
     fn position_monotone_left_to_right() {
-        let mut positions = [0i16; SENSOR_COUNT];
+        let mut positions = [PositionT::ZERO; SENSOR_COUNT];
         for i in 0..SENSOR_COUNT {
             let result = detect_line(&with_dark(&[i]));
             assert_eq!(result.len(), 1, "expected 1 detection at index {}", i);
-            positions[i] = result[0].position.get();
+            positions[i] = result[0].position;
         }
         for i in 0..SENSOR_COUNT - 1 {
             assert!(

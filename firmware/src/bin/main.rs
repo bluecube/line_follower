@@ -20,15 +20,14 @@ use lf_hal_types::{
 };
 use line_follower::{
     line_detection::{PositionT, detect_line},
-    velocity_controller::{Gains, VelocityController},
+    velocity_controller::{Gain, Gains, VelocityController},
 };
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
 const BASE_SPEED: i32 = 3000;
-const STEERING_KP: i64 = 1024;
-const STEERING_KD: i64 = 256;
-const STEERING_SCALE: i64 = 1024; // Scale for both STEERING_KP and STEERING_KD
+const STEERING_KP: Gain = Gain::lit("1");
+const STEERING_KD: Gain = Gain::lit("0.25");
 const KP: f32 = 0.4;
 const TI: f32 = 0.3;
 const TD: f32 = 0.005;
@@ -38,8 +37,10 @@ const OBSTACLE_CLEAR_M: f32 = 0.40;
 const OBSTACLE_CLEAR_DURATION: Duration = Duration::from_secs(3);
 const LOST_LINE_DIST_M: f32 = 0.30;
 const OBSTACLE_POLL: Duration = Duration::from_millis(100);
-const LINE_CENTERED_THRESHOLD: i16 = PositionT::MAX.get() / 2;
+const LINE_CENTERED_THRESHOLD: PositionT = PositionT::lit("0.5");
 const SCAN_INTERVAL: Duration = Duration::from_millis(120);
+
+type Position32T = fixed::types::I22F10;
 
 #[esp_rtos::main]
 async fn main(spawner: Spawner) {
@@ -72,7 +73,7 @@ async fn wait_for_start(hal: &mut Hal<'_>) {
                 line_ready = detections
                     .iter()
                     .exactly_one()
-                    .is_ok_and(|d| d.position.get().abs() <= LINE_CENTERED_THRESHOLD);
+                    .is_ok_and(|d| d.position.abs() <= LINE_CENTERED_THRESHOLD);
                 if line_ready != was_ready {
                     if line_ready {
                         log::info!("Line centered, press deck button to start");
@@ -139,7 +140,7 @@ async fn follow_line(hal: &mut Hal<'_>) {
         let detections = detect_line(&readings);
         // When multiple lines are detected, follow the leftmost (most negative position).
         // Chosen for consistency for now; revisit if we need to handle forks or intersections.
-        let detection = detections.iter().min_by_key(|d| d.position.get()).copied();
+        let detection = detections.iter().min_by_key(|d| d.position).copied();
 
         let enc = hal.motors.encoders();
         let now = Instant::now();
@@ -152,18 +153,15 @@ async fn follow_line(hal: &mut Hal<'_>) {
             lost_at_enc = None;
             pos
         } else if let Some(last_position) = last_position {
-            if last_position.get().abs() > LINE_CENTERED_THRESHOLD {
+            if last_position.abs() > LINE_CENTERED_THRESHOLD {
                 hal.motors.stop();
-                log::info!(
-                    "Line lost in outer half (pos {}), stopping.",
-                    last_position.get()
-                );
+                log::info!("Line lost in outer half (pos {}), stopping.", last_position);
                 return;
             }
             if lost_at_enc.is_none() {
                 log::info!(
                     "Line lost in inner half (pos {}), continuing on arc",
-                    last_position.get()
+                    last_position
                 );
             }
             // TODO: rules allow the line to resume anywhere within a 30 degree cone from the
@@ -200,18 +198,16 @@ fn calculate_steering(
     line_position: PositionT,
     prev_position: Option<PositionT>,
 ) -> (i16, i16) {
-    let pos = line_position.get() as i64;
-    const MAX_POSITION: i64 = PositionT::MAX.get() as i64;
+    // Widen the i16-backed position into i32, scale is unchanged.
+    let pos = Position32T::from_num(line_position);
+    let d_pos = prev_position.map_or(Position32T::ZERO, |prev| pos - Position32T::from_num(prev));
 
-    let p_term = STEERING_KP * pos;
-    let d_term = prev_position.map_or(0, |prev| STEERING_KD * (pos - prev.get() as i64));
-    let steering = (speed as i64 * (p_term + d_term)) / (STEERING_SCALE * MAX_POSITION);
-    let steering = steering as i32;
-    log::debug!(
-        "steering: p={} d={} total={steering}",
-        p_term / STEERING_SCALE,
-        d_term / STEERING_SCALE
-    );
+    // steering = speed * (KP * pos + KD * d_pos)
+    let factor = Gain::ZERO
+        .add_prod(STEERING_KP, pos)
+        .add_prod(STEERING_KD, d_pos);
+    let steering = (factor * speed).to_num::<i32>();
+    log::debug!("steering: factor={factor} total={steering}");
 
     const MAX: i32 = MAX_SPEED as i32;
     let left = (speed + steering).clamp(-MAX, MAX) as i16;

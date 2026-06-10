@@ -178,7 +178,7 @@ async fn test_line_detection(hal: &mut Hal<'_>) -> Option<()> {
         let mut s: String<128> = String::new();
         let _ = write!(s, "Detected:");
         for d in &detections {
-            let _ = write!(s, " pos={:+} str={}", d.position.get(), d.strength);
+            let _ = write!(s, " pos={:+} str={}", d.position, d.strength);
         }
         log::info!("{}", s);
     }

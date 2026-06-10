@@ -1,13 +1,17 @@
 use embassy_time::{Duration, TICK_HZ};
+use fixed::types::{I20F12, I52F12};
 use lf_hal_types::motors::{MAX_SPEED, PwmT};
 
-const GAIN_SCALE: i32 = 4096;
+/// Fixed-point control gain. The 12 fractional bits match the scale used
+/// throughout the controller arithmetic. Gains have no inherent range, so this
+/// is an unbounded fixed-point type; sane values are enforced at construction.
+pub type Gain = I20F12;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Gains {
-    kp: i32,
-    ki: i32,
-    kd: i32,
+    kp: Gain,
+    ki: Gain,
+    kd: Gain,
     stiction_pwm: i32,
 }
 
@@ -25,9 +29,9 @@ impl Gains {
         }
 
         Some(Self {
-            kp: (kp * GAIN_SCALE as f32) as i32,
-            ki: (ki * GAIN_SCALE as f32) as i32,
-            kd: (kd * GAIN_SCALE as f32) as i32,
+            kp: Gain::from_num(kp),
+            ki: Gain::from_num(ki),
+            kd: Gain::from_num(kd),
             stiction_pwm: 0,
         })
     }
@@ -65,8 +69,9 @@ pub struct WheelUpdateResult {
 
 /// PID regulator for controlling PWM command for a single motor.
 pub struct WheelController {
-    /// The integral of the error, premultiplied by kI (but not divided by GAIN_SCALE!)
-    integral: i32,
+    /// The integral of the error, premultiplied by the kI gain (i.e. the
+    /// integral term's contribution to the PWM output).
+    integral: Gain,
     /// Last value of encoder input, used for speed calculation
     last_ticks: i16,
 
@@ -76,7 +81,7 @@ pub struct WheelController {
 impl WheelController {
     pub fn new(initial_ticks: i16) -> Self {
         Self {
-            integral: 0,
+            integral: Gain::ZERO,
             last_ticks: initial_ticks,
             last_velocity: 0,
         }
@@ -110,8 +115,9 @@ impl WheelController {
         let error = setpoint as i32 - velocity;
         debug_assert!(error.abs() < 48_000);
 
-        let integral_update =
-            (gains.ki as i64 * error as i64 * dt_ticks as i64 / TICK_HZ as i64) as i32;
+        let integral_update: Gain =
+            (I52F12::from_num(gains.ki) * i64::from(error) * i64::from(dt_ticks) / TICK_HZ as i64)
+                .to_num::<Gain>();
         self.integral += integral_update;
 
         let velocity_change = velocity - self.last_velocity;
@@ -131,14 +137,14 @@ impl WheelController {
             0
         };
 
-        let raw = gains.kp * error / GAIN_SCALE + self.integral / GAIN_SCALE
-            - gains.kd * acceleration / GAIN_SCALE
+        let raw = (gains.kp * error).to_num::<i32>() + self.integral.to_num::<i32>()
+            - (gains.kd * acceleration).to_num::<i32>()
             + stiction_ff;
 
         let clamped = raw.clamp(PwmT::MIN.get() as i32, PwmT::MAX.get() as i32);
         let clamping_error = raw - clamped;
 
-        if clamping_error.signum() == integral_update.signum() {
+        if clamping_error.signum() == integral_update.signum().to_num::<i32>() {
             // Undo the integral update if adding it to the raw output made it worse.
             // clamping_error == 0 && integral_update == 0: this is a no-op
             self.integral -= integral_update;
@@ -159,7 +165,7 @@ impl WheelController {
 
     /// Resets all internal state of the controller to zero, sets last ticks to given value.
     pub fn reset(&mut self, current_ticks: i16) {
-        self.integral = 0;
+        self.integral = Gain::ZERO;
         self.last_ticks = current_ticks;
         self.last_velocity = 0;
     }
@@ -245,7 +251,7 @@ mod tests {
         #[strategy(10_000u64..=120_000)] dt_ticks: u64,
         #[strategy(-(MAX_SPEED as f32)..=MAX_SPEED as f32)] velocity: f32,
         #[strategy(-15000i16..=15000)] setpoint: i16,
-        #[strategy(0i32..=2048)] kp: i32, // stored value, corresponds to kp_float up to 0.5
+        #[strategy(0.0f32..=0.5)] kp: f32,
     ) {
         let dt = Duration::from_ticks(dt_ticks);
         let dt_secs = dt_ticks as f32 / TICK_HZ as f32;
@@ -253,12 +259,8 @@ mod tests {
         // velocity / dt_secs. Skip cases where that would exceed the 60_000 ticks/s^2 limit.
         proptest::prop_assume!(velocity.abs() < 60_000.0 * dt_secs);
         let ticks = (velocity * dt_secs) as i16;
-        let gains = Gains {
-            kp,
-            ki: 100,
-            kd: 0,
-            stiction_pwm: 0,
-        };
+        // Small nonzero ki so the integral term participates without dominating.
+        let gains = Gains::new(kp, 0.025, 0.0).unwrap();
         let mut ctrl = WheelController::new(0);
         let out = ctrl.update(&gains, ticks, setpoint, dt);
         assert!(out.motor_pwm.get() >= -1024 && out.motor_pwm.get() <= 1024);
