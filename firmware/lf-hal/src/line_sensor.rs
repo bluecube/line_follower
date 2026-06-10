@@ -25,7 +25,7 @@ const _: () = assert!(
 
 type SensorBuffer = [i16; SENSOR_COUNT];
 
-/// Maps LED index to (low_pin, high_pin, hiz_pin) indices into self.led_pins.
+/// Maps LED index to (`low_pin`, `high_pin`, `hiz_pin`) indices into `self.led_pins`.
 /// Pins order: [0=GPIO27, 1=GPIO32, 2=GPIO26]
 const LED_PATTERNS: [(usize, usize, usize); LedIndex::MAX.get() + 1] = [
     (0, 1, 2),

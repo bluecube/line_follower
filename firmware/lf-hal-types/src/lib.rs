@@ -26,9 +26,10 @@ pub struct BatteryMeasurement {
 }
 
 impl BatteryMeasurement {
+    #[must_use]
     pub fn voltage(&self) -> f32 {
-        const K: f32 = 0.007278;
-        const A: f32 = -8.963262;
+        const K: f32 = 0.007_278;
+        const A: f32 = -8.963_262;
 
         K * self.raw as f32 + A
     }
@@ -39,6 +40,7 @@ pub struct RangeMeasurement {
 }
 
 impl RangeMeasurement {
+    #[must_use]
     pub fn distance_long(&self) -> f32 {
         const A: f32 = 318.913_54;
         const B: f32 = -19.318_924;
@@ -46,6 +48,7 @@ impl RangeMeasurement {
         A / (self.raw as f32 + B)
     }
 
+    #[must_use]
     pub fn distance_short(&self) -> Option<f32> {
         todo!("implement short-range option");
     }

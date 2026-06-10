@@ -1,3 +1,7 @@
+// The `#[characteristic]` macro expands the NUS fields into a borrow clippy flags as needless;
+// the warning lands in generated code, so it can only be silenced at module scope.
+#![allow(clippy::needless_borrows_for_generic_args)]
+
 use embassy_futures::join::join;
 use heapless::Vec;
 use static_cell::StaticCell;
@@ -15,7 +19,7 @@ struct NusServer {
     nus: NusService,
 }
 
-// NUS (Nordic UART Service): TX carries log output; RX is declared but unused.
+/// NUS (Nordic UART Service): TX carries log output; RX is declared but unused.
 #[gatt_service(uuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e")]
 struct NusService {
     #[characteristic(uuid = "6e400003-b5a3-f393-e0a9-e50e24dcca9e", notify)]
@@ -31,6 +35,11 @@ static HOST_RESOURCES: StaticCell<BleResources> = StaticCell::new();
 static BLE_STACK: StaticCell<BleStack> = StaticCell::new();
 static NUS_SERVER: StaticCell<NusServer<'static>> = StaticCell::new();
 
+/// Spawns the BLE task, taking ownership of the radio via `hal`.
+///
+/// # Panics
+/// Panics if called more than once (the BLE task can only be spawned once, and
+/// [`lf_hal::Hal::init_bt_controller`] likewise rejects a second call).
 pub fn init_ble(spawner: embassy_executor::Spawner, hal: &mut lf_hal::Hal<'static>) {
     spawner.spawn(ble_task(hal.init_bt_controller::<HCI_SLOTS>()).unwrap());
 }
@@ -61,7 +70,7 @@ async fn ble_task(controller: lf_hal::BleController<HCI_SLOTS>) -> ! {
                     nus_task(&*server, &conn).await;
                     log::info!("BLE disconnected");
                 }
-                Err(e) => log::warn!("BLE advertise error: {:?}", e),
+                Err(e) => log::warn!("BLE advertise error: {e:?}"),
             }
         }
     })
@@ -73,7 +82,7 @@ async fn ble_task(controller: lf_hal::BleController<HCI_SLOTS>) -> ! {
 async fn runner_loop<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
     loop {
         if let Err(e) = runner.run().await {
-            log::error!("BLE runner error: {:?}", e);
+            log::error!("BLE runner error: {e:?}");
         }
     }
 }
@@ -93,7 +102,7 @@ async fn advertise<'a, C: Controller>(
     log::info!("BLE advertising");
     let advertiser = peripheral
         .advertise(
-            &Default::default(),
+            &AdvertisementParameters::default(),
             Advertisement::ConnectableScannableUndirected {
                 adv_data: &adv_data[..len],
                 scan_data: &[],

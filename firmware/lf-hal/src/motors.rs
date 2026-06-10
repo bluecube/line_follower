@@ -34,7 +34,7 @@ const PCNT_FILTER: u16 = 1023;
 const FORCE_LOW_A: PwmActions<true> = PwmActions::empty()
     .on_up_counting_timer_equals_zero(UpdateAction::SetLow)
     .on_up_counting_timer_equals_timestamp(UpdateAction::SetLow);
-/// Same as FORCE_LOW_A, but typed to work on the B channel
+/// Same as `FORCE_LOW_A`, but typed to work on the B channel
 const FORCE_LOW_B: PwmActions<false> = PwmActions::empty()
     .on_up_counting_timer_equals_zero(UpdateAction::SetLow)
     .on_up_counting_timer_equals_timestamp(UpdateAction::SetLow);
@@ -51,6 +51,7 @@ pub struct Motors<'d> {
 }
 
 impl<'d> Motors<'d> {
+    #[must_use]
     pub fn new(
         mcpwm: MCPWM0<'d>,
         pcnt: PCNT<'d>,
@@ -95,6 +96,7 @@ impl<'d> Motors<'d> {
         self.set(PwmT::new_static::<0>(), PwmT::new_static::<0>());
     }
 
+    #[must_use]
     pub fn encoders(&self) -> (i16, i16) {
         (self.left_counter.get(), self.right_counter.get())
     }

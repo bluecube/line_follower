@@ -48,10 +48,7 @@ async fn main(spawner: Spawner) {
 
     let mut raws = [0f32; 2];
     for (i, &distance_cm) in DISTANCES_CM.iter().enumerate() {
-        log::info!(
-            "Place object at {:.0} cm, then press the deck button.",
-            distance_cm
-        );
+        log::info!("Place object at {distance_cm:.0} cm, then press the deck button.");
         hal.deck_button.released().await;
         log::info!("averaging...");
         raws[i] = sample_raw_average(&mut hal).await;
@@ -70,8 +67,8 @@ async fn main(spawner: Spawner) {
     let a = d1 * (r1 + b);
 
     log::info!("--- result ---");
-    log::info!("const A: f32 = {:.6};", a);
-    log::info!("const B: f32 = {:.6};", b);
+    log::info!("const A: f32 = {a:.6};");
+    log::info!("const B: f32 = {b:.6};");
 
-    loop {}
+    core::future::pending::<()>().await;
 }

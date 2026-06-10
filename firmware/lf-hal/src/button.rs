@@ -3,7 +3,7 @@ use esp_hal::gpio::{Input, InputConfig, InputPin, Pull};
 
 /// An edge that reverses within this window is treated as bounce or EMI and discarded.
 const EMI_FILTER_TIME: Duration = Duration::from_millis(5);
-/// Additional time after EMI_FILTER_TIME required to register an opposite action
+/// Additional time after `EMI_FILTER_TIME` required to register an opposite action
 const DEBOUNCE_TIME: Duration = Duration::from_millis(10);
 
 pub enum ButtonEvent {

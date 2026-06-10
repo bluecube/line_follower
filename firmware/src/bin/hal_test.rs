@@ -109,15 +109,21 @@ async fn test_line_leds(hal: &mut Hal<'_>) {
 
         let lit = hal.line_sensor.read_raw();
 
-        let pt = i.min(4);
-        let ok = lit[pt] > baseline[pt] + LED_SENSOR_THRESHOLD
-            || (i >= 1 && i <= 4 && lit[i - 1] > baseline[i - 1] + LED_SENSOR_THRESHOLD);
+        // Neighbors of LED i: phototransistor i-1 on the left, i on the right (where they exist).
+        let left = (i > 0).then(|| i - 1);
+        let right = (i < lit.len()).then_some(i);
+        let neighbors = [left, right].into_iter().flatten();
+        let ok = neighbors
+            .clone()
+            .any(|p| lit[p] > baseline[p] + LED_SENSOR_THRESHOLD);
 
         if ok {
             log_ok!("Line LED {}/6", i + 1);
         } else {
+            for p in neighbors {
+                log::info!("  pt{} base={} lit={}", p, baseline[p], lit[p]);
+            }
             log_fail!("Line LED {}/6", i + 1);
-            log::info!("  pt{} base={} lit={}", pt, baseline[pt], lit[pt]);
         }
     }
     hal.line_sensor.disable_leds();
@@ -134,7 +140,7 @@ async fn test_battery(hal: &mut Hal<'_>) -> Option<()> {
         raw: avg_raw as u16,
     }
     .voltage();
-    log::info!("Battery: {:.3} V  (raw avg: {})", voltage, avg_raw);
+    log::info!("Battery: {voltage:.3} V  (raw avg: {avg_raw})");
     log::info!("Verify against measured value.");
     Some(())
 }
@@ -151,7 +157,7 @@ async fn test_range(hal: &mut Hal<'_>) -> Option<()> {
         raw: avg_raw as u16,
     }
     .distance_long();
-    log::info!("Distance: {:.3} m  (raw avg: {})", distance, avg_raw);
+    log::info!("Distance: {distance:.3} m  (raw avg: {avg_raw})");
     log::info!("Verify against measured value.");
     wait_for_continue(hal).await
 }
@@ -167,9 +173,9 @@ async fn test_line_detection(hal: &mut Hal<'_>) -> Option<()> {
     let mut s: String<128> = String::new();
     let _ = write!(s, "Sensors [0-9]:");
     for v in readings.values {
-        let _ = write!(s, " {:5}", v);
+        let _ = write!(s, " {v:5}");
     }
-    log::info!("{}", s);
+    log::info!("{s}");
 
     let detections = detect_line(&readings);
     if detections.is_empty() {
@@ -180,7 +186,7 @@ async fn test_line_detection(hal: &mut Hal<'_>) -> Option<()> {
         for d in &detections {
             let _ = write!(s, " pos={:+} str={}", d.position, d.strength);
         }
-        log::info!("{}", s);
+        log::info!("{s}");
     }
 
     Some(())
@@ -328,7 +334,7 @@ async fn run_motor_phase(
         (delta_l, delta_r)
     };
 
-    log::info!("enc_L={:+} enc_R={:+}", delta_l, delta_r);
+    log::info!("enc_L={delta_l:+} enc_R={delta_r:+}");
 
     let delta = if left { delta_l } else { delta_r };
     Some(PhaseOutcome::Completed { delta })
@@ -384,11 +390,8 @@ async fn main(spawner: Spawner) -> ! {
         if run_tests(&mut hal).await.is_some() {
             log::info!("=== DONE -- long press deck button to restart ===");
 
-            loop {
-                match wait_button(&mut hal.deck_button).await {
-                    Some(_) => log::info!("long press deck button to restart."),
-                    None => break,
-                }
+            while wait_button(&mut hal.deck_button).await.is_some() {
+                log::info!("long press deck button to restart.");
             }
         }
         log::info!("=== RESTARTING ===");

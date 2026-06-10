@@ -109,7 +109,7 @@ async fn follow_line(hal: &mut Hal<'_>) {
 
         if dist < OBSTACLE_STOP_M {
             hal.motors.stop();
-            log::info!("Obstacle at {:.2} m. Waiting for clear.", dist);
+            log::info!("Obstacle at {dist:.2} m. Waiting for clear.");
             if !wait_for_obstacle_clear(hal, &mut range_filter).await {
                 return;
             }
@@ -155,14 +155,11 @@ async fn follow_line(hal: &mut Hal<'_>) {
         } else if let Some(last_position) = last_position {
             if last_position.abs() > LINE_CENTERED_THRESHOLD {
                 hal.motors.stop();
-                log::info!("Line lost in outer half (pos {}), stopping.", last_position);
+                log::info!("Line lost in outer half (pos {last_position}), stopping.");
                 return;
             }
             if lost_at_enc.is_none() {
-                log::info!(
-                    "Line lost in inner half (pos {}), continuing on arc",
-                    last_position
-                );
+                log::info!("Line lost in inner half (pos {last_position}), continuing on arc");
             }
             // TODO: rules allow the line to resume anywhere within a 30 degree cone from the
             // interruption point. For now we just continue in the same arc rely on the search distance.
@@ -230,18 +227,19 @@ async fn wait_for_obstacle_clear(hal: &mut Hal<'_>, range_filter: &mut RangeFilt
             if now - since >= OBSTACLE_CLEAR_DURATION {
                 return true;
             }
-        } else {
-            if clear_since.take().is_some() {
-                log::info!("Obstacle returned at {:.2} m, resetting timer.", dist);
-            }
+        } else if clear_since.take().is_some() {
+            log::info!("Obstacle returned at {dist:.2} m, resetting timer.");
         }
 
-        match hal.deck_button.pressed().with_timeout(OBSTACLE_POLL).await {
-            Ok(_) => {
-                log::info!("Stopped by button during obstacle wait.");
-                return false;
-            }
-            Err(_) => {}
+        if hal
+            .deck_button
+            .pressed()
+            .with_timeout(OBSTACLE_POLL)
+            .await
+            .is_ok()
+        {
+            log::info!("Stopped by button during obstacle wait.");
+            return false;
         }
     }
 }
@@ -266,7 +264,7 @@ impl RangeFilter {
 
     fn filtered(&self) -> RangeMeasurement {
         let mut copied = self.measurements;
-        copied.sort();
+        copied.sort_unstable();
         RangeMeasurement {
             raw: copied[copied.len() / 2],
         }

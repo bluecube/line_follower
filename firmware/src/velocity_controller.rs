@@ -17,14 +17,10 @@ pub struct Gains {
 
 impl Gains {
     /// Constructor, all three arguments must be between 0 and 8
+    #[must_use]
     pub fn new(kp: f32, ki: f32, kd: f32) -> Option<Self> {
-        if kp < 0.0 || kp > 8.0 {
-            return None;
-        }
-        if ki < 0.0 || ki > 8.0 {
-            return None;
-        }
-        if kd < 0.0 || kd > 8.0 {
+        let in_range = |g: f32| (0.0..=8.0).contains(&g);
+        if !in_range(kp) || !in_range(ki) || !in_range(kd) {
             return None;
         }
 
@@ -45,6 +41,7 @@ impl Gains {
     /// - `td` is the derivative time constant in seconds
     ///   (how far forward in future does the controller look).
     ///   `kp * td` must be between 0 and 8.
+    #[must_use]
     pub fn from_standard(kp: f32, ti: f32, td: f32) -> Option<Self> {
         Self::new(kp, kp / ti, kp * td)
     }
@@ -52,6 +49,7 @@ impl Gains {
     /// Adds stiction PWM to the gains structure.
     /// This controls the minimum nonzero PWM output to be generated,
     /// helping to overcome stiction of the motors and gearboxes.
+    #[must_use]
     pub fn with_stiction(mut self, pwm: PwmT) -> Self {
         self.stiction_pwm = pwm.get() as i32;
         self
@@ -79,6 +77,7 @@ pub struct WheelController {
 }
 
 impl WheelController {
+    #[must_use]
     pub fn new(initial_ticks: i16) -> Self {
         Self {
             integral: Gain::ZERO,
@@ -90,8 +89,7 @@ impl WheelController {
     /// Updates the wheel velocity controller and returns the new PWM command
     /// - `dt` must be in the range (0ms, 120ms]
     /// - Velocity is limited by the measured motor maximum of +-15_000 ticks/s (= ~4.5m/s)
-    /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2, a value that is more of an
-    /// educated guess)
+    /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2)
     pub fn update(
         &mut self,
         gains: &Gains,
@@ -179,6 +177,7 @@ pub struct VelocityController {
 }
 
 impl VelocityController {
+    #[must_use]
     pub fn new(gains: Gains, initial_ticks: (i16, i16)) -> Self {
         Self {
             gains,
@@ -190,8 +189,7 @@ impl VelocityController {
     /// Updates the velocity controller and returns the new PWM commands and stats
     /// - `dt` must be in the range (0ms, 120ms].
     /// - Velocity is limited by the measured motor maximum of +-15_000 ticks/s (= ~4.5m/s)
-    /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2, a value that is more of an
-    /// educated guess).
+    /// - Acceleration is limited to 60_000 ticks/s^2 (= ~18m/s^2).
     pub fn update(
         &mut self,
         encoder_ticks: (i16, i16),

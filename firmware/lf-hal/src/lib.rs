@@ -34,6 +34,7 @@ pub struct Hal<'d> {
 
 impl<'d> Hal<'d> {
     /// Initialize hardware and the RTOS scheduler.
+    #[must_use]
     pub fn setup(p: Peripherals) -> Self {
         let sw_ints = SoftwareInterruptControl::new(p.SW_INTERRUPT);
         esp_rtos::start(TimerGroup::new(p.TIMG0).timer0, sw_ints.software_interrupt0);
@@ -42,8 +43,9 @@ impl<'d> Hal<'d> {
         // and then set attenuation using direct register access
         let battery_adc_channel = p.GPIO15.adc_channel();
         let range_adc_channel = p.GPIO12.adc_channel();
-        drop(p.GPIO15);
-        drop(p.GPIO12);
+        // Only the ADC channel index is needed; consume the pins so they can't be reused.
+        let _ = p.GPIO15;
+        let _ = p.GPIO12;
 
         let line_sensor = LineSensor::new(
             [p.GPIO27.degrade(), p.GPIO32.degrade(), p.GPIO26.degrade()],
@@ -83,7 +85,9 @@ impl<'d> Hal<'d> {
     }
 
     /// Initialize the radio and return a BLE controller. Requires a heap.
-    /// Panics if called more than once.
+    ///
+    /// # Panics
+    /// Panics if called more than once, or if the BLE connector fails to initialize.
     pub fn init_bt_controller<const N: usize>(&mut self) -> BleController<N>
     where
         'd: 'static,
@@ -103,6 +107,7 @@ impl<'d> Hal<'d> {
         self.led.set_level(on.into());
     }
 
+    #[must_use]
     pub fn read_battery(&self) -> BatteryMeasurement {
         BatteryMeasurement {
             raw: self.read_adc2(self.battery_adc_channel),
@@ -111,6 +116,7 @@ impl<'d> Hal<'d> {
 
     /// Reads the range measurement from the Sharp GP2Y0A21YK0F sensor.
     /// The part only updates positions roughly every 40ms!
+    #[must_use]
     pub fn read_range(&self) -> RangeMeasurement {
         RangeMeasurement {
             raw: self.read_adc2(self.range_adc_channel),

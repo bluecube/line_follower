@@ -13,8 +13,9 @@ impl<const CAP: usize> Default for RingBuf<CAP> {
 }
 
 impl<const CAP: usize> RingBuf<CAP> {
+    #[must_use]
     pub const fn new() -> Self {
-        assert!(CAP > 0, "RingBuf capacity must be non-zero");
+        const { assert!(CAP > 0, "RingBuf capacity must be non-zero") };
         Self {
             data: [0u8; CAP],
             start: 0,
@@ -65,6 +66,7 @@ impl<const CAP: usize> RingBuf<CAP> {
         out
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }

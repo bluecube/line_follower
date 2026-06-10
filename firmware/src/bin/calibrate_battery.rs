@@ -47,10 +47,7 @@ async fn main(spawner: Spawner) {
 
     let mut raws = [0f32; 2];
     for (i, &voltage) in VOLTAGES.iter().enumerate() {
-        log::info!(
-            "Set battery to {:.0} V, then press the deck button.",
-            voltage
-        );
+        log::info!("Set battery to {voltage:.0} V, then press the deck button.");
         hal.deck_button.released().await;
         log::info!("averaging...");
         raws[i] = sample_raw_average(&mut hal).await;
@@ -61,8 +58,8 @@ async fn main(spawner: Spawner) {
     let a = VOLTAGES[0] - k * raws[0];
 
     log::info!("--- result ---");
-    log::info!("const K: f32 = {:.6};", k);
-    log::info!("const A: f32 = {:.6};", a);
+    log::info!("const K: f32 = {k:.6};");
+    log::info!("const A: f32 = {a:.6};");
 
-    loop {}
+    core::future::pending::<()>().await;
 }
