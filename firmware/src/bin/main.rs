@@ -12,6 +12,7 @@ use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
 use embassy_time::{Duration, Instant, Ticker, WithTimeout as _};
 use esp_backtrace as _;
+use fixed::types::I9F23;
 use itertools::Itertools as _;
 use lf_hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
 use lf_hal_types::{
@@ -19,15 +20,16 @@ use lf_hal_types::{
     motors::{MAX_SPEED, METERS_PER_TICK, PwmT},
 };
 use line_follower::{
-    line_detection::{PositionT, detect_line},
+    line_detection::{LineDetection, PositionT, detect_line},
     velocity_controller::{Gain, Gains, VelocityController},
 };
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-const BASE_SPEED: i32 = 3000;
-const STEERING_KP: Gain = Gain::lit("1");
-const STEERING_KD: Gain = Gain::lit("0.25");
+const BASE_SPEED: i32 = 1000;
+const STEERING_KP: Gain = Gain::lit("0.75");
+const STEERING_LEAD_TICKS: i32 = 256; // Derivative look-ahead distance along the path (~75 mm)
+const STEERING_DERIV_LENGTH_TICKS: i32 = 64; // Distance over which the steering derivative is averaged (~15 mm)
 const KP: f32 = 0.4;
 const TI: f32 = 0.3;
 const TD: f32 = 0.005;
@@ -40,7 +42,7 @@ const OBSTACLE_POLL: Duration = Duration::from_millis(100);
 const LINE_CENTERED_THRESHOLD: PositionT = PositionT::lit("0.5");
 const SCAN_INTERVAL: Duration = Duration::from_millis(120);
 
-type Position32T = fixed::types::I22F10;
+type Position32T = fixed::types::I6F26;
 
 #[esp_rtos::main]
 async fn main(spawner: Spawner) {
@@ -53,41 +55,53 @@ async fn main(spawner: Spawner) {
 
 async fn wait_for_start(hal: &mut Hal<'_>) {
     const LED_ANIMATION: [usize; 10] = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];
+    const STARTING_LINE_DETECTION_COUNT_THRESHOLD: usize = 3;
     log::info!("Waiting: center line on sensor, then press deck button");
     let mut ticker = Ticker::every(SCAN_INTERVAL);
-    let mut animation_index: usize = 0;
-    let mut line_ready = false;
     hal.line_sensor.disable_leds();
 
     loop {
-        match select(hal.deck_button.next_event(None), ticker.next()).await {
-            Either::First(ButtonEvent::Press) if line_ready => {
-                hal.line_sensor.disable_leds();
-                hal.deck_button.released().await;
-                log::info!("Starting");
-                return;
+        let mut animation_index: usize = 0;
+        let mut line_detected_count = 0;
+        loop {
+            if let Some(d) = read_line_for_start(hal).await {
+                line_detected_count += 1;
+
+                if line_detected_count >= STARTING_LINE_DETECTION_COUNT_THRESHOLD {
+                    log::info!(
+                        "Line centered (pos {}, strength {}), press deck button to start",
+                        d.position,
+                        d.strength
+                    );
+                    break;
+                }
+            } else {
+                line_detected_count = 0;
             }
-            Either::Second(_) => {
-                let detections = detect_line(&hal.line_sensor.read().await);
-                let was_ready = line_ready;
-                line_ready = detections
-                    .iter()
-                    .exactly_one()
-                    .is_ok_and(|d| d.position.abs() <= LINE_CENTERED_THRESHOLD);
-                if line_ready != was_ready {
-                    if line_ready {
-                        log::info!("Line centered, press deck button to start");
-                    } else {
+
+            let led_index = LedIndex::new(LED_ANIMATION[animation_index]).unwrap();
+            animation_index = (animation_index + 1) % LED_ANIMATION.len();
+            hal.line_sensor.enable_led(led_index);
+
+            ticker.next().await;
+        }
+
+        loop {
+            match select(hal.deck_button.next_event(None), ticker.next()).await {
+                Either::First(ButtonEvent::Press) => {
+                    hal.line_sensor.disable_leds();
+                    hal.deck_button.released().await;
+                    log::info!("Starting");
+                    return;
+                }
+                Either::Second(_) => {
+                    if read_line_for_start(hal).await.is_none() {
                         log::info!("Line lost, reposition");
+                        break;
                     }
                 }
-                if !line_ready {
-                    let led_index = LedIndex::new(LED_ANIMATION[animation_index]).unwrap();
-                    animation_index = (animation_index + 1) % LED_ANIMATION.len();
-                    hal.line_sensor.enable_led(led_index);
-                }
+                _ => {}
             }
-            _ => {}
         }
     }
 }
@@ -98,12 +112,18 @@ async fn follow_line(hal: &mut Hal<'_>) {
         .with_stiction(STICTION_PWM);
     let mut controller = VelocityController::new(gains, hal.motors.encoders());
     let mut last_position: Option<PositionT> = None;
-    let mut prev_steering_pos: Option<PositionT> = None;
+    let initial_readings = hal.line_sensor.read().await;
+    let initial_pos = detect_line(&initial_readings)
+        .iter()
+        .min_by_key(|d| d.position)
+        .map_or(PositionT::ZERO, |d| d.position);
+    let mut steering = SteeringController::new(hal.motors.encoders(), initial_pos);
     let mut lost_at_enc: Option<(i16, i16)> = None;
     let mut last_t = Instant::now();
     let mut range_filter = RangeFilter::new(hal.read_range());
 
     loop {
+        // TODO: The sensor is slower than this (40ms!)
         range_filter.add(hal.read_range());
         let dist = range_filter.filtered().distance_long();
 
@@ -121,8 +141,13 @@ async fn follow_line(hal: &mut Hal<'_>) {
                 return;
             }
             log::info!("Obstacle cleared. Resuming.");
-            controller.reset(hal.motors.encoders());
-            prev_steering_pos = None;
+            let resume_pos = detections
+                .iter()
+                .min_by_key(|d| d.position)
+                .map_or(PositionT::ZERO, |d| d.position);
+            let resume_enc = hal.motors.encoders();
+            controller.reset(resume_enc);
+            steering.reset(resume_enc, resume_pos);
             last_t = Instant::now();
         }
 
@@ -155,11 +180,14 @@ async fn follow_line(hal: &mut Hal<'_>) {
         } else if let Some(last_position) = last_position {
             if last_position.abs() > LINE_CENTERED_THRESHOLD {
                 hal.motors.stop();
-                log::info!("Line lost in outer half (pos {last_position}), stopping.");
+                log::info!("Line lost in outer half (pos {}), stopping.", last_position);
                 return;
             }
             if lost_at_enc.is_none() {
-                log::info!("Line lost in inner half (pos {last_position}), continuing on arc");
+                log::info!(
+                    "Line lost in inner half (pos {}), continuing on arc",
+                    last_position
+                );
             }
             // TODO: rules allow the line to resume anywhere within a 30 degree cone from the
             // interruption point. For now we just continue in the same arc rely on the search distance.
@@ -171,7 +199,7 @@ async fn follow_line(hal: &mut Hal<'_>) {
                 hal.motors.stop();
                 log::info!(
                     "No line after {:.2} m, stopping.",
-                    dist as f32 / METERS_PER_TICK
+                    dist as f32 * METERS_PER_TICK
                 );
                 return;
             }
@@ -182,37 +210,95 @@ async fn follow_line(hal: &mut Hal<'_>) {
             return;
         };
 
-        let speeds = calculate_steering(BASE_SPEED, steering_line_position, prev_steering_pos);
-        prev_steering_pos = Some(steering_line_position);
+        let speeds = steering.update(BASE_SPEED, steering_line_position, enc);
 
         let (l, r) = controller.update(enc, speeds, dt);
         hal.motors.set(l.motor_pwm, r.motor_pwm);
     }
 }
 
-fn calculate_steering(
-    speed: i32,
-    line_position: PositionT,
-    prev_position: Option<PositionT>,
-) -> (i16, i16) {
-    // Widen the i16-backed position into i32, scale is unchanged.
-    let pos = Position32T::from_num(line_position);
-    let d_pos = prev_position.map_or(Position32T::ZERO, |prev| pos - Position32T::from_num(prev));
+/// Proportional steering with a distance-based derivative look-ahead.
+///
+/// Holds a first-order spatial low-pass of the line position whose lag estimates the path
+/// derivative `d(position)/d(distance)` without dividing by the per-loop distance.
+struct SteeringController {
+    /// Distance-based EWMA of the line position.
+    /// This approximates the line position as it was `STEERING_DERIV_LENGTH_TICKS` ago.
+    filtered_pos: Position32T,
+    /// Encoder reading at the previous update, for differentiating distance travelled.
+    prev_enc: (i16, i16),
+}
 
-    // steering = speed * (KP * pos + KD * d_pos)
-    let factor = Gain::ZERO
-        .add_prod(STEERING_KP, pos)
-        .add_prod(STEERING_KD, d_pos);
-    let steering = (factor * speed).to_num::<i32>();
-    log::debug!("steering: factor={factor} total={steering}");
+impl SteeringController {
+    fn new(enc: (i16, i16), line_position: PositionT) -> Self {
+        Self {
+            filtered_pos: Position32T::from_num(line_position),
+            prev_enc: enc,
+        }
+    }
 
-    const MAX: i32 = MAX_SPEED as i32;
-    let left = (speed + steering).clamp(-MAX, MAX) as i16;
-    let right = (speed - steering).clamp(-MAX, MAX) as i16;
+    /// Re-seeds the smoothing state from `line_position` and resets the distance reference.
+    fn reset(&mut self, enc: (i16, i16), line_position: PositionT) {
+        self.filtered_pos = Position32T::from_num(line_position);
+        self.prev_enc = enc;
+    }
 
-    log::debug!("left, right = ({left}, {right})");
+    /// Returns the `(left, right)` motor speeds for a given base `speed`, the current line
+    /// `line_position`, and the current encoder reading `enc` (the distance travelled since the
+    /// last update is differentiated internally).
+    fn update(&mut self, speed: i32, line_position: PositionT, enc: (i16, i16)) -> (i16, i16) {
+        // Distance travelled since the last update, averaged across both wheels.
+        let ds = (enc.0.wrapping_sub(self.prev_enc.0) as i32
+            + enc.1.wrapping_sub(self.prev_enc.1) as i32)
+            / 2;
+        debug_assert!(
+            ds < 150,
+            "Guaranteed by maximum wheel speed and >= 100Hz update rate"
+        );
+        debug_assert!(
+            ds >= 0,
+            "This steering controller only works when driving forward"
+        );
+        self.prev_enc = enc;
 
-    (left, right)
+        // Widen the i16-backed position into i32, scale is unchanged.
+        let line_position = Position32T::from_num(line_position);
+
+        // Smoothing weight for the EWMA distance filter depends on distance driven
+        // The formula is obtained by forcing the result of this filter to estimate exactly
+        // the derivative in case the input position changes linearly.
+        let alpha = I9F23::from_num(ds) / (STEERING_DERIV_LENGTH_TICKS + ds);
+
+        // Updating the smoothing EWMA
+        self.filtered_pos += (line_position - self.filtered_pos).mul_add(alpha, Position32T::ZERO);
+
+        // Effectively we calculate
+        // `derivative = (line_position - self.filtered_pos) / STEERING_DERIV_LENGTH_TICKS` (in line sensor units per encoder tick)
+        // `lookahead = derivative * STEERING_LEAD_RATIO` (in line sensor units),
+        // but without the rounding in the middle
+        const {
+            assert!(
+                STEERING_LEAD_TICKS % STEERING_DERIV_LENGTH_TICKS == 0,
+                "Steering lead ratio should be an exact integer for this trick"
+            );
+        };
+        const STEERING_LEAD_RATIO: i32 = STEERING_LEAD_TICKS / STEERING_DERIV_LENGTH_TICKS;
+        let lookahead = (line_position - self.filtered_pos) * STEERING_LEAD_RATIO;
+
+        // Extrapolate a fixed look-ahead distance along the path.
+        let extrapolated = line_position + lookahead;
+
+        let factor = STEERING_KP.mul_add(extrapolated, Gain::ZERO);
+
+        let steering = (factor * speed).to_num::<i32>();
+        log::debug!("{steering} = {speed} * {STEERING_KP} * ({line_position} + {lookahead})");
+
+        const MAX: i32 = MAX_SPEED as i32;
+        let left = (speed + steering).clamp(-MAX, MAX) as i16;
+        let right = (speed - steering).clamp(-MAX, MAX) as i16;
+
+        (left, right)
+    }
 }
 
 // Returns true when the path is clear, false if stopped by button press.
@@ -242,6 +328,19 @@ async fn wait_for_obstacle_clear(hal: &mut Hal<'_>, range_filter: &mut RangeFilt
             return false;
         }
     }
+}
+
+/// Reads the line sensor and verifies that there is only one line detected
+/// centered on the sensor.
+async fn read_line_for_start(hal: &mut Hal<'_>) -> Option<LineDetection> {
+    let detections = detect_line(&hal.line_sensor.read().await);
+
+    detections
+        .iter()
+        .exactly_one()
+        .ok()
+        .filter(|d| d.position.abs() <= LINE_CENTERED_THRESHOLD)
+        .cloned()
 }
 
 struct RangeFilter {
