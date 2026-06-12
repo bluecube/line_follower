@@ -1,19 +1,20 @@
 #![no_std]
 
+pub mod adc;
 pub mod button;
 pub mod line_sensor;
 pub mod motors;
 
+pub use adc::{BatterySensor, RangeSensor};
+
 use button::Button;
 use esp_hal::{
-    analog::adc::{AdcChannel, Attenuation, RegisterAccess},
     gpio::{Level, Output, OutputConfig, Pin},
     interrupt::software::SoftwareInterruptControl,
-    peripherals::{ADC2, BT, Peripherals},
+    peripherals::{BT, Peripherals},
     timer::timg::TimerGroup,
 };
 use esp_radio::ble::controller::BleConnector;
-use lf_hal_types::{BatteryMeasurement, RangeMeasurement};
 use line_sensor::LineSensor;
 use motors::{MotorChannelPins, Motors};
 use trouble_host::prelude::ExternalController;
@@ -27,8 +28,8 @@ pub struct Hal<'d> {
     pub boot_button: Button<'d>,
     pub line_sensor: LineSensor<'d>,
     led: Output<'d>,
-    battery_adc_channel: u8,
-    range_adc_channel: u8,
+    pub range: RangeSensor,
+    pub battery: BatterySensor,
     bt: Option<BT<'d>>,
 }
 
@@ -39,13 +40,10 @@ impl<'d> Hal<'d> {
         let sw_ints = SoftwareInterruptControl::new(p.SW_INTERRUPT);
         esp_rtos::start(TimerGroup::new(p.TIMG0).timer0, sw_ints.software_interrupt0);
 
-        // ADC2 is consumed by LineSensor, extract battery and range ADC pins before that
-        // and then set attenuation using direct register access
-        let battery_adc_channel = p.GPIO15.adc_channel();
-        let range_adc_channel = p.GPIO12.adc_channel();
-        // Only the ADC channel index is needed; consume the pins so they can't be reused.
-        let _ = p.GPIO15;
-        let _ = p.GPIO12;
+        // Battery and range are on ADC2, which LineSensor also consumes; the sensors own their
+        // own GPIOs and read ADC2 directly via register access.
+        let battery = BatterySensor::new(p.GPIO15);
+        let range = RangeSensor::new(p.GPIO12);
 
         let line_sensor = LineSensor::new(
             [p.GPIO27.degrade(), p.GPIO32.degrade(), p.GPIO26.degrade()],
@@ -53,9 +51,6 @@ impl<'d> Hal<'d> {
             p.ADC2,
             (p.GPIO33, p.GPIO14, p.GPIO35, p.GPIO25, p.GPIO34),
         );
-
-        ADC2::set_attenuation(battery_adc_channel as usize, Attenuation::_11dB as u8);
-        ADC2::set_attenuation(range_adc_channel as usize, Attenuation::_11dB as u8);
 
         Self {
             deck_button: Button::new(p.GPIO5),
@@ -78,8 +73,8 @@ impl<'d> Hal<'d> {
                     enc_b: p.GPIO39.degrade(),
                 },
             ),
-            battery_adc_channel,
-            range_adc_channel,
+            range,
+            battery,
             bt: Some(p.BT),
         }
     }
@@ -105,30 +100,5 @@ impl<'d> Hal<'d> {
 
     pub fn set_led(&mut self, on: bool) {
         self.led.set_level(on.into());
-    }
-
-    #[must_use]
-    pub fn read_battery(&self) -> BatteryMeasurement {
-        BatteryMeasurement {
-            raw: self.read_adc2(self.battery_adc_channel),
-        }
-    }
-
-    /// Reads the range measurement from the Sharp GP2Y0A21YK0F sensor.
-    /// The part only updates positions roughly every 40ms!
-    #[must_use]
-    pub fn read_range(&self) -> RangeMeasurement {
-        RangeMeasurement {
-            raw: self.read_adc2(self.range_adc_channel),
-        }
-    }
-
-    fn read_adc2(&self, channel: u8) -> u16 {
-        // Critical section prevents the BLE PHY ISR from running a concurrent
-        // ADC2 conversion (for TX power detection) and corrupting the result.
-        critical_section::with(|_| {
-            line_sensor::LineSensor::start_adc2(channel);
-            line_sensor::LineSensor::read_adc::<ADC2>() as u16
-        })
     }
 }

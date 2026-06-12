@@ -20,7 +20,7 @@ const SAMPLE_INTERVAL: Duration = Duration::from_millis(5);
 async fn print_readings(hal: &mut Hal<'_>) {
     let mut ticker = Ticker::every(PRINT_INTERVAL);
     loop {
-        let r = hal.read_range();
+        let r = hal.range.read();
         log::info!("long = {} (raw = {})", r.distance_long(), r.raw);
         if select(ticker.next(), hal.deck_button.released())
             .await
@@ -35,7 +35,7 @@ async fn sample_raw_average(hal: &mut Hal<'_>) -> f32 {
     let mut sum = 0u32;
     for _ in 0..SAMPLE_COUNT {
         Timer::after(SAMPLE_INTERVAL).await;
-        sum += hal.read_range().raw as u32;
+        sum += hal.range.read().raw as u32;
     }
     sum as f32 / SAMPLE_COUNT as f32
 }

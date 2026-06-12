@@ -120,11 +120,11 @@ async fn follow_line(hal: &mut Hal<'_>) {
     let mut steering = SteeringController::new(hal.motors.encoders(), initial_pos);
     let mut lost_at_enc: Option<(i16, i16)> = None;
     let mut last_t = Instant::now();
-    let mut range_filter = RangeFilter::new(hal.read_range());
+    let mut range_filter = RangeFilter::new(hal.range.read());
 
     loop {
         // TODO: The sensor is slower than this (40ms!)
-        range_filter.add(hal.read_range());
+        range_filter.add(hal.range.read());
         let dist = range_filter.filtered().distance_long();
 
         if dist < OBSTACLE_STOP_M {
@@ -305,7 +305,7 @@ impl SteeringController {
 async fn wait_for_obstacle_clear(hal: &mut Hal<'_>, range_filter: &mut RangeFilter) -> bool {
     let mut clear_since: Option<Instant> = None;
     loop {
-        range_filter.add(hal.read_range());
+        range_filter.add(hal.range.read());
         let dist = range_filter.filtered().distance_long();
         if dist > OBSTACLE_CLEAR_M {
             let now = Instant::now();

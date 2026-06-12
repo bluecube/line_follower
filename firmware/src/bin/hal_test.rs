@@ -133,7 +133,7 @@ async fn test_battery(hal: &mut Hal<'_>) -> Option<()> {
     test_section!("Battery voltage");
     let mut sum: u32 = 0;
     for _ in 0..ADC_SAMPLES {
-        sum += hal.read_battery().raw as u32;
+        sum += hal.battery.read().raw as u32;
     }
     let avg_raw = sum / ADC_SAMPLES;
     let voltage = BatteryMeasurement {
@@ -150,7 +150,7 @@ async fn test_range(hal: &mut Hal<'_>) -> Option<()> {
     wait_for_continue(hal).await?;
     let mut sum: u32 = 0;
     for _ in 0..ADC_SAMPLES {
-        sum += hal.read_range().raw as u32;
+        sum += hal.range.read().raw as u32;
     }
     let avg_raw = sum / ADC_SAMPLES;
     let distance = RangeMeasurement {

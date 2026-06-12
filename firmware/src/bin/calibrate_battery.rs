@@ -19,7 +19,7 @@ const SAMPLE_INTERVAL: Duration = Duration::from_millis(5);
 async fn print_voltages(hal: &mut Hal<'_>) {
     let mut ticker = Ticker::every(PRINT_INTERVAL);
     loop {
-        let v = hal.read_battery();
+        let v = hal.battery.read();
         log::info!("voltage = {:.2} V (raw = {})", v.voltage(), v.raw);
         if select(ticker.next(), hal.deck_button.released())
             .await
@@ -34,7 +34,7 @@ async fn sample_raw_average(hal: &mut Hal<'_>) -> f32 {
     let mut sum = 0u32;
     for _ in 0..SAMPLE_COUNT {
         Timer::after(SAMPLE_INTERVAL).await;
-        sum += hal.read_battery().raw as u32;
+        sum += hal.battery.read().raw as u32;
     }
     sum as f32 / SAMPLE_COUNT as f32
 }
