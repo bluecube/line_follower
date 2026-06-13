@@ -10,11 +10,16 @@ extern crate alloc;
 
 use embassy_executor::Spawner;
 use embassy_futures::select::{Either, select};
-use embassy_time::{Duration, Instant, Ticker, WithTimeout as _};
+use embassy_time::{Duration, Instant, Ticker};
 use esp_backtrace as _;
 use fixed::types::I9F23;
 use itertools::Itertools as _;
-use lf_hal::{Hal, button::ButtonEvent, line_sensor::LedIndex};
+use lf_hal::{
+    Hal, RangeSensor,
+    button::ButtonEvent,
+    line_sensor::{LedIndex, LineSensor},
+    motors::Motors,
+};
 use lf_hal_types::{
     RangeMeasurement,
     motors::{MAX_SPEED, METERS_PER_TICK, PwmT},
@@ -34,10 +39,11 @@ const KP: f32 = 0.4;
 const TI: f32 = 0.3;
 const TD: f32 = 0.005;
 const STICTION_PWM: PwmT = PwmT::new_static::<400>();
-const OBSTACLE_STOP_M: f32 = 0.20;
-const OBSTACLE_CLEAR_M: f32 = 0.40;
+const OBSTACLE_STOP_M: f32 = 0.15;
+const OBSTACLE_CLEAR_M: f32 = 0.30;
 const OBSTACLE_CLEAR_DURATION: Duration = Duration::from_secs(3);
 const LOST_LINE_DIST_M: f32 = 0.30;
+const MAIN_LOOP_PERIOD: Duration = Duration::from_millis(10);
 const OBSTACLE_POLL: Duration = Duration::from_millis(100);
 const LINE_CENTERED_THRESHOLD: PositionT = PositionT::lit("0.5");
 const SCAN_INTERVAL: Duration = Duration::from_millis(120);
@@ -49,7 +55,16 @@ async fn main(spawner: Spawner) {
     let mut hal = line_follower::init!(spawner);
     loop {
         wait_for_start(&mut hal).await;
-        follow_line(&mut hal).await;
+
+        if let Either::Second(()) = select(
+            follow_line(&mut hal.motors, &mut hal.line_sensor, &hal.range),
+            hal.deck_button.pressed(),
+        )
+        .await
+        {
+            hal.motors.stop();
+            log::info!("Stopped by button.");
+        }
     }
 }
 
@@ -106,114 +121,123 @@ async fn wait_for_start(hal: &mut Hal<'_>) {
     }
 }
 
-async fn follow_line(hal: &mut Hal<'_>) {
+async fn follow_line(
+    motors: &mut Motors<'_>,
+    line_sensor: &mut LineSensor<'_>,
+    range: &RangeSensor,
+) {
     let gains = Gains::from_standard(KP, TI, TD)
         .unwrap()
         .with_stiction(STICTION_PWM);
-    let mut controller = VelocityController::new(gains, hal.motors.encoders());
-    let mut last_position: Option<PositionT> = None;
-    let initial_readings = hal.line_sensor.read().await;
-    let initial_pos = detect_line(&initial_readings)
+
+    // Initial values
+    let initial_readings = line_sensor.read().await;
+    let Some(initial_pos) = detect_line(&initial_readings)
         .iter()
-        .min_by_key(|d| d.position)
-        .map_or(PositionT::ZERO, |d| d.position);
-    let mut steering = SteeringController::new(hal.motors.encoders(), initial_pos);
-    let mut lost_at_enc: Option<(i16, i16)> = None;
-    let mut last_t = Instant::now();
-    let mut range_filter = RangeFilter::new(hal.range.read());
+        .next()
+        .map(|d| d.position)
+    else {
+        log::error!("follow_line without line detected.");
+        return;
+    };
+    let initial_enc = motors.encoders();
+    let now = Instant::now();
+
+    // Controllers
+    let mut velocity = VelocityController::new(gains, initial_enc);
+    let mut steering = SteeringController::new(motors.encoders(), initial_pos);
+
+    // Mutable loop state
+    let mut line_lost_at: Option<(i16, i16)> = None;
+    let mut last_good_line_position = initial_pos;
+    let mut last_t = now;
+    let mut range_filter = RangeFilter::new(range.read());
+
+    let mut ticker = Ticker::every(MAIN_LOOP_PERIOD);
 
     loop {
-        // TODO: The sensor is slower than this (40ms!)
-        range_filter.add(hal.range.read());
+        range_filter.add(range.read());
         let dist = range_filter.filtered().distance_long();
 
         if dist < OBSTACLE_STOP_M {
-            hal.motors.stop();
+            motors.stop();
             log::info!("Obstacle at {dist:.2} m. Waiting for clear.");
-            if !wait_for_obstacle_clear(hal, &mut range_filter).await {
-                return;
-            }
-            let readings = hal.line_sensor.read().await;
+            wait_for_obstacle_clear(range, &mut range_filter).await;
+            let readings = line_sensor.read().await;
             let detections = detect_line(&readings);
             if detections.is_empty() {
-                hal.motors.stop();
                 log::info!("Obstacle cleared but no line detected. Stopping.");
                 return;
+            } else {
+                log::info!("Obstacle cleared. Resuming.");
+                let resume_enc = motors.encoders();
+                last_t = Instant::now();
+                velocity.reset(resume_enc);
+                ticker.reset();
             }
-            log::info!("Obstacle cleared. Resuming.");
-            let resume_pos = detections
-                .iter()
-                .min_by_key(|d| d.position)
-                .map_or(PositionT::ZERO, |d| d.position);
-            let resume_enc = hal.motors.encoders();
-            controller.reset(resume_enc);
-            steering.reset(resume_enc, resume_pos);
-            last_t = Instant::now();
         }
 
-        // Read line sensor concurrently with button monitoring. `pressed()` resolves only on a
-        // press, so a release event won't cancel an in-flight line read.
-        let readings = match select(hal.deck_button.pressed(), hal.line_sensor.read()).await {
-            Either::First(()) => {
-                hal.motors.stop();
-                log::info!("Stopped by button.");
-                return;
-            }
-            Either::Second(r) => r,
-        };
+        let readings = line_sensor.read().await;
 
         let detections = detect_line(&readings);
         // When multiple lines are detected, follow the leftmost (most negative position).
         // Chosen for consistency for now; revisit if we need to handle forks or intersections.
         let detection = detections.iter().min_by_key(|d| d.position).copied();
 
-        let enc = hal.motors.encoders();
+        let enc = motors.encoders();
         let now = Instant::now();
         let dt = now - last_t;
         last_t = now;
 
         let steering_line_position = if let Some(detection) = detection {
             let pos = detection.position;
-            last_position = Some(pos);
-            lost_at_enc = None;
+            last_good_line_position = pos;
+            line_lost_at = None;
             pos
-        } else if let Some(last_position) = last_position {
-            if last_position.abs() > LINE_CENTERED_THRESHOLD {
-                hal.motors.stop();
-                log::info!("Line lost in outer half (pos {}), stopping.", last_position);
-                return;
+        } else {
+            if let Some(line_lost_at) = line_lost_at {
+                // We were already driving with lost line, verify that we did not drive away too far.
+
+                let dl = enc.0.wrapping_sub(line_lost_at.0) as i32;
+                let dr = enc.1.wrapping_sub(line_lost_at.1) as i32;
+                let dist = (dl + dr) / 2;
+                if dist.abs() > (LOST_LINE_DIST_M / METERS_PER_TICK) as i32 {
+                    motors.stop();
+                    log::info!(
+                        "No line after {:.2} m, stopping.",
+                        dist as f32 * METERS_PER_TICK
+                    );
+                    return;
+                }
+            } else {
+                // Line lost for the first time
+
+                if last_good_line_position.abs() > LINE_CENTERED_THRESHOLD {
+                    motors.stop();
+                    log::info!(
+                        "Line lost in outer half (pos {}), stopping.",
+                        last_good_line_position
+                    );
+                    return;
+                } else {
+                    line_lost_at = Some(enc);
+                    log::info!(
+                        "Line lost in inner half (pos {}), continuing on arc",
+                        last_good_line_position
+                    );
+                }
             }
-            if lost_at_enc.is_none() {
-                log::info!(
-                    "Line lost in inner half (pos {}), continuing on arc",
-                    last_position
-                );
-            }
+
             // TODO: rules allow the line to resume anywhere within a 30 degree cone from the
             // interruption point. For now we just continue in the same arc rely on the search distance.
-            let start = *lost_at_enc.get_or_insert(enc);
-            let dl = enc.0.wrapping_sub(start.0) as i32;
-            let dr = enc.1.wrapping_sub(start.1) as i32;
-            let dist = (dl + dr) / 2;
-            if dist.abs() > (LOST_LINE_DIST_M / METERS_PER_TICK) as i32 {
-                hal.motors.stop();
-                log::info!(
-                    "No line after {:.2} m, stopping.",
-                    dist as f32 * METERS_PER_TICK
-                );
-                return;
-            }
-            last_position
-        } else {
-            hal.motors.stop();
-            log::info!("No line on start, stopping.");
-            return;
+            last_good_line_position
         };
 
         let speeds = steering.update(BASE_SPEED, steering_line_position, enc);
+        let (l, r) = velocity.update(enc, speeds, dt);
+        motors.set(l.motor_pwm, r.motor_pwm);
 
-        let (l, r) = controller.update(enc, speeds, dt);
-        hal.motors.set(l.motor_pwm, r.motor_pwm);
+        ticker.next().await;
     }
 }
 
@@ -235,12 +259,6 @@ impl SteeringController {
             filtered_pos: Position32T::from_num(line_position),
             prev_enc: enc,
         }
-    }
-
-    /// Re-seeds the smoothing state from `line_position` and resets the distance reference.
-    fn reset(&mut self, enc: (i16, i16), line_position: PositionT) {
-        self.filtered_pos = Position32T::from_num(line_position);
-        self.prev_enc = enc;
     }
 
     /// Returns the `(left, right)` motor speeds for a given base `speed`, the current line
@@ -301,31 +319,26 @@ impl SteeringController {
     }
 }
 
-// Returns true when the path is clear, false if stopped by button press.
-async fn wait_for_obstacle_clear(hal: &mut Hal<'_>, range_filter: &mut RangeFilter) -> bool {
-    let mut clear_since: Option<Instant> = None;
+// Returns once the path has been clear for `OBSTACLE_CLEAR_DURATION`.
+async fn wait_for_obstacle_clear(range: &RangeSensor, range_filter: &mut RangeFilter) {
+    let mut unblock_at: Option<Instant> = None;
+    let mut ticker = Ticker::every(OBSTACLE_POLL);
     loop {
-        range_filter.add(hal.range.read());
+        ticker.next().await;
+
+        range_filter.add(range.read());
         let dist = range_filter.filtered().distance_long();
         if dist > OBSTACLE_CLEAR_M {
             let now = Instant::now();
-            let since = *clear_since.get_or_insert(now);
-            if now - since >= OBSTACLE_CLEAR_DURATION {
-                return true;
+            if let Some(unblock_at) = unblock_at {
+                if now >= unblock_at {
+                    return;
+                }
+            } else {
+                unblock_at = Some(now + OBSTACLE_CLEAR_DURATION);
             }
-        } else if clear_since.take().is_some() {
+        } else if unblock_at.take().is_some() {
             log::info!("Obstacle returned at {dist:.2} m, resetting timer.");
-        }
-
-        if hal
-            .deck_button
-            .pressed()
-            .with_timeout(OBSTACLE_POLL)
-            .await
-            .is_ok()
-        {
-            log::info!("Stopped by button during obstacle wait.");
-            return false;
         }
     }
 }
