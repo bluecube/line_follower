@@ -32,9 +32,9 @@ use line_follower::{
 esp_bootloader_esp_idf::esp_app_desc!();
 
 const BASE_SPEED: i32 = 1000;
-const STEERING_KP: Gain = Gain::lit("0.75");
-const STEERING_LEAD_TICKS: i32 = 256; // Derivative look-ahead distance along the path (~75 mm)
 const STEERING_DERIV_LENGTH_TICKS: i32 = 64; // Distance over which the steering derivative is averaged (~15 mm)
+const STEERING_KP: Gain = Gain::lit("0.75");
+const STEERING_LEAD_TICKS: i32 = 384; // Derivative look-ahead distance along the path. Must be multiple of STEERING_DERIV_LENGTH_TICKS.
 const KP: f32 = 0.4;
 const TI: f32 = 0.3;
 const TD: f32 = 0.005;
