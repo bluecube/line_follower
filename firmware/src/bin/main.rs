@@ -42,7 +42,7 @@ const STICTION_PWM: PwmT = PwmT::new_static::<400>();
 const OBSTACLE_STOP_M: f32 = 0.15;
 const OBSTACLE_CLEAR_M: f32 = 0.30;
 const OBSTACLE_CLEAR_DURATION: Duration = Duration::from_secs(3);
-const LOST_LINE_DIST_M: f32 = 0.30;
+const LOST_LINE_DIST_TICKS: i32 = (0.3 / METERS_PER_TICK) as i32;
 const MAIN_LOOP_PERIOD: Duration = Duration::from_millis(10);
 const OBSTACLE_POLL: Duration = Duration::from_millis(100);
 const LINE_CENTERED_THRESHOLD: PositionT = PositionT::lit("0.5");
@@ -201,7 +201,7 @@ async fn follow_line(
                 let dl = enc.0.wrapping_sub(line_lost_at.0) as i32;
                 let dr = enc.1.wrapping_sub(line_lost_at.1) as i32;
                 let dist = (dl + dr) / 2;
-                if dist.abs() > (LOST_LINE_DIST_M / METERS_PER_TICK) as i32 {
+                if dist.abs() > LOST_LINE_DIST_TICKS {
                     motors.stop();
                     log::info!(
                         "No line after {:.2} m, stopping.",
