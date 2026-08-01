@@ -59,6 +59,16 @@ Connect with nRF Connect (Android) or `bleak` (Python/Linux) and subscribe to th
 - Use `proptest` crate to test different value inputs where it makes sense.
 
 
+## Remote (web app)
+
+`remote/` is a self-contained, installable PWA (no build step, no dependencies) that connects to the robot over Web Bluetooth and streams its logs. Serve the directory over HTTPS (or localhost); requires a Chromium-based browser.
+
+- `index.html` — page shell only (markup + asset links).
+- `styles.css` — styles (VS Code-ish dark theme, `color-scheme: light dark`).
+- `app.js` — logic: connects to the `LineFollower` device, subscribes to NUS TX (`6e400003-...`, notify), decodes the byte stream into lines, and renders them. Also registers the service worker.
+- `sw.js` — network-first service worker (app shell only; all robot data is BLE, never network). When online it always fetches fresh and refreshes the cache, so content edits ship on the next online reload with no version bump. `ASSETS` precaches the shell for offline use -- keep it in sync when adding/renaming files (`cache.addAll` is atomic: a missing path breaks the whole install). Bump `CACHE` only to force-purge stale offline caches.
+- `manifest.webmanifest` + `icon.svg` — installability metadata and icon.
+
 ## General guidelines
 
 - Keep this file up to date in case of relevant changes.

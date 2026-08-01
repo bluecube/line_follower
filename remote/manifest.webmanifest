@@ -1,0 +1,19 @@
+{
+  "name": "LineFollower Remote Control",
+  "short_name": "LF Remote",
+  "description": "Live BLE log viewer (and later remote control) for the LineFollower robot",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e1e1e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

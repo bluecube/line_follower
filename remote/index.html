@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <title>LineFollower Log Stream</title>
+</head>
+<body>
+  <header>
+    <h1>LineFollower Log Stream</h1>
+    <span id="status">Disconnected</span>
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" class="secondary" disabled>Disconnect</button>
+    <button id="clearBtn" class="secondary">Clear</button>
+  </header>
+  <div id="log" aria-live="polite"></div>
+  <div id="hint">
+    Requires a Chromium-based browser served over a secure context
+    (localhost or https). RX is unused &mdash; logs stream as soon as you connect.
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
